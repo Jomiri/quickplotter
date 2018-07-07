@@ -1,0 +1,65 @@
+
+.topnav {
+    position: fixed;
+    background-color: black;
+    top: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    font-family: Sans-Serif;
+    z-index: 2;
+}
+
+.topnav button {
+    background-color: black;
+    border: 1px solid black;
+    color: white;
+    padding: 10px 16px;
+    cursor: pointer;
+    float: left;
+    display: block;
+    background-color: black;
+}
+
+.topnav div {
+    color: white;
+    padding: 10px 16px;
+    display: block;
+    float: right;
+    border: 1px solid black;
+}
+
+.topnav button:hover {
+    background-color: grey;
+    color: black;
+}
+
+#figure_area {
+    border: 5px solid gray;
+    position: relative;
+    border-style: dashed;
+    top: 10vh;
+    width: 80vw;
+    height: 80vh;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+#instruction_text {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    font-family: Sans-Serif;
+    font-size: 20px;
+}
+
+#instruction_text p {
+    text-align: center;
+}
+
+canvas {
+    visibility: hidden;
+}
