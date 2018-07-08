@@ -28,22 +28,113 @@
 </head>
 
 <body>
-    <div id='top_buttons' class='topnav'>
-        <button id='pngButton' type='button'>Save as PNG</button>
-        <button id='svgButton' type='button'>Save as SVG</button>
-        <div> Y label: <input type='text' id='yLabel' name='yLabel' value=''></div>
-        <div> X label: <input type='text' id='xLabel' name='xLabel' value=''></div>
-    </div>
-    <div id='figure_area' ondrop='dropHandler(event);'
-        ondragover='dragOverHandler(event);'
-        contenteditable='true'>
-        <div id='instruction_text'>
-            <p>Drag and drop your file or paste from clipboard.</p>
-            <p>The data will not be uploaded to the server.</p>
+    <div id='main-content'>
+
+        <div id='sidebar'>
+            <h1>Quickplotter <sup>beta</sup> </h1>
+            <ul>
+            <li><div class='row'> 
+                <div class='left'>
+                    <label>title:</label>
+                    <input type='text' id='title' name='title' value=''>
+                </div>
+                <div class='right'>
+                    <label>font size:</label>
+                    <select type='text' id='titleFontSize' name='titleFontSize' value=''></select>
+            </div></li>
+            <li><div class='row'>
+                <div class='left'>
+                    <label>x label:</label>
+                    <input type='text' id='xLabel' name='xLabel' value=''>
+                </div>
+                <div class='right'>
+                    <label>font size:</label>
+                    <select type='text' id='xFontSize' name='xFontSize' value=''></select>
+                </div>
+            </div></li>
+            <li><div class='row'>
+                <div class='left'>
+                    <label>y label:</label>
+                    <input type='text' id='yLabel' name='yLabel' value=''>
+                </div>
+                <div class='right'>
+                    <label>font size:</label>
+                    <select type='text' id='yFontSize' name='yFontSize' value=''></select>
+                </div>
+            </div></li>
+            <li><div class='row'>
+                <div class='left'>
+                    <label>x start:</label>
+                    <input type='text' class='half_item' id='xStart' name='xStart' value=''>
+                </div>
+                <div class='right'>
+                    <label>x end:</label>
+                    <input type='text' class='half_item' id='xEnd' name='xEnd' value=''>
+                </div>
+            </div></li>
+            <li><div class='row'>
+                <div class='left'>
+                    <label>y start:</label>
+                    <input type='text' class='half_item' id='yStart' name='yStart' value=''>
+                </div>
+                <div class='right'>
+                    <label>y end:</label>
+                    <input type='text' class='half_item' id='yEnd' name='yEnd' value=''>
+                </div>
+            </div></li>
+            <li><div class='row'>
+                <label>multiply x by:</label>
+                <input type='text' id='xScaling' name='xScaling' value=''>
+            </div></li>
+            <li><div class='row'>
+                <label>multiply y by:</label>
+                <input type='text' id='yScaling' name='yScaling' value=''>
+            </div></li>
+            <li class='plotParam'><div class='row'>
+                <div class='left'>
+                <label>plot type:</label>
+                <select type='text' id='plotType'  name='plotType' value=''>
+                    <option value='line'>Line</option>
+                    <option value='scatter'>Scatter</option>
+                </select>
+            </div></li>
+            <li class='plotParam'><div class='row'>
+                <div class='left'>
+                    <label>stroke width:</label>
+                    <select type='text' id='lineStrokeWidth' class='half_item' name='lineStrokeWidth' value=''></select>
+                </div>
+                <div class='right'>
+                    <label>dot radius:</label>
+                    <select type='text' id='scatterDotRadius' class='half_item' name='scatterDotRadius' value=''></select>
+                </div>
+            </div></li>
+            <li class='plotParam'><div class='row'>
+                    <label>plot color:</label>
+                    <input type='color' id='dataColor' name='dataColor' value='black'>
+            </div></li>
+            <li><div class='row' id='button_row'>
+                <button id='pngButton' type='button'>Save as PNG</button>
+                <button id='svgButton' type='button'>Save as SVG</button>
+            </div></li>
+            </ul>
+            <div id='fine_print'>
+                <p><small>See the source code on <a href='https://github.com/Jomiri/quickplotter'>GitHub</a></small></p>
+                <small>&copy; Copyright 2018, Joona Rissanen</small>
+            </div>
         </div>
+
+        <div id='figure_area' ondrop='dropHandler(event);'
+            ondragover='dragOverHandler(event);'
+            contenteditable='true'>
+            <div id='instruction_text'>
+                <p>Drag and drop your file here or paste from clipboard.</p>
+                <p>The data will not be uploaded to the server.</p>
+            </div>
+        </div>
+        
+        <canvas id='cvs' width='100' height='100'></canvas>
+
     </div>
-    
-    <canvas id='cvs' width='100' height='100'></canvas>
 
 </body>
 
