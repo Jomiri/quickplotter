@@ -30,9 +30,11 @@
 
 <body>
     <div id='main-content'>
-
-        <div id='sidebar'>
+        <div id='side'>
+        <div id='side-header'>
             <h1>Quickplotter <sup>beta</sup> </h1>
+        </div>
+        <div id='sidebar'>
             <ul>
             <li><div class='row'> 
                 <div class='left'>
@@ -118,12 +120,15 @@
                 <button id='svgButton' type='button'>Save as SVG</button>
             </div></li>
             </ul>
+        </div>
+        <div id='side-footer'>
             <div id='fine_print'>
                 <p><small>See the source code on <a href='https://github.com/Jomiri/quickplotter'>GitHub</a></small></p>
-                <small>&copy; Copyright 2018, Joona Rissanen</small>
+                <p><small>&copy; Copyright 2018, Joona Rissanen</small></p>
             </div>
         </div>
-
+        </div>
+        
         <div id='figure_area' ondrop='dropHandler(event);'
             ondragover='dragOverHandler(event);'
             contenteditable='true'>
