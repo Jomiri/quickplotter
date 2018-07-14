@@ -4,27 +4,24 @@
 /* global XMLSerializer */
 /* global d3 */
 
+/*
 var margin = {
-  top: 50,
+  top: 60,
   right: 40,
   bottom: 100,
   left: 100
 };
-var axMargin = {
-  x: 0.0,
-  y: 0.05
-};
-var selector = '#figure_area';
+*/
 
 const defaultPlotStyle = {
   'plotType': 'line',
-  'majorTickSize': 7,
-  'minorTickSize': 4,
-  'axisStrokeWidth': '3px',
-  'axisFontSize': '16px',
-  'xLabelFontSize': '20px',
-  'yLabelFontSize': '20px',
-  'titleFontSize': '24px',
+  'majorTickSize': 0.6, // %
+  'minorTickSize': 0.4, // %
+  'axisStrokeWidth': '0.4%',
+  'axisFontSize': 1.3, // %
+  'xLabelFontSize': 1.5,
+  'yLabelFontSize': 1.5,
+  'titleFontSize': 2, // %
   'xScaling': 1.0,
   'yScaling': 1.0,
   'xStart': 'auto',
@@ -32,8 +29,10 @@ const defaultPlotStyle = {
   'yStart': 'auto',
   'yEnd': 'auto',
   'scatterDotRadius': 5,
-  'lineStrokeWidth': '2px',
-  'dataColor': 'black'
+  'lineStrokeWidth': '3',
+  'dataColor': 'black',
+  'graphMarginX': 0.0,
+  'graphMarginY': 0.05
 };
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
@@ -52,457 +51,448 @@ var canvasResFactor = 4;
 var axisFont = 'Sans-Serif';
 var nTicks = 5;
 
-// https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
-function dropHandler (ev) {
-  ev.preventDefault();
-  if (ev.dataTransfer.items) {
-    for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-      if (ev.dataTransfer.items[i].kind === 'file') {
-        var file = ev.dataTransfer.items[i].getAsFile();
-        fileHandler(file);
-      }
+class Figure {
+  constructor () {
+    this.ax = undefined;
+    this.parentSelector = '#figure_area';
+    this.selector = '#figure';
+    this.marginPercent = {
+      top: 0.05,
+      bottom: 0.05,
+      left: 0.08,
+      right: 0.02
+    };
+  }
+
+  get thisElement () {
+    return document.querySelector(this.selector);
+  }
+
+  get parentElement () {
+    return document.querySelector(this.parentSelector);
+  }
+
+  get width () {
+    return this.parentElement.offsetWidth;
+  }
+
+  get height () {
+    return this.parentElement.offsetHeight;
+  }
+
+  get diagonal () {
+    return Math.hypot(this.height, this.width);
+  }
+
+  svgPercentageToPxInt (percentage) {
+    return Math.floor(0.01 * percentage * this.diagonal);
+  }
+
+  svgPercentageToPx (percentage) {
+    return this.svgPercentageToPxInt(percentage) + 'px';
+  }
+
+  axMargin () {
+    var diag = this.diagonal;
+    var margin = {
+      top: Math.floor(this.marginPercent.top * diag),
+      bottom: Math.floor(this.marginPercent.bottom * diag),
+      left: Math.floor(this.marginPercent.left * diag),
+      right: Math.floor(this.marginPercent.right * diag)
+    };
+    return margin;
+  }
+
+  axWidth () {
+    return this.width - this.axMargin().left - this.axMargin().right;
+  }
+
+  axHeight () {
+    return this.height - this.axMargin().top - this.axMargin().bottom;
+  }
+
+  addAxis () {
+    var ax = new Axis(this.axWidth(), this.axHeight(), this);
+    this.ax = ax;
+    return ax;
+  }
+
+  draw () {
+    var figureElem = d3.select(this.parentSelector)
+      .append('svg')
+      .attr('version', '1.1')
+      .attr('xmlns', 'http://www.w3.org/2000/svg')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .attr('viewBox', '0 0 ' + this.width + ' ' + this.height)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .attr('class', 'figure')
+      .attr('id', 'figure');
+
+    // Create an inner element to hold the axes
+    var axElem = figureElem.append('g')
+      .attr('transform', 'translate(' + this.axMargin().left + ',' + this.axMargin().top + ')')
+      .attr('width', this.axWidth())
+      .attr('height', this.axHeight())
+      .attr('class', 'ax')
+      .attr('id', 'ax');
+
+    this.ax.draw(axElem);
+  }
+
+  reset () {
+    if (this.thisElement) {
+      d3.select('svg').remove();
     }
   }
-  removeDragData(ev);
-}
+};
 
-function dragOverHandler (ev) {
-  ev.stopPropagation();
-  ev.preventDefault();
-}
-
-function removeDragData (ev) {
-  if (ev.dataTransfer.items) {
-    ev.dataTransfer.items.clear();
-  } else {
-    ev.dataTransfer.clearData();
+class Axis {
+  constructor (width, height, parentFig) {
+    this.width = width;
+    this.height = height;
+    this.parentFig = parentFig;
+    this.graph = undefined;
   }
-}
 
-// https://www.html5rocks.com/en/tutorials/file/dndfiles/
-function fileHandler (file) {
-  var reader = new FileReader();
-  reader.onload = (function (dataFile) {
-    return function (e) {
-      parseAndPlot(e.target.result, file.name);
-    };
-  })();
-  reader.readAsText(file);
-}
-
-function parseAndPlot (str, fileName) {
-  var xy = regexParse(str);
-  saveTempData(xy, fileName);
-  resetLimits();
-  plotXY(xy, margin, axMargin, selector, fileName);
-  hideInstruction(selector);
-}
-
-// https://stackoverflow.com/questions/2176861/javascript-get-clipboard-data-on-paste-event-cross-browser
-function readPasteAndPlot (e) {
-  var clipboardData, pastedData;
-  var fileName = 'pasted_data';
-
-  e.stopPropagation();
-  e.preventDefault();
-
-  clipboardData = e.clipboardData || window.clipboardData;
-  pastedData = clipboardData.getData('Text');
-  parseAndPlot(pastedData, fileName);
-}
-
-function saveTempData (xy, fileName) {
-  xyG = xy;
-  fileNameG = fileName;
-}
-
-function redraw (selector) {
-  plotXY(xyG, margin, axMargin, selector, fileNameG);
-}
-
-function scaleArray (arr, multiplier) {
-  for (var i = 0; i < arr.length; i++) {
-    arr[i] *= multiplier;
+  plot (x, y) {
+    this.graph = new Graph(x, y);
+    return this.graph;
   }
+
+  draw (axElem) {
+    console.log(this.xLim());
+    var xScale = d3.scaleLinear()
+      .domain(this.xLim())
+      .range([0, this.width]);
+
+    var yScale = d3.scaleLinear()
+      .domain(this.yLim())
+      .range([this.height, 0]);
+
+    var xMajorTickValues = xScale.ticks(nTicks);
+    var yMajorTickValues = yScale.ticks(nTicks);
+
+    var xTickFormat = getTickFormat(xMajorTickValues);
+    var yTickFormat = getTickFormat(yMajorTickValues);
+
+    var xTickValues = addMinorTicks(xMajorTickValues, this.xLim());
+    var yTickValues = addMinorTicks(yMajorTickValues, this.yLim());
+
+    this.drawClipPath(axElem);
+    console.log(xScale(this.graph.xyData.x));
+    debugger;
+    this.graph.draw(axElem, xScale, yScale);
+
+    // Define axes
+    var xAxis = d3.axisBottom(xScale)
+      .tickSize(0, 0)
+    // .ticks(nTicks)
+      .tickValues(xTickValues)
+      .tickFormat(xTickFormat);
+
+    var yAxis = d3.axisLeft(yScale)
+      .tickSize(0, 0)
+    // .ticks(nTicks)
+      .tickValues(yTickValues)
+      .tickFormat(yTickFormat);
+
+    var xAxisTop = d3.axisTop(xScale)
+      .tickSize(0, 0)
+      .tickValues(xTickValues);
+
+    var yAxisRight = d3.axisRight(yScale)
+      .tickSize(0, 0)
+      .tickValues(yTickValues);
+
+    // Add axes to the ax group
+    axElem.append('g')
+      .attr('transform', 'translate(0,' + this.height + ')')
+      .attr('class', 'x_axis')
+      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
+      .style('font-family', axisFont)
+      .style('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['axisFontSize']); })
+      .call(xAxis);
+
+    axElem.append('g')
+      .attr('transform', 'translate(0,0)')
+      .attr('class', 'y_axis')
+      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
+      .style('font-family', axisFont)
+      .style('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['axisFontSize']); })
+      .call(yAxis);
+
+    axElem.append('g')
+      .attr('transform', 'translate(0,0)')
+      .attr('class', 'x_axis_top')
+      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
+      .call(xAxisTop);
+
+    axElem.append('g')
+      .attr('transform', 'translate(' + this.width + ',0)')
+      .attr('class', 'y_axis_right')
+      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
+      .call(yAxisRight);
+
+    // Major and minor tick line formatting
+    var xTickLines = d3.selectAll('.x_axis .tick line');
+    var xTickLinesTop = d3.selectAll('.x_axis_top .tick line');
+    var yTickLines = d3.selectAll('.y_axis .tick line');
+    var yTickLinesRight = d3.selectAll('.y_axis_right .tick line');
+
+    var majorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['majorTickSize']);
+    var minorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['minorTickSize']);
+
+    xTickLines.attr('y2', function (d, i) {
+      return (i % 2 === 0) ? -majorTickSize : -minorTickSize;
+    });
+    xTickLinesTop.attr('y2', function (d, i) {
+      return (i % 2 === 0) ? majorTickSize : minorTickSize;
+    });
+    yTickLines.attr('x2', function (d, i) {
+      return (i % 2 === 0) ? majorTickSize : minorTickSize;
+    });
+    yTickLinesRight.attr('x2', function (d, i) {
+      return (i % 2 === 0) ? -majorTickSize : -minorTickSize;
+    });
+
+    // Tick label formatting
+    var xTickLabels = d3.selectAll('.x_axis .tick text');
+    var yTickLabels = d3.selectAll('.y_axis .tick text');
+    var xTickLabelsTop = d3.selectAll('.x_axis_top .tick text');
+    var yTickLabelsRight = d3.selectAll('.y_axis_right .tick text');
+
+    // Main X and Y axes: remove minor tick labels
+    xTickLabels.attr('class', function (d, i) {
+      if (i % 2 !== 0) d3.select(this).remove();
+    });
+    yTickLabels.attr('class', function (d, i) {
+      if (i % 2 !== 0) d3.select(this).remove();
+    });
+
+    // Secondary axes: remove all tick labels
+    xTickLabelsTop.attr('class', function (d, i) {
+      d3.select(this).remove();
+    });
+    yTickLabelsRight.attr('class', function (d, i) {
+      d3.select(this).remove();
+    });
+
+    // Move printed labels away from the axis
+    xTickLabels.attr('transform', 'translate(0,5)');
+    yTickLabels.attr('transform', 'translate(-5,0)');
+    this.addXLabel(document.getElementById('xLabel').value);
+    this.addYLabel(document.getElementById('yLabel').value);
+    this.addTitle(document.getElementById('title').value);
+  }
+
+  drawClipPath (axElem) {
+    axElem.append('clipPath')
+      .attr('id', 'clip_path')
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', this.width)
+      .attr('height', this.height);
+  }
+
+  addTitle (titleText) {
+    var center = Math.floor(this.width / 2);
+    var axis = d3.select('#ax');
+    axis.selectAll('.title').remove();
+    axis.append('text')
+      .attr('class', 'title')
+      .attr('text-anchor', 'middle')
+      .attr('x', center)
+      .attr('y', -this.parentFig.svgPercentageToPxInt(1))
+      .attr('font-family', axisFont)
+      .attr('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['titleFontSize']); })
+      .text(titleText);
+  }
+
+  addXLabel (labelText) {
+    var center = Math.floor(this.width / 2);
+    var axis = d3.select('#ax');
+    axis.selectAll('.x_label').remove();
+    axis.append('text')
+      .attr('class', 'x_label')
+      .attr('text-anchor', 'middle')
+      .attr('x', center)
+      .attr('y', this.height + this.parentFig.svgPercentageToPxInt(4))
+      .attr('font-family', axisFont)
+      .attr('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']); })
+      .text(labelText);
+  }
+
+  addYLabel (labelText) {
+    var center = Math.floor(this.height / 2);
+    var axis = d3.select('#ax');
+    axis.selectAll('.y_label').remove();
+    axis.append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('class', 'y_label')
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'central')
+      .attr('y', -this.parentFig.svgPercentageToPxInt(5))
+      .attr('x', -center)
+      .attr('dy', '0.75em')
+      .attr('font-family', axisFont)
+      .attr('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']); })
+      .text(labelText);
+  }
+
+  xLim () {
+    var userLimits = [currentPlotStyle['xStart'], currentPlotStyle['xEnd']];
+    return this.getCoordinateLimits(this.graph.xLim(), userLimits);
+  }
+
+  yLim () {
+    var userLimits = [currentPlotStyle['yStart'], currentPlotStyle['yEnd']];
+    return this.getCoordinateLimits(this.graph.yLim(), userLimits);
+  }
+
+  getCoordinateLimits (dataLimits, userLimits) {
+    var lim = dataLimits;
+    if (userLimits[0] !== 'auto') {
+      lim[0] = toFloat(userLimits[0]);
+    }
+    if (userLimits[1] !== 'auto') {
+      lim[1] = toFloat(userLimits[1]);
+    }
+    return lim;
+  }
+};
+
+class Graph {
+  constructor (x, y) {
+    this.xyData = new XYData(x, y);
+  }
+
+  get graphMarginX () {
+    return currentPlotStyle['graphMarginX'];
+  }
+
+  get graphMarginY () {
+    return currentPlotStyle['graphMarginY'];
+  }
+
+  xLim () {
+    return this.dataLim(this.xyData.xMin, this.xyData.xMax, this.xyData.xRange, this.graphMarginX);
+  }
+
+  yLim () {
+    return this.dataLim(this.xyData.yMin, this.xyData.yMax, this.xyData.yRange, this.graphMarginY);
+  }
+
+  dataLim (min, max, range, margin) {
+    return [min - range * margin, max + range * margin];
+  }
+
+  draw (axElem, xScale, yScale) {
+    var dataPoints = this.xyData.makeLineData();
+    var plotType = currentPlotStyle['plotType'];
+    if (plotType === 'line') {
+      var drawFunc = d3.line()
+        .x(function (d) {
+          return xScale(d.x_coord);
+        })
+        .y(function (d) {
+          return yScale(d.y_coord);
+        });
+      // Add the plotted curve as path
+      axElem.append('path')
+        .attr('d', drawFunc(dataPoints))
+        .attr('class', 'curve')
+        .attr('fill', 'none')
+        .attr('stroke', currentPlotStyle['dataColor'])
+        .attr('clip-path', 'url(#clip_path)')
+        .attr('stroke-width', toPercentWidth(currentPlotStyle['lineStrokeWidth']));
+    } else if (plotType === 'scatter') {
+      var scatterPlot = axElem.append('g')
+        .attr('class', 'curve')
+        .attr('id', 'scatterPlot')
+        .attr('clip-path', 'url(#clip_path)');
+
+      scatterPlot.selectAll('scatter-dots')
+        .data(dataPoints)
+        .enter().append('circle')
+        .attr('class', 'scatter_dot')
+        .attr('cx', function (d) {
+          return xScale(d.x_coord);
+        })
+        .attr('cy', function (d) {
+          return yScale(d.y_coord);
+        })
+        .attr('r', currentPlotStyle['scatterDotRadius'])
+        .attr('fill', currentPlotStyle['dataColor']);
+    }
+  }
+};
+
+class XYData {
+  constructor (x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  get xMin () {
+    return d3.min(this.x);
+  }
+
+  get xMax () {
+    return d3.max(this.x);
+  }
+
+  get xRange () {
+    return getSpan(this.x);
+  }
+
+  get yMin () {
+    return d3.min(this.y);
+  }
+
+  get yMax () {
+    return d3.max(this.y);
+  }
+
+  get yRange () {
+    return getSpan(this.y);
+  }
+
+  makeLineData () {
+    var lineData = [];
+    for (var i = 0; i < this.x.length; i++) {
+      var point = {
+        x_coord: this.x[i],
+        y_coord: this.y[i]
+      };
+      lineData.push(point);
+    }
+    return lineData;
+  }
+};
+
+function redraw () {
+  plotXY(xyG);
 }
 
-function getCoordinateLimits (dataArr, margin, userLimits) {
-  var span = getAxSpan(dataArr);
-  var lim = [d3.min(dataArr) - span * margin, d3.max(dataArr) + span * margin];
-  if (userLimits[0] !== 'auto') {
-    lim[0] = toFloat(userLimits[0]);
-  }
-  if (userLimits[1] !== 'auto') {
-    lim[1] = toFloat(userLimits[1]);
-  }
-  return lim;
-}
-
-function plotXY (xy, margin, axMargin, selector, fileName) {
-  if (xy.length === 0) {
+function plotXY (xy) {
+  if (!xy) {
     return;
   }
 
-  resetFigure();
   updatePlotStyle();
-
-  var size = getAxisSize(margin);
-  var width = size.width;
-  var height = size.height;
 
   var x = xy[0].slice();
   var y = xy[1].slice();
-
   scaleArray(x, currentPlotStyle['xScaling']);
   scaleArray(y, currentPlotStyle['yScaling']);
 
-  var lineData = makeLineData(x, y);
+  fig.reset();
+  var ax = fig.addAxis();
+  var graph = ax.plot(x, y);
 
-  var xLim = getCoordinateLimits(x, axMargin.x, [currentPlotStyle['xStart'], currentPlotStyle['xEnd']]);
-  var yLim = getCoordinateLimits(y, axMargin.y, [currentPlotStyle['yStart'], currentPlotStyle['yEnd']]);
-
-  var xScale = d3.scaleLinear()
-    .domain(xLim)
-    .range([0, width]);
-
-  var yScale = d3.scaleLinear()
-    .domain(yLim)
-    .range([height, 0]);
-
-  var xMajorTickValues = xScale.ticks(nTicks);
-  var yMajorTickValues = yScale.ticks(nTicks);
-
-  var xTickFormat = getTickFormat(xMajorTickValues);
-  var yTickFormat = getTickFormat(yMajorTickValues);
-
-  var xTickValues = addMinorTicks(xMajorTickValues, xLim);
-  var yTickValues = addMinorTicks(yMajorTickValues, yLim);
-
-  // Create the svg element
-  var svgWidth = width + margin.right + margin.left;
-  var svgHeight = height + margin.top + margin.bottom;
-  var figure = d3.select(selector)
-    .append('svg')
-    .attr('version', '1.1')
-    .attr('xmlns', 'http://www.w3.org/2000/svg')
-    .attr('width', svgWidth)
-    .attr('height', svgHeight)
-    .attr('viewBox', '0 0 ' + svgWidth + ' ' + svgHeight)
-    .attr('preserveAspectRatio', 'xMidYMid meet')
-    .attr('class', 'figure')
-    .attr('id', 'figure')
-    .attr('data-filename', stripFileExtension(fileName));
-
-    // Create an inner element to hold the axes
-  var ax = figure.append('g')
-    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-    .attr('width', width)
-    .attr('height', height)
-    .attr('class', 'ax')
-    .attr('id', 'ax');
-
-    // Define axes
-  var xAxis = d3.axisBottom(xScale)
-    .tickSize(0, 0)
-  // .ticks(nTicks)
-    .tickValues(xTickValues)
-    .tickFormat(xTickFormat);
-
-  var yAxis = d3.axisLeft(yScale)
-    .tickSize(0, 0)
-  // .ticks(nTicks)
-    .tickValues(yTickValues)
-    .tickFormat(yTickFormat);
-
-  var xAxisTop = d3.axisTop(xScale)
-    .tickSize(0, 0)
-    .tickValues(xTickValues);
-
-  var yAxisRight = d3.axisRight(yScale)
-    .tickSize(0, 0)
-    .tickValues(yTickValues);
-
-  ax.append('clipPath')
-    .attr('id', 'clip_path')
-    .append('rect')
-    .attr('x', 0)
-    .attr('y', 0)
-    .attr('width', width)
-    .attr('height', height);
-
-  drawData(lineData, ax, xScale, yScale);
-
-  // Add axes to the ax group
-  ax.append('g')
-    .attr('transform', 'translate(0,' + height + ')')
-    .attr('class', 'x_axis')
-    .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-    .style('font-family', axisFont)
-    .style('font-size', currentPlotStyle['axisFontSize'])
-    .call(xAxis);
-
-  ax.append('g')
-    .attr('transform', 'translate(0,0)')
-    .attr('class', 'y_axis')
-    .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-    .style('font-family', axisFont)
-    .style('font-size', currentPlotStyle['axisFontSize'])
-    .call(yAxis);
-
-  ax.append('g')
-    .attr('transform', 'translate(0,0)')
-    .attr('class', 'x_axis_top')
-    .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-    .call(xAxisTop);
-
-  ax.append('g')
-    .attr('transform', 'translate(' + width + ',0)')
-    .attr('class', 'y_axis_right')
-    .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-    .call(yAxisRight);
-
-  // Major and minor tick line formatting
-  var xTickLines = d3.selectAll('.x_axis .tick line');
-  var xTickLinesTop = d3.selectAll('.x_axis_top .tick line');
-  var yTickLines = d3.selectAll('.y_axis .tick line');
-  var yTickLinesRight = d3.selectAll('.y_axis_right .tick line');
-
-  var majorTickSize = currentPlotStyle['majorTickSize'];
-  var minorTickSize = currentPlotStyle['minorTickSize'];
-  xTickLines.attr('y2', function (d, i) {
-    return (i % 2 === 0) ? -majorTickSize : -minorTickSize;
-  });
-  xTickLinesTop.attr('y2', function (d, i) {
-    return (i % 2 === 0) ? majorTickSize : minorTickSize;
-  });
-  yTickLines.attr('x2', function (d, i) {
-    return (i % 2 === 0) ? majorTickSize : minorTickSize;
-  });
-  yTickLinesRight.attr('x2', function (d, i) {
-    return (i % 2 === 0) ? -majorTickSize : -minorTickSize;
-  });
-
-  // Tick label formatting
-  var xTickLabels = d3.selectAll('.x_axis .tick text');
-  var yTickLabels = d3.selectAll('.y_axis .tick text');
-  var xTickLabelsTop = d3.selectAll('.x_axis_top .tick text');
-  var yTickLabelsRight = d3.selectAll('.y_axis_right .tick text');
-
-  // Main X and Y axes: remove minor tick labels
-  xTickLabels.attr('class', function (d, i) {
-    if (i % 2 !== 0) d3.select(this).remove();
-  });
-  yTickLabels.attr('class', function (d, i) {
-    if (i % 2 !== 0) d3.select(this).remove();
-  });
-
-  // Secondary axes: remove all tick labels
-  xTickLabelsTop.attr('class', function (d, i) {
-    d3.select(this).remove();
-  });
-  yTickLabelsRight.attr('class', function (d, i) {
-    d3.select(this).remove();
-  });
-
-  // Move printed labels away from the axis
-  xTickLabels.attr('transform', 'translate(0,5)');
-  yTickLabels.attr('transform', 'translate(-5,0)');
-  addXLabel(document.getElementById('xLabel').value);
-  addYLabel(document.getElementById('yLabel').value);
-  addTitle(document.getElementById('title').value);
-}
-
-function drawData (dataPoints, ax, xScale, yScale) {
-  var plotType = currentPlotStyle['plotType'];
-  if (plotType === 'line') {
-    var drawFunc = d3.line()
-      .x(function (d) {
-        return xScale(d.x_coord);
-      })
-      .y(function (d) {
-        return yScale(d.y_coord);
-      });
-    // Add the plotted curve as path
-    ax.append('path')
-      .attr('d', drawFunc(dataPoints))
-      .attr('class', 'curve')
-      .attr('fill', 'none')
-      .attr('stroke', currentPlotStyle['dataColor'])
-      .attr('clip-path', 'url(#clip_path)')
-      .attr('stroke-width', currentPlotStyle['lineStrokeWidth']);
-  } else if (plotType === 'scatter') {
-    var scatterPlot = ax.append('g')
-      .attr('class', 'curve')
-      .attr('id', 'scatterPlot')
-      .attr('clip-path', 'url(#clip_path)');
-
-    scatterPlot.selectAll('scatter-dots')
-      .data(dataPoints)
-      .enter().append('circle')
-      .attr('class', 'scatter_dot')
-      .attr('cx', function (d) {
-        return xScale(d.x_coord);
-      })
-      .attr('cy', function (d) {
-        return yScale(d.y_coord);
-      })
-      .attr('r', currentPlotStyle['scatterDotRadius'])
-      .attr('fill', currentPlotStyle['dataColor']);
-  }
-}
-
-function addTitle (titleText) {
-  var size = getAxisSize(margin);
-  var width = size.width;
-  var center = Math.floor(width / 2);
-  var axis = d3.select('#ax');
-  axis.selectAll('.title').remove();
-  axis.append('text')
-    .attr('class', 'title')
-    .attr('text-anchor', 'middle')
-    .attr('x', center)
-    .attr('y', -20)
-    .attr('font-family', axisFont)
-    .attr('font-size', currentPlotStyle['titleFontSize'])
-    .text(titleText);
-}
-
-function addXLabel (labelText) {
-  var size = getAxisSize(margin);
-  var width = size.width;
-  var height = size.height;
-  var center = Math.floor(width / 2);
-  var axis = d3.select('#ax');
-  axis.selectAll('.x_label').remove();
-  axis.append('text')
-    .attr('class', 'x_label')
-    .attr('text-anchor', 'middle')
-    .attr('x', center)
-    .attr('y', height + 50)
-    .attr('font-family', axisFont)
-    .attr('font-size', currentPlotStyle['xLabelFontSize'])
-    .text(labelText);
-}
-
-function addYLabel (labelText) {
-  var size = getAxisSize(margin);
-  var height = size.height;
-  var center = Math.floor(height / 2);
-  var axis = d3.select('#ax');
-  axis.selectAll('.y_label').remove();
-  axis.append('text')
-    .attr('transform', 'rotate(-90)')
-    .attr('class', 'y_label')
-    .attr('text-anchor', 'middle')
-    .attr('dominant-baseline', 'central')
-    .attr('y', -75)
-    .attr('x', -center)
-    .attr('dy', '0.75em')
-    .attr('font-family', axisFont)
-    .attr('font-size', currentPlotStyle['yLabelFontSize'])
-    .text(labelText);
-}
-
-function regexParse (str) {
-  var rowRe = /^\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)(\t|,|[\s]+)\s?([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s?$/mg;
-  var arr;
-  var x = [];
-  var y = [];
-  while (arr = rowRe.exec(str)) {
-    x.push(toFloat(arr[1]));
-    y.push(toFloat(arr[5]));
-  }
-  return [x, y];
-}
-
-function downloadSVG () {
-  var svgFileName = getFileName() + '.svg';
-  var svgUrl = getSvgUrl();
-  var downloadLink = document.createElement('a');
-  downloadLink.href = svgUrl;
-  downloadLink.download = svgFileName;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
-function downloadPNG () {
-  var pngFileName = getFileName() + '.png';
-  var svgUrl = getSvgUrl();
-  var svg = getSvgFigure();
-  var canvas = document.getElementById('cvs');
-  canvas.width = svg.width.animVal.value * canvasResFactor;
-  canvas.height = svg.height.animVal.value * canvasResFactor;
-  var ctx = canvas.getContext('2d');
-  var img = new Image();
-
-  img.onload = function () {
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    ctx.globalCompositeOperation = 'destination-over';
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    canvas.toBlob(function (blob) {
-      saveAs(blob, pngFileName);
-    });
-  };
-  img.src = svgUrl;
-}
-
-function getSvgUrl () {
-  // get svg element.
-  var svg = getSvgFigure();
-
-  // get svg source.
-  var serializer = new XMLSerializer();
-  var source = serializer.serializeToString(svg);
-
-  // add name spaces.
-  if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
-    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-  }
-  if (!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)) {
-    source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-  }
-
-  // add xml declaration
-  source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-
-  // convert svg source to URI data scheme.
-  var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source);
-  return url;
-}
-
-function getSvgFigure () {
-  return document.getElementById('figure');
-}
-
-// Helper funcs
-
-function getAxisSize (margin) {
-  var figHeight = document.getElementById('figure_area').offsetHeight; // Math.floor(window.innerHeight * imageHeightFraction);
-  var figWidth = document.getElementById('figure_area').offsetWidth; // Math.floor(window.innerWidth * imageWidthFraction);
-  var width = figWidth - margin.left - margin.right;
-  var height = figHeight - margin.top - margin.bottom;
-  return {
-    width: width,
-    height: height
-  };
-}
-
-function toFloat (numStr) {
-  return parseFloat(numStr.replace(/,/, '.'));
-}
-
-function makeLineData (x, y) {
-  var lineData = [];
-  for (var i = 0; i < x.length; i++) {
-    var point = {
-      x_coord: x[i],
-      y_coord: y[i]
-    };
-    lineData.push(point);
-  }
-  return lineData;
+  fig.draw();
 }
 
 function hideInstruction () {
@@ -522,8 +512,7 @@ function addMinorTicks (majorTicks, limits) {
 
 function getTickFormat (ticks) {
   var orderOfMagn = Math.floor(Math.log10(Math.max(Math.abs(ticks[0]), Math.abs(ticks[ticks.length - 1]))));
-  var formatString = '';
-  console.log(orderOfMagn);
+  var formatString = '.1e';
   if (ticks.every(numIsInteger)) {
     formatString = 'd';
   } else if (orderOfMagn < -2) {
@@ -532,59 +521,26 @@ function getTickFormat (ticks) {
     formatString = '.' + (Math.abs(orderOfMagn) + 1) + 'f';
   } else if (orderOfMagn < 4) {
     formatString = '.1f';
-  } else {
-    formatString = '.1e';
   }
   return d3.format(formatString);
 }
 
-function getFileName () {
-  return document.getElementById('figure').dataset.filename;
-}
-
-function resetFigure () {
-  if (document.getElementById('figure')) {
-    d3.select('svg').remove();
-  }
-}
-
-function stripFileExtension (fileName) {
-  // https://stackoverflow.com/questions/4250364/how-to-trim-a-file-extension-from-a-string-in-javascript
-  return fileName.replace(/\.[^/.]+$/, '');
-}
-
-function getAxSpan (arr) {
-  return Math.abs(d3.max(arr) - d3.min(arr));
-}
-
-function numIsInteger (num) {
-  return num % 1 === 0;
-}
-
-function appendStrtoArr (arr, str) {
-  var output = [];
-  for (var i = 0; i < arr.length; i++) {
-    output.push(arr[i] + str);
-  }
-  return output;
-}
-
 function initSideBar () {
-  var fontSizesInt = d3.range(10, 52, 2);
-  var fontSizesStr = appendStrtoArr(fontSizesInt, 'px');
+  var fontSizesInt = d3.range(0.5, 4.5, 0.5);
+  var fontSizesStr = appendStrtoArr(fontSizesInt, '%');
 
-  var strokeWidths = appendStrtoArr(d3.range(0.5, 5.5, 0.5), 'px');
+  var strokeWidthsInt = d3.range(1, 6, 1);
   var dotRadii = d3.range(1, 10, 0.5);
 
   populateSelectBox('xFontSize', fontSizesStr);
   populateSelectBox('yFontSize', fontSizesStr);
   populateSelectBox('titleFontSize', fontSizesStr);
-  populateSelectBox('lineStrokeWidth', strokeWidths);
+  populateSelectBox('lineStrokeWidth', strokeWidthsInt);
   populateSelectBox('scatterDotRadius', dotRadii);
 
-  document.getElementById('xFontSize').value = defaultPlotStyle['xLabelFontSize'];
-  document.getElementById('yFontSize').value = defaultPlotStyle['yLabelFontSize'];
-  document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'];
+  document.getElementById('xFontSize').value = defaultPlotStyle['xLabelFontSize'] + '%';
+  document.getElementById('yFontSize').value = defaultPlotStyle['yLabelFontSize'] + '%';
+  document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'] + '%';
   document.getElementById('xScaling').value = defaultPlotStyle['xScaling'];
   document.getElementById('yScaling').value = defaultPlotStyle['yScaling'];
   document.getElementById('lineStrokeWidth').value = defaultPlotStyle['lineStrokeWidth'];
@@ -598,58 +554,58 @@ function initSideBar () {
   document.getElementById('pngButton').addEventListener('click', downloadPNG);
 
   document.getElementById('xFontSize').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
   document.getElementById('yFontSize').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
   document.getElementById('titleFontSize').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
 
   document.getElementById('xScaling').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
   document.getElementById('yScaling').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
 
   document.getElementById('xStart').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
   document.getElementById('xEnd').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
 
   document.getElementById('yStart').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
   document.getElementById('yEnd').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
 
   document.getElementById('plotType').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
   document.getElementById('dataColor').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
 
   document.getElementById('lineStrokeWidth').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
   document.getElementById('scatterDotRadius').addEventListener('change', function (event) {
-    redraw(selector);
+    redraw();
   });
 
   document.getElementById('xLabel').addEventListener('input', function (event) {
-    addXLabel(document.getElementById('xLabel').value);
+    fig.ax.addXLabel(document.getElementById('xLabel').value);
   });
   document.getElementById('yLabel').addEventListener('input', function (event) {
-    addYLabel(document.getElementById('yLabel').value);
+    fig.ax.addYLabel(document.getElementById('yLabel').value);
   });
   document.getElementById('title').addEventListener('input', function (event) {
-    addTitle(document.getElementById('title').value);
+    fig.ax.addTitle(document.getElementById('title').value);
   });
 }
 
@@ -660,22 +616,10 @@ function resetLimits () {
   document.getElementById('yEnd').value = defaultPlotStyle['yEnd'];
 }
 
-// https://stackoverflow.com/questions/9895082/javascript-populate-drop-down-list-with-array
-function populateSelectBox (idSelector, optionArray) {
-  var box = document.getElementById(idSelector);
-  for (var i = 0; i < optionArray.length; i++) {
-    var option = optionArray[i];
-    var el = document.createElement('option');
-    el.textContent = option;
-    el.value = option;
-    box.appendChild(el);
-  }
-}
-
 function updatePlotStyle () {
-  currentPlotStyle['xLabelFontSize'] = document.getElementById('xFontSize').value;
-  currentPlotStyle['yLabelFontSize'] = document.getElementById('yFontSize').value;
-  currentPlotStyle['titleFontSize'] = document.getElementById('titleFontSize').value;
+  currentPlotStyle['xLabelFontSize'] = document.getElementById('xFontSize').value.replace('%', '');
+  currentPlotStyle['yLabelFontSize'] = document.getElementById('yFontSize').value.replace('%', '');
+  currentPlotStyle['titleFontSize'] = document.getElementById('titleFontSize').value.replace('%', '');
 
   currentPlotStyle['xScaling'] = toFloat(document.getElementById('xScaling').value);
   currentPlotStyle['yScaling'] = toFloat(document.getElementById('yScaling').value);
@@ -692,8 +636,9 @@ function updatePlotStyle () {
   currentPlotStyle['scatterDotRadius'] = document.getElementById('scatterDotRadius').value;
 }
 
+var fig = new Figure();
 initSideBar();
 document.getElementById('figure_area').addEventListener('paste', readPasteAndPlot);
 window.addEventListener('resize', function (event) {
-  redraw(selector);
+  redraw();
 });
