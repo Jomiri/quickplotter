@@ -37,6 +37,31 @@ function getFileName () {
   return document.getElementById('figure').dataset.filename;
 }
 
+function formatPrecision (num) {
+  var precision = 1;
+  var orderOfMagn = Math.floor(Math.log10(Math.abs(num)));
+  if (orderOfMagn < 0) {
+    precision = -orderOfMagn + 1;
+  } else if (orderOfMagn === 0) {
+    precision = 2;
+  } else if (orderOfMagn === 1) {
+    precision = 1;
+  } else {
+    precision = 0;
+  }
+  return precision;
+  /*
+  var precision = 1;
+  if (orderOfMagn < 1) {
+    precision = Math.abs(orderOfMagn);
+  } else if (orderOfMagn < 4) {
+    precision = 3 - orderOfMagn;
+  } else {
+    precision = 0;
+  }
+  return precision;
+  */
+}
 
 
 function stripFileExtension (fileName) {
@@ -46,6 +71,10 @@ function stripFileExtension (fileName) {
 
 function getSpan (arr) {
   return Math.abs(d3.max(arr) - d3.min(arr));
+}
+
+function orderOfMagnitude (arr) {
+  return Math.floor(Math.log10(Math.max(Math.abs(arr[0]), Math.abs(arr[arr.length - 1]))));
 }
 
 function numIsInteger (num) {

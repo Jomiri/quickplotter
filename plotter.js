@@ -4,15 +4,6 @@
 /* global XMLSerializer */
 /* global d3 */
 
-/*
-var margin = {
-  top: 60,
-  right: 40,
-  bottom: 100,
-  left: 100
-};
-*/
-
 const defaultPlotStyle = {
   'plotType': 'line',
   'majorTickSize': 0.6, // %
@@ -37,14 +28,6 @@ const defaultPlotStyle = {
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
 
-/*
-var majorTickSize = 7;
-var minorTickSize = 4;
-var axisStrokeWidth = 3;
-var axisFontSize = '1em';
-var lineStrokeWidth = '2px';
-var labelFontSize = '1.5em';
-*/
 var xyG = [];
 var fileNameG = '';
 var canvasResFactor = 4;
@@ -52,9 +35,9 @@ var axisFont = 'Sans-Serif';
 var nTicks = 5;
 
 class Figure {
-  constructor () {
+  constructor (parentSelector) {
     this.ax = undefined;
-    this.parentSelector = '#figure_area';
+    this.parentSelector = parentSelector;
     this.selector = '#figure';
     this.marginPercent = {
       top: 0.05,
@@ -64,8 +47,8 @@ class Figure {
     };
   }
 
-  get thisElement () {
-    return document.querySelector(this.selector);
+  get svgElement () {
+    return d3.select(this.selector);
   }
 
   get parentElement () {
@@ -141,7 +124,7 @@ class Figure {
   }
 
   reset () {
-    if (this.thisElement) {
+    if (this.svgElement) {
       d3.select('svg').remove();
     }
   }
@@ -153,6 +136,9 @@ class Axis {
     this.height = height;
     this.parentFig = parentFig;
     this.graph = undefined;
+    this.xScale = undefined;
+    this.yScale = undefined;
+    this.axElem = undefined;
   }
 
   plot (x, y) {
@@ -161,129 +147,31 @@ class Axis {
   }
 
   draw (axElem) {
-    console.log(this.xLim());
-    var xScale = d3.scaleLinear()
+    this.axElem = axElem;
+    this.xScale = d3.scaleLinear()
       .domain(this.xLim())
       .range([0, this.width]);
 
-    var yScale = d3.scaleLinear()
+    this.yScale = d3.scaleLinear()
       .domain(this.yLim())
       .range([this.height, 0]);
 
-    var xMajorTickValues = xScale.ticks(nTicks);
-    var yMajorTickValues = yScale.ticks(nTicks);
-
-    var xTickFormat = getTickFormat(xMajorTickValues);
-    var yTickFormat = getTickFormat(yMajorTickValues);
-
-    var xTickValues = addMinorTicks(xMajorTickValues, this.xLim());
-    var yTickValues = addMinorTicks(yMajorTickValues, this.yLim());
-
     this.drawClipPath(axElem);
-    console.log(xScale(this.graph.xyData.x));
-    debugger;
-    this.graph.draw(axElem, xScale, yScale);
+    this.graph.draw(axElem, this.xScale, this.yScale);
 
-    // Define axes
-    var xAxis = d3.axisBottom(xScale)
-      .tickSize(0, 0)
-    // .ticks(nTicks)
-      .tickValues(xTickValues)
-      .tickFormat(xTickFormat);
+    this.drawCoordAxis(axElem, this.xScale, this.xLim(), 'bottom', [0, this.height], 'x_axis', true, [0, 5]);
+    this.drawCoordAxis(axElem, this.xScale, this.xLim(), 'top', [0, 0], 'x_axis_top', false, [0, 0]);
+    this.drawCoordAxis(axElem, this.yScale, this.yLim(), 'left', [0, 0], 'y_axis', true, [-5, 0]);
+    this.drawCoordAxis(axElem, this.yScale, this.yLim(), 'right', [this.width, 0], 'y_axis_right', false, [0, 0]);
+  }
 
-    var yAxis = d3.axisLeft(yScale)
-      .tickSize(0, 0)
-    // .ticks(nTicks)
-      .tickValues(yTickValues)
-      .tickFormat(yTickFormat);
-
-    var xAxisTop = d3.axisTop(xScale)
-      .tickSize(0, 0)
-      .tickValues(xTickValues);
-
-    var yAxisRight = d3.axisRight(yScale)
-      .tickSize(0, 0)
-      .tickValues(yTickValues);
-
-    // Add axes to the ax group
-    axElem.append('g')
-      .attr('transform', 'translate(0,' + this.height + ')')
-      .attr('class', 'x_axis')
-      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-      .style('font-family', axisFont)
-      .style('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['axisFontSize']); })
-      .call(xAxis);
-
-    axElem.append('g')
-      .attr('transform', 'translate(0,0)')
-      .attr('class', 'y_axis')
-      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-      .style('font-family', axisFont)
-      .style('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['axisFontSize']); })
-      .call(yAxis);
-
-    axElem.append('g')
-      .attr('transform', 'translate(0,0)')
-      .attr('class', 'x_axis_top')
-      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-      .call(xAxisTop);
-
-    axElem.append('g')
-      .attr('transform', 'translate(' + this.width + ',0)')
-      .attr('class', 'y_axis_right')
-      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
-      .call(yAxisRight);
-
-    // Major and minor tick line formatting
-    var xTickLines = d3.selectAll('.x_axis .tick line');
-    var xTickLinesTop = d3.selectAll('.x_axis_top .tick line');
-    var yTickLines = d3.selectAll('.y_axis .tick line');
-    var yTickLinesRight = d3.selectAll('.y_axis_right .tick line');
-
+  drawCoordAxis (axElem, scale, limits, orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
+    var cAx = new CoordAxis(orientation);
     var majorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['majorTickSize']);
     var minorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['minorTickSize']);
-
-    xTickLines.attr('y2', function (d, i) {
-      return (i % 2 === 0) ? -majorTickSize : -minorTickSize;
-    });
-    xTickLinesTop.attr('y2', function (d, i) {
-      return (i % 2 === 0) ? majorTickSize : minorTickSize;
-    });
-    yTickLines.attr('x2', function (d, i) {
-      return (i % 2 === 0) ? majorTickSize : minorTickSize;
-    });
-    yTickLinesRight.attr('x2', function (d, i) {
-      return (i % 2 === 0) ? -majorTickSize : -minorTickSize;
-    });
-
-    // Tick label formatting
-    var xTickLabels = d3.selectAll('.x_axis .tick text');
-    var yTickLabels = d3.selectAll('.y_axis .tick text');
-    var xTickLabelsTop = d3.selectAll('.x_axis_top .tick text');
-    var yTickLabelsRight = d3.selectAll('.y_axis_right .tick text');
-
-    // Main X and Y axes: remove minor tick labels
-    xTickLabels.attr('class', function (d, i) {
-      if (i % 2 !== 0) d3.select(this).remove();
-    });
-    yTickLabels.attr('class', function (d, i) {
-      if (i % 2 !== 0) d3.select(this).remove();
-    });
-
-    // Secondary axes: remove all tick labels
-    xTickLabelsTop.attr('class', function (d, i) {
-      d3.select(this).remove();
-    });
-    yTickLabelsRight.attr('class', function (d, i) {
-      d3.select(this).remove();
-    });
-
-    // Move printed labels away from the axis
-    xTickLabels.attr('transform', 'translate(0,5)');
-    yTickLabels.attr('transform', 'translate(-5,0)');
-    this.addXLabel(document.getElementById('xLabel').value);
-    this.addYLabel(document.getElementById('yLabel').value);
-    this.addTitle(document.getElementById('title').value);
+    var axisFontSize = this.parentFig.svgPercentageToPx(currentPlotStyle['axisFontSize']);
+    cAx.draw(axElem, scale, limits, htmlClass, translatePosition, tickLabelsVisible, labelTranslate, majorTickSize,
+      minorTickSize, axisFontSize);
   }
 
   drawClipPath (axElem) {
@@ -296,7 +184,7 @@ class Axis {
       .attr('height', this.height);
   }
 
-  addTitle (titleText) {
+  addTitle (titleText, fontSize) {
     var center = Math.floor(this.width / 2);
     var axis = d3.select('#ax');
     axis.selectAll('.title').remove();
@@ -306,11 +194,11 @@ class Axis {
       .attr('x', center)
       .attr('y', -this.parentFig.svgPercentageToPxInt(1))
       .attr('font-family', axisFont)
-      .attr('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['titleFontSize']); })
+      .attr('font-size', fontSize)
       .text(titleText);
   }
 
-  addXLabel (labelText) {
+  addXLabel (labelText, fontSize) {
     var center = Math.floor(this.width / 2);
     var axis = d3.select('#ax');
     axis.selectAll('.x_label').remove();
@@ -320,11 +208,11 @@ class Axis {
       .attr('x', center)
       .attr('y', this.height + this.parentFig.svgPercentageToPxInt(4))
       .attr('font-family', axisFont)
-      .attr('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']); })
+      .attr('font-size', fontSize)
       .text(labelText);
   }
 
-  addYLabel (labelText) {
+  addYLabel (labelText, fontSize) {
     var center = Math.floor(this.height / 2);
     var axis = d3.select('#ax');
     axis.selectAll('.y_label').remove();
@@ -337,7 +225,7 @@ class Axis {
       .attr('x', -center)
       .attr('dy', '0.75em')
       .attr('font-family', axisFont)
-      .attr('font-size', function (d) { return fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']); })
+      .attr('font-size', fontSize)
       .text(labelText);
   }
 
@@ -362,6 +250,134 @@ class Axis {
     return lim;
   }
 };
+
+class CoordAxis {
+  constructor (orientation) {
+    this.orientation = orientation;
+  }
+
+  draw (axElem, scale, limits, htmlClass, translatePosition, tickLabelsVisible, labelTranslate,
+    majorTickSize, minorTickSize, axisFontSize) {
+    var majorTickValues = scale.ticks(nTicks);
+    var tickValues = this.addMinorTicks(majorTickValues, limits);
+    var tickFormat = this.getTickFormat(majorTickValues);
+
+    var axis = this.makeAxisFunc(scale, tickValues, tickFormat);
+
+    majorTickSize *= this.getTickDirection();
+    minorTickSize *= this.getTickDirection();
+
+    // Add axes to the ax group
+    axElem.append('g')
+      .attr('transform', 'translate(' + translatePosition[0] + ',' + translatePosition[1] + ')')
+      .attr('class', htmlClass)
+      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
+      .style('font-family', axisFont)
+      .style('font-size', axisFontSize)
+      .call(axis);
+
+    this.drawTickLines('.' + htmlClass, majorTickSize, minorTickSize);
+    this.drawTickLabels('.' + htmlClass, tickLabelsVisible, labelTranslate);
+  }
+
+  drawTickLabels (htmlClass, isVisible, translatePosition) {
+    // Tick label formatting
+    var tickLabels = d3.selectAll(htmlClass + ' .tick text');
+
+    // Main X and Y axes: remove minor tick labels
+    if (isVisible) {
+      tickLabels.attr('class', function (d, i) {
+        if (i % 2 !== 0) d3.select(this).remove();
+      });
+    } else {
+      // Secondary axes: remove all tick labels
+      tickLabels.attr('class', function (d, i) {
+        d3.select(this).remove();
+      });
+    }
+    // Move printed labels away from the axis
+    tickLabels.attr('transform', 'translate(' + translatePosition[0] + ',' + translatePosition[1] + ')');
+  }
+
+  drawTickLines (htmlClass, majorTickSize, minorTickSize) {
+    var tickLines = d3.selectAll(htmlClass + ' .tick line');
+    var tickCoordinate = this.getTickCoordinate();
+
+    tickLines.attr(tickCoordinate, function (d, i) {
+      return (i % 2 === 0) ? majorTickSize : minorTickSize;
+    });
+  }
+
+  makeAxisFunc (scale, tickValues, tickFormat) {
+    var axis;
+    if (this.orientation === 'bottom') {
+      axis = d3.axisBottom(scale)
+        .tickSize(0, 0)
+        .tickValues(tickValues)
+        .tickFormat(tickFormat);
+    } else if (this.orientation === 'top') {
+      axis = d3.axisTop(scale)
+        .tickSize(0, 0)
+        .tickValues(tickValues)
+        .tickFormat(tickFormat);
+    } else if (this.orientation === 'left') {
+      axis = d3.axisLeft(scale)
+        .tickSize(0, 0)
+        .tickValues(tickValues)
+        .tickFormat(tickFormat);
+    } else if (this.orientation === 'right') {
+      axis = d3.axisRight(scale)
+        .tickSize(0, 0)
+        .tickValues(tickValues)
+        .tickFormat(tickFormat);
+    }
+    return axis;
+  }
+
+  getTickCoordinate () {
+    if (['left', 'right'].includes(this.orientation)) {
+      return 'x2';
+    } else if (['top', 'bottom'].includes(this.orientation)) {
+      return 'y2';
+    } else {
+      throw Error('Axis orientation ' + this.orientation + ' not in [left, right, top, bottom].');
+    }
+  }
+
+  getTickDirection () {
+    if (['top', 'left'].includes(this.orientation)) {
+      return 1;
+    } else if (['bottom', 'right'].includes(this.orientation)) {
+      return -1;
+    } else {
+      throw Error('Axis orientation ' + this.orientation + ' not in [left, right, top, bottom].');
+    }
+  }
+
+  addMinorTicks (majorTicks, limits) {
+    var tickSize = (majorTicks[1] - majorTicks[0]) / 2;
+    var potentialFirstTick = majorTicks[0] - tickSize;
+    var potentialLastTick = majorTicks[majorTicks.length - 1] + tickSize;
+    var firstTick = (potentialFirstTick >= limits[0]) ? potentialFirstTick : majorTicks[0];
+    var lastTick = (potentialLastTick <= limits[1]) ? potentialLastTick : majorTicks[majorTicks.length - 1];
+    return d3.range(firstTick, lastTick + tickSize / 10, tickSize);
+  }
+
+  getTickFormat (ticks) {
+    var orderOfMagn = orderOfMagnitude(ticks);
+    var formatString = '.1e';
+    if (ticks.every(numIsInteger)) {
+      formatString = 'd';
+    } else if (orderOfMagn < -2) {
+      formatString = '.1e';
+    } else if (orderOfMagn <= 0) {
+      formatString = '.' + (Math.abs(orderOfMagn) + 1) + 'f';
+    } else if (orderOfMagn < 4) {
+      formatString = '.1f';
+    }
+    return d3.format(formatString);
+  }
+}
 
 class Graph {
   constructor (x, y) {
@@ -435,6 +451,25 @@ class XYData {
     this.y = y;
   }
 
+  nearestPoint (x0) {
+    var pos = d3.bisectLeft(this.x, x0, 0, this.x.length);
+    var prev = this.x[pos - 1];
+    var next = this.x[pos];
+    var idx = x0 - prev < next - x0 ? pos - 1 : pos;
+    return {
+      'x': this.x[idx],
+      'y': this.y[idx]
+    };
+  }
+
+  precisionX () {
+    return formatPrecision(this.x[1] - this.x[0]);
+  }
+
+  precisionY () {
+    return formatPrecision(this.y[1] - this.y[0]);
+  }
+
   get xMin () {
     return d3.min(this.x);
   }
@@ -491,8 +526,11 @@ function plotXY (xy) {
   fig.reset();
   var ax = fig.addAxis();
   var graph = ax.plot(x, y);
-
   fig.draw();
+  ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
+  ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
+  ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
+  document.querySelector('#toolbar').style.margin = '0  ' + fig.marginPercent.right * 100 + '% 0 ' + fig.marginPercent.left * 100 + '%';
 }
 
 function hideInstruction () {
@@ -501,31 +539,32 @@ function hideInstruction () {
   document.getElementById('figure_area').style.borderStyle = 'hidden';
 }
 
-function addMinorTicks (majorTicks, limits) {
-  var tickSize = (majorTicks[1] - majorTicks[0]) / 2;
-  var potentialFirstTick = majorTicks[0] - tickSize;
-  var potentialLastTick = majorTicks[majorTicks.length - 1] + tickSize;
-  var firstTick = (potentialFirstTick >= limits[0]) ? potentialFirstTick : majorTicks[0];
-  var lastTick = (potentialLastTick <= limits[1]) ? potentialLastTick : majorTicks[majorTicks.length - 1];
-  return d3.range(firstTick, lastTick + tickSize / 10, tickSize);
-}
-
-function getTickFormat (ticks) {
-  var orderOfMagn = Math.floor(Math.log10(Math.max(Math.abs(ticks[0]), Math.abs(ticks[ticks.length - 1]))));
-  var formatString = '.1e';
-  if (ticks.every(numIsInteger)) {
-    formatString = 'd';
-  } else if (orderOfMagn < -2) {
-    formatString = '.1e';
-  } else if (orderOfMagn <= 0) {
-    formatString = '.' + (Math.abs(orderOfMagn) + 1) + 'f';
-  } else if (orderOfMagn < 4) {
-    formatString = '.1f';
-  }
-  return d3.format(formatString);
-}
-
 function initSideBar () {
+  populateSelectionBoxes();
+  initDefaultValues();
+  addSaveListeners();
+  addRedrawListeners();
+  addLabelListeners();
+}
+
+function addLabelListeners () {
+  document.getElementById('xLabel').addEventListener('input', function (event) {
+    fig.ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
+  });
+  document.getElementById('yLabel').addEventListener('input', function (event) {
+    fig.ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
+  });
+  document.getElementById('title').addEventListener('input', function (event) {
+    fig.ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
+  });
+}
+
+function addSaveListeners () {
+  document.getElementById('svgButton').addEventListener('click', downloadSVG);
+  document.getElementById('pngButton').addEventListener('click', downloadPNG);
+}
+
+function populateSelectionBoxes () {
   var fontSizesInt = d3.range(0.5, 4.5, 0.5);
   var fontSizesStr = appendStrtoArr(fontSizesInt, '%');
 
@@ -537,7 +576,9 @@ function initSideBar () {
   populateSelectBox('titleFontSize', fontSizesStr);
   populateSelectBox('lineStrokeWidth', strokeWidthsInt);
   populateSelectBox('scatterDotRadius', dotRadii);
+}
 
+function initDefaultValues () {
   document.getElementById('xFontSize').value = defaultPlotStyle['xLabelFontSize'] + '%';
   document.getElementById('yFontSize').value = defaultPlotStyle['yLabelFontSize'] + '%';
   document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'] + '%';
@@ -545,67 +586,23 @@ function initSideBar () {
   document.getElementById('yScaling').value = defaultPlotStyle['yScaling'];
   document.getElementById('lineStrokeWidth').value = defaultPlotStyle['lineStrokeWidth'];
   document.getElementById('scatterDotRadius').value = defaultPlotStyle['scatterDotRadius'];
-
-  resetLimits();
-
   document.getElementById('plotType').value = defaultPlotStyle['plotType'];
+  resetLimits();
+}
 
-  document.getElementById('svgButton').addEventListener('click', downloadSVG);
-  document.getElementById('pngButton').addEventListener('click', downloadPNG);
+function addRedrawListeners () {
+  var params = ['xFontSize', 'yFontSize', 'titleFontSize',
+    'xScaling', 'yScaling',
+    'xStart', 'xEnd',
+    'yStart', 'yEnd',
+    'plotType', 'dataColor', 'lineStrokeWidth', 'scatterDotRadius'];
+  for (var i = 0; i < params.length; i++) {
+    var id = params[i];
+    document.getElementById(id).addEventListener('change', function (event) { redraw(); });
+  }
 
-  document.getElementById('xFontSize').addEventListener('change', function (event) {
+  window.addEventListener('resize', function (event) {
     redraw();
-  });
-  document.getElementById('yFontSize').addEventListener('change', function (event) {
-    redraw();
-  });
-  document.getElementById('titleFontSize').addEventListener('change', function (event) {
-    redraw();
-  });
-
-  document.getElementById('xScaling').addEventListener('change', function (event) {
-    redraw();
-  });
-  document.getElementById('yScaling').addEventListener('change', function (event) {
-    redraw();
-  });
-
-  document.getElementById('xStart').addEventListener('change', function (event) {
-    redraw();
-  });
-  document.getElementById('xEnd').addEventListener('change', function (event) {
-    redraw();
-  });
-
-  document.getElementById('yStart').addEventListener('change', function (event) {
-    redraw();
-  });
-  document.getElementById('yEnd').addEventListener('change', function (event) {
-    redraw();
-  });
-
-  document.getElementById('plotType').addEventListener('change', function (event) {
-    redraw();
-  });
-  document.getElementById('dataColor').addEventListener('change', function (event) {
-    redraw();
-  });
-
-  document.getElementById('lineStrokeWidth').addEventListener('change', function (event) {
-    redraw();
-  });
-  document.getElementById('scatterDotRadius').addEventListener('change', function (event) {
-    redraw();
-  });
-
-  document.getElementById('xLabel').addEventListener('input', function (event) {
-    fig.ax.addXLabel(document.getElementById('xLabel').value);
-  });
-  document.getElementById('yLabel').addEventListener('input', function (event) {
-    fig.ax.addYLabel(document.getElementById('yLabel').value);
-  });
-  document.getElementById('title').addEventListener('input', function (event) {
-    fig.ax.addTitle(document.getElementById('title').value);
   });
 }
 
@@ -636,9 +633,76 @@ function updatePlotStyle () {
   currentPlotStyle['scatterDotRadius'] = document.getElementById('scatterDotRadius').value;
 }
 
-var fig = new Figure();
+function initFigureArea () {
+  document.getElementById('figure_area').addEventListener('paste', readPasteAndPlot);
+}
+
+class ToolbarFunctions {
+  constructor (targetFigure) {
+    this.fig = targetFigure;
+  }
+
+  clean () {
+    d3.selectAll('.toolbar_addon').remove();
+  }
+
+  activateDataCursor () {
+    this.addMouseHandlerFunc(this.dataCursorFunc);
+  }
+
+  addMouseHandlerFunc (func) {
+    this.clean();
+    var rect = this.fig.svgElement.append('rect')
+      .attr('class', 'toolbar_addon')
+      .attr('id', 'mouse_area')
+      .attr('width', this.fig.axWidth())
+      .attr('height', this.fig.axHeight())
+      .attr('transform', 'translate(' + this.fig.axMargin().left + ',' + this.fig.axMargin().top + ')')
+      .style('fill', 'transparent')
+      .on('mousemove', function (e) {
+        const coordinates = d3.mouse(this);
+        func(coordinates);
+      });
+  }
+
+  dataCursorFunc (coordinates) {
+    d3.select('#data_cursor').remove();
+    var xExact = fig.ax.xScale.invert(coordinates[0]);
+    var point = fig.ax.graph.xyData.nearestPoint(xExact);
+
+    var cursor = fig.ax.axElem.append('g')
+      .attr('class', 'data_cursor');
+
+    const cursorSize = 8;
+    var cursorX = fig.ax.xScale(point.x) - cursorSize / 2;
+    var cursorY = fig.ax.yScale(point.y) - cursorSize / 2;
+    cursor.append('rect')
+      .attr('width', cursorSize + 'px')
+      .attr('height', cursorSize + 'px')
+      .attr('fill', 'none')
+      .attr('stroke-width', '2px')
+      .attr('stroke', 'red')
+      .attr('class', 'toolbar_addon')
+      .attr('id', 'data_cursor')
+      .attr('clip-path', 'url(#clip_path)')
+      .attr('x', cursorX)
+      .attr('y', cursorY);
+
+    document.querySelector('#toolbar #x_coord').textContent = 'x = ' + point.x.toFixed(fig.ax.graph.xyData.precisionX());
+    document.querySelector('#toolbar #y_coord').textContent = 'y = ' + point.y.toFixed(fig.ax.graph.xyData.precisionY());
+  }
+
+  zoomFunc () {
+
+  }
+}
+
+var fig = new Figure('#figure_area');
+var toolbarFuncs = new ToolbarFunctions(fig);
+
 initSideBar();
-document.getElementById('figure_area').addEventListener('paste', readPasteAndPlot);
-window.addEventListener('resize', function (event) {
-  redraw();
+initFigureArea();
+
+document.querySelector('#data_cursor_button').addEventListener('click', function (event) {
+  toolbarFuncs.activateDataCursor();
 });
