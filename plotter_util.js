@@ -20,18 +20,14 @@ function getSvgFigure () {
 
 // Helper funcs
 
-
 function getFigAreaDiagonal () {
   var size = figAreaSize();
   return Math.sqrt(size.width * size.width + size.height * size.height);
 }
 
-
-
 function toFloat (numStr) {
   return parseFloat(numStr.replace(/,/, '.'));
 }
-
 
 function getFileName () {
   return document.getElementById('figure').dataset.filename;

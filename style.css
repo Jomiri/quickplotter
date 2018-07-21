@@ -162,12 +162,16 @@ h1 sup {
     border: 2px solid gray; 
 }
 
-.mouse_handler {
+#mouse_area {
     cursor: crosshair;
 }
 
 #toolbar_buttons {
     display: inline-block;
+}
+
+#toolbar_buttons .active {
+    background-color: green;
 }
 
 #toolbar #coordinates {
