@@ -540,11 +540,6 @@ function plotXY (xy) {
   document.querySelector('#toolbar').style.margin = '0  ' + fig.marginPercent.right * 100 + '% 0 ' + fig.marginPercent.left * 100 + '%';
 }
 
-function hideInstruction () {
-  var instruction = document.getElementById('instruction_text');
-  instruction.style.display = 'none';
-  document.getElementById('figure_area').style.borderStyle = 'hidden';
-}
 
 function initSideBar () {
   populateSelectionBoxes();
@@ -613,7 +608,6 @@ function addRedrawListeners () {
   });
 }
 
-
 function updatePlotStyle () {
   currentPlotStyle['xLabelFontSize'] = document.getElementById('xFontSize').value.replace('%', '');
   currentPlotStyle['yLabelFontSize'] = document.getElementById('yFontSize').value.replace('%', '');
@@ -639,65 +633,124 @@ function initFigureArea () {
 }
 
 class ToolbarFunctions {
-  constructor (targetFigure) {
-    this.fig = targetFigure;
-    this.mouseArea = null;
+  static initialize () {
+    ToolbarFunctions.mouseArea = null;
+    ToolbarFunctions.initResetButton();
+    ToolbarFunctions.initDataCursorButton();
+    ToolbarFunctions.initZoomButton();
+    ToolbarFunctions.initPanButton();
   }
 
-  clean () {
+  static get resetButton () {
+    return document.querySelector('#reset_button');
+  }
+
+  static get dataCursorButton () {
+    return document.querySelector('#data_cursor_button');
+  }
+
+  static get zoomButton () {
+    return document.querySelector('#zoom_button');
+  }
+
+  static get panButton () {
+    return document.querySelector('#pan_button');
+  }
+
+  static initResetButton () {
+    ToolbarFunctions.resetButton.addEventListener('click', function (event) {
+      resetLimits();
+      redraw();
+    });
+  }
+
+  static initDataCursorButton () {
+    ToolbarFunctions.dataCursorButton.addEventListener('click', function (event) {
+      if (ToolbarFunctions.dataCursorButton.classList.contains('active')) {
+        ToolbarFunctions.clean();
+      } else {
+        ToolbarFunctions.activateDataCursor();
+        ToolbarFunctions.dataCursorButton.classList.add('active');
+      }
+    });
+  }
+
+  static initZoomButton () {
+    ToolbarFunctions.zoomButton.addEventListener('click', function (event) {
+      if (ToolbarFunctions.zoomButton.classList.contains('active')) {
+        ToolbarFunctions.clean();
+      } else {
+        ToolbarFunctions.zoomFunc();
+      }
+    });
+  }
+
+  static initPanButton () {
+    ToolbarFunctions.panButton.addEventListener('click', function (event) {
+      if (ToolbarFunctions.panButton.classList.contains('active')) {
+        ToolbarFunctions.clean();
+      } else {
+        ToolbarFunctions.clean();
+        ToolbarFunctions.panButton.classList.add('active');
+        ToolbarFunctions.addMouseArea();
+        ToolbarFunctions.panFunc();
+      }
+    });
+  }
+
+  static clean () {
     d3.selectAll('.toolbar_addon').remove();
     d3.selectAll('.brush').remove();
-    this.deactivateButtons();
+    ToolbarFunctions.deactivateButtons();
   }
 
-  deactivateButtons () {
+  static deactivateButtons () {
     var buttonList = ['reset_button', 'zoom_button', 'pan_button', 'data_cursor_button'];
     for (var i = 0; i < buttonList.length; i++) {
       document.querySelector('#' + buttonList[i]).classList.remove('active');
     }
   }
 
-  activateDataCursor () {
-    this.clean();
-
-    this.addMouseHandlerFunc(this.dataCursorFunc);
+  static activateDataCursor () {
+    ToolbarFunctions.clean();
+    ToolbarFunctions.addMouseHandlerFunc(ToolbarFunctions.dataCursorFunc);
   }
 
-  activateZoom () {
-    this.clean();
-    this.addMouseArea();
-    this.zoomFunc();
+  static activateZoom () {
+    ToolbarFunctions.clean();
+    ToolbarFunctions.addMouseArea();
+    ToolbarFunctions.zoomFunc();
   }
 
-  addMouseArea () {
-    this.mouseArea = this.fig.svgElement.append('rect')
+  static addMouseArea () {
+    ToolbarFunctions.mouseArea = fig.svgElement.append('rect')
       .attr('class', 'toolbar_addon')
       .attr('id', 'mouse_area')
-      .attr('width', this.fig.axWidth())
-      .attr('height', this.fig.axHeight())
-      .attr('transform', 'translate(' + this.fig.axMargin().left + ',' + this.fig.axMargin().top + ')')
+      .attr('width', fig.axWidth())
+      .attr('height', fig.axHeight())
+      .attr('transform', 'translate(' + fig.axMargin().left + ',' + fig.axMargin().top + ')')
       .style('fill', 'transparent')
       .style('pointer-events', 'all');
   }
 
-  addZoomArea () {
-    this.brush = this.fig.svgElement.append('g')
+  static addZoomArea () {
+    ToolbarFunctions.brush = fig.svgElement.append('g')
       .attr('class', 'brush')
-      .attr('width', this.fig.axWidth())
-      .attr('height', this.fig.axHeight())
-      .attr('transform', 'translate(' + this.fig.axMargin().left + ',' + this.fig.axMargin().top + ')')
+      .attr('width', fig.axWidth())
+      .attr('height', fig.axHeight())
+      .attr('transform', 'translate(' + fig.axMargin().left + ',' + fig.axMargin().top + ')')
       .style('fill', 'transparent');
   }
 
-  addMouseHandlerFunc (func) {
-    this.addMouseArea();
-    this.mouseArea.on('mousemove', function (e) {
+  static addMouseHandlerFunc (func) {
+    ToolbarFunctions.addMouseArea();
+    ToolbarFunctions.mouseArea.on('mousemove', function (e) {
       const coordinates = d3.mouse(this);
       func(coordinates);
     });
   }
 
-  dataCursorFunc (coordinates) {
+  static dataCursorFunc (coordinates) {
     d3.select('.data_cursor').remove();
     var xExact = fig.ax.xScale.invert(coordinates[0]);
     var point = fig.ax.graph.xyData.nearestPoint(xExact);
@@ -722,10 +775,10 @@ class ToolbarFunctions {
     document.querySelector('#toolbar #y_coord').textContent = 'y = ' + point.y.toFixed(fig.ax.graph.xyData.precisionY());
   }
 
-  zoomFunc () {
-    toolbarFuncs.clean();
-    toolbarFuncs.addZoomArea();
-    zoomButton.classList.add('active');
+  static zoomFunc () {
+    ToolbarFunctions.clean();
+    ToolbarFunctions.addZoomArea();
+    ToolbarFunctions.zoomButton.classList.add('active');
     var brush = d3.brush()
       //.extent([[0, 0], [fig.ax.width, fig.ax.height]])
       .on('end', function () {
@@ -753,6 +806,43 @@ class ToolbarFunctions {
     d3.select('.brush')
       .call(brush);
   }
+
+  static panFunc () {
+    function panDraw (x, y, k) {
+      var xPan;
+      var yPan;
+      if (!panDraw.startX) {
+        xPan = x;
+        yPan = y;
+      } else {
+        xPan = x - panDraw.startX;
+        yPan = y - panDraw.startY;
+      }
+      panDraw.startX = x;
+      panDraw.startY = y;
+      updateLimits(fig.ax.xLim()[0] - xPan * xDelta,
+        fig.ax.xLim()[1] - xPan * xDelta,
+        fig.ax.yLim()[0] - yPan * yDelta,
+        fig.ax.yLim()[1] - yPan * yDelta);
+      redraw();
+    }
+
+    panDraw.startX = undefined;
+    panDraw.startY = undefined;
+
+    var xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
+    var yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
+
+    ToolbarFunctions.mouseArea.call(d3.zoom()
+      .scaleExtent([1, 1])
+      .on('zoom', function () {
+        var transform = d3.zoomTransform(this);
+        var x = transform.x;
+        var y = transform.y;
+        var k = transform.k;
+        panDraw(x, y, k);
+      }));
+  }
 }
 
 function updateLimits (xStart, xEnd, yStart, yEnd) {
@@ -768,83 +858,7 @@ function resetLimits () {
 }
 
 var fig = new Figure('#figure_area');
-var toolbarFuncs = new ToolbarFunctions(fig);
+ToolbarFunctions.initialize();
 
 initSideBar();
 initFigureArea();
-
-var resetButton = document.querySelector('#reset_button');
-resetButton.addEventListener('click', function (event) {
-  toolbarFuncs.clean();
-  resetLimits();
-  redraw();
-});
-
-var dataCursorButton = document.querySelector('#data_cursor_button');
-dataCursorButton.addEventListener('click', function (event) {
-  if (dataCursorButton.classList.contains('active')) {
-    toolbarFuncs.clean();
-  } else {
-    toolbarFuncs.activateDataCursor();
-    dataCursorButton.classList.add('active');
-  }
-});
-
-var zoomButton = document.querySelector('#zoom_button');
-zoomButton.addEventListener('click', function (event) {
-  if (zoomButton.classList.contains('active')) {
-    toolbarFuncs.clean();
-  } else {
-    toolbarFuncs.zoomFunc();
-  }
-});
-
-function panFunc () {
-  function panDraw (x, y, k) {
-    var xPan;
-    var yPan;
-    if (!panDraw.startX) {
-      xPan = x;
-      yPan = y;
-    } else {
-      xPan = x - panDraw.startX;
-      yPan = y - panDraw.startY;
-    }
-    panDraw.startX = x;
-    panDraw.startY = y;
-    updateLimits(fig.ax.xLim()[0] - xPan * xDelta,
-      fig.ax.xLim()[1] - xPan * xDelta,
-      fig.ax.yLim()[0] - yPan * yDelta,
-      fig.ax.yLim()[1] - yPan * yDelta);
-    redraw();
-  }
-
-  panDraw.startX = undefined;
-  panDraw.startY = undefined;
-
-  var xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
-  var yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
-
-  toolbarFuncs.mouseArea.call(d3.zoom()
-    .scaleExtent([1, 1])
-    .on('zoom', function () {
-      var transform = d3.zoomTransform(this);
-      console.log(transform);
-      var x = transform.x;
-      var y = transform.y;
-      var k = transform.k;
-      panDraw(x, y, k);
-    }));
-}
-
-var panButton = document.querySelector('#pan_button');
-panButton.addEventListener('click', function (event) {
-  if (panButton.classList.contains('active')) {
-    toolbarFuncs.clean();
-  } else {
-    toolbarFuncs.clean();
-    panButton.classList.add('active');
-    toolbarFuncs.addMouseArea();
-    panFunc();
-  }
-});

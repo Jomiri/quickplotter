@@ -42,6 +42,17 @@ function parseAndPlot (str, fileName) {
   resetLimits();
   redraw();
   hideInstruction();
+  showToolbar();
+}
+
+function hideInstruction () {
+  var instruction = document.getElementById('instruction_text');
+  instruction.style.display = 'none';
+  document.getElementById('figure_area').style.borderStyle = 'hidden';
+}
+
+function showToolbar () {
+  document.getElementById('toolbar').style.display = 'block';
 }
 
 // https://stackoverflow.com/questions/2176861/javascript-get-clipboard-data-on-paste-event-cross-browser
