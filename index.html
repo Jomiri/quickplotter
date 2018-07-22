@@ -41,7 +41,7 @@
             <li><div class='row'> 
                 <div class='left'>
                     <label>title:</label>
-                    <input type='text' id='title' name='title' value=''>
+                    <input type='text' id='title' class='long_input' name='title' value=''>
                 </div>
                 <div class='right'>
                     <label>font size:</label>
@@ -50,7 +50,7 @@
             <li><div class='row'>
                 <div class='left'>
                     <label>x label:</label>
-                    <input type='text' id='xLabel' name='xLabel' value=''>
+                    <input type='text' id='xLabel' class='long_input' name='xLabel' value=''>
                 </div>
                 <div class='right'>
                     <label>font size:</label>
@@ -60,7 +60,7 @@
             <li><div class='row'>
                 <div class='left'>
                     <label>y label:</label>
-                    <input type='text' id='yLabel' name='yLabel' value=''>
+                    <input type='text' id='yLabel' class='long_input' name='yLabel' value=''>
                 </div>
                 <div class='right'>
                     <label>font size:</label>
@@ -68,32 +68,28 @@
                 </div>
             </div></li>
             <li><div class='row'>
-                <div class='left'>
-                    <label>x start:</label>
-                    <input type='text' class='half_item' id='xStart' name='xStart' value=''>
-                </div>
-                <div class='right'>
-                    <label>x end:</label>
-                    <input type='text' class='half_item' id='xEnd' name='xEnd' value=''>
-                </div>
+                <label>x start:</label>
+                <input type='text' id='xStart' class='long_input' name='xStart' value=''>
             </div></li>
             <li><div class='row'>
-                <div class='left'>
-                    <label>y start:</label>
-                    <input type='text' class='half_item' id='yStart' name='yStart' value=''>
-                </div>
-                <div class='right'>
-                    <label>y end:</label>
-                    <input type='text' class='half_item' id='yEnd' name='yEnd' value=''>
-                </div>
+                <label>x end:</label>
+                <input type='text' id='xEnd' class='long_input' name='xEnd' value=''>
+            </div></li>
+            <li><div class='row'>
+                <label>y start:</label>
+                <input type='text' id='yStart' class='long_input' name='yStart' value=''>
+            </div></li>
+            <li><div class='row'>
+                <label>y end:</label>
+                <input type='text' id='yEnd' class='long_input' name='yEnd' value=''>
             </div></li>
             <li><div class='row'>
                 <label>multiply x by:</label>
-                <input type='text' id='xScaling' name='xScaling' value=''>
+                <input type='text' id='xScaling' class='long_input' name='xScaling' value=''>
             </div></li>
             <li><div class='row'>
                 <label>multiply y by:</label>
-                <input type='text' id='yScaling' name='yScaling' value=''>
+                <input type='text' id='yScaling' class='long_input' name='yScaling' value=''>
             </div></li>
             <li class='plotParam'><div class='row'>
                 <div class='left'>
@@ -141,9 +137,9 @@
 
         <div id='toolbar'>
             <div id='toolbar_buttons'>
-                <button id='reset_button'>Reset</button>
-                <button id='zoom_button'>Zoom</button>
+                <button id='reset_button'>Reset limits</button>
                 <button id='pan_button'>Pan</button>
+                <button id='zoom_button'>Zoom</button>
                 <button id='data_cursor_button'>Data cursor</button>
                 <button id='pngButton' type='button'>Save as PNG</button>
                 <button id='svgButton' type='button'>Save as SVG</button>

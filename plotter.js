@@ -41,7 +41,7 @@ class Figure {
     this.selector = '#figure';
     this.marginPercent = {
       top: 0.05,
-      bottom: 0.05,
+      bottom: 0.08,
       left: 0.08,
       right: 0.02
     };
@@ -214,6 +214,7 @@ class Axis {
       .attr('text-anchor', 'middle')
       .attr('x', center)
       .attr('y', this.height + this.parentFig.svgPercentageToPxInt(4))
+      .attr('dy', '0.35em')
       .attr('font-family', axisFont)
       .attr('font-size', fontSize)
       .text(labelText);
@@ -228,9 +229,9 @@ class Axis {
       .attr('class', 'y_label')
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
-      .attr('y', -this.parentFig.svgPercentageToPxInt(5))
+      .attr('y', -this.parentFig.svgPercentageToPxInt(8))
       .attr('x', -center)
-      .attr('dy', '0.75em')
+      .attr('dy', '0.35em')
       .attr('font-family', axisFont)
       .attr('font-size', fontSize)
       .text(labelText);
@@ -754,7 +755,10 @@ class ToolbarFunctions {
     d3.select('.data_cursor').remove();
     var xExact = fig.ax.xScale.invert(coordinates[0]);
     var point = fig.ax.graph.xyData.nearestPoint(xExact);
-
+    if (!point.x) {
+      return;
+    }
+    
     var cursor = fig.ax.axElem.append('g')
       .attr('class', 'data_cursor toolbar_addon');
 
@@ -780,7 +784,7 @@ class ToolbarFunctions {
     ToolbarFunctions.addZoomArea();
     ToolbarFunctions.zoomButton.classList.add('active');
     var brush = d3.brush()
-      //.extent([[0, 0], [fig.ax.width, fig.ax.height]])
+      .extent([[0, 0], [fig.ax.width, fig.ax.height]])
       .on('end', function () {
         const coord = d3.event.selection;
         if (!coord) {
