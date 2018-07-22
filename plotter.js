@@ -3,6 +3,7 @@
 /* global saveAs */
 /* global XMLSerializer */
 /* global d3 */
+/* global math */
 
 const defaultPlotStyle = {
   'plotType': 'line',
@@ -13,8 +14,8 @@ const defaultPlotStyle = {
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
   'titleFontSize': 2, // %
-  'xScaling': 1.0,
-  'yScaling': 1.0,
+  'xScaling': '1 * x',
+  'yScaling': '1 * y',
   'xStart': 'auto',
   'xEnd': 'auto',
   'yStart': 'auto',
@@ -592,6 +593,23 @@ class FigureArea {
     document.getElementById('instruction_text').style.display = 'none';
     document.getElementById('figure_area').style.borderStyle = 'hidden';
   }
+  
+  static transformData (arr, varStr, transformationStr) {
+    let maxRegex = new RegExp('max(\\s*' + varStr + '\\s*)', 'g');
+    let minRegex = new RegExp('min(\\s*' + varStr + '\\s*)', 'g');
+    let meanRegex = new RegExp('mean(\\s*' + varStr + '\\s*)', 'g');
+    transformationStr = transformationStr.replace(maxRegex, math.max(arr));
+    transformationStr = transformationStr.replace(minRegex, math.min(arr));
+    transformationStr = transformationStr.replace(meanRegex, math.mean(arr));
+
+    const expr = math.compile(transformationStr);
+    arr = arr.map(function (x) {
+      const scope = {};
+      scope[varStr] = x;
+      return expr.eval(scope);
+    });
+    return arr;
+  }
 
   static redraw () {
     if (!FigureArea.xy) {
@@ -602,8 +620,13 @@ class FigureArea {
 
     var x = FigureArea.xy[0].slice();
     var y = FigureArea.xy[1].slice();
-    Util.scaleArray(x, currentPlotStyle['xScaling']);
-    Util.scaleArray(y, currentPlotStyle['yScaling']);
+    try {
+      x = FigureArea.transformData(x, 'x', Sidebar.xScaling);
+      y = FigureArea.transformData(y, 'y', Sidebar.yScaling);
+    } catch (exception) {
+      console.error(exception);
+      alert('Function not recognized! Refer to <a href=http://mathjs.org/docs/expressions/syntax.html>Mathjs</a> and http://mathjs.org/docs/reference/functions.html#arithmetic-functions for help.');
+    }
 
     fig.reset();
     var ax = fig.addAxis();
@@ -671,13 +694,21 @@ class Sidebar {
 
   static addRedrawListeners () {
     var params = ['xFontSize', 'yFontSize', 'titleFontSize',
-      'xScaling', 'yScaling',
       'xStart', 'xEnd',
       'yStart', 'yEnd',
       'plotType', 'dataColor', 'lineStrokeWidth', 'scatterDotRadius'];
-    for (var i = 0; i < params.length; i++) {
-      var id = params[i];
+    for (let i = 0; i < params.length; i++) {
+      let id = params[i];
       document.getElementById(id).addEventListener('change', function (event) { FigureArea.redraw(); });
+    }
+
+    var rescaleParams = ['xScaling', 'yScaling'];
+    for (let i = 0; i < rescaleParams.length; i++) {
+      let id = rescaleParams[i];
+      document.getElementById(id).addEventListener('change', function (event) {
+        Sidebar.resetLimits();
+        FigureArea.redraw();
+      });
     }
   }
 
@@ -710,11 +741,11 @@ class Sidebar {
   }
 
   static get xScaling () {
-    return Util.toFloat(document.getElementById('xScaling').value);
+    return document.getElementById('xScaling').value;
   }
 
   static get yScaling () {
-    return Util.toFloat(document.getElementById('yScaling').value);
+    return document.getElementById('yScaling').value;
   }
 
   static get xStart () {
