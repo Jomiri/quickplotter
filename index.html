@@ -24,9 +24,8 @@
 
 <script src='https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js'></script>
 <script src='https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.3/math.min.js"></script>
 <script src='https://d3js.org/d3.v5.min.js'></script>
-<script type='text/javascript' src='plotter_util.js' defer></script>
-<script type='text/javascript' src='io_handling.js' defer></script>
 <script type='text/javascript' src='plotter.js' defer></script>
 </head>
 
@@ -126,9 +125,7 @@
         </div>
         
         <div id='figure_container' >
-        <div id='figure_area' ondrop='dropHandler(event);'
-            ondragover='dragOverHandler(event);'
-            contenteditable='true'>
+        <div id='figure_area' contenteditable='true'>
             <div id='instruction_text'>
                 <p>Drag and drop your file here or paste from clipboard.</p>
                 <p>The data will not be uploaded to the server.</p>

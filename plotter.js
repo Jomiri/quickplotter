@@ -8,7 +8,7 @@ const defaultPlotStyle = {
   'plotType': 'line',
   'majorTickSize': 0.6, // %
   'minorTickSize': 0.4, // %
-  'axisStrokeWidth': '0.4%',
+  'axisStrokeWidth': 0.3, // %
   'axisFontSize': 1.3, // %
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
@@ -28,11 +28,12 @@ const defaultPlotStyle = {
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
 
-var xyG = [];
-var fileNameG = '';
 var canvasResFactor = 1;
 var axisFont = 'Sans-Serif';
 var nTicks = 5;
+var fontSizesInt = d3.range(0.5, 4.5, 0.5);
+var strokeWidthsInt = d3.range(1, 6, 1);
+var dotRadii = d3.range(1, 10, 0.5);
 
 class Figure {
   constructor (parentSelector) {
@@ -48,7 +49,17 @@ class Figure {
   }
 
   get svgElement () {
-    return d3.select(this.selector);
+    if (document.querySelector(this.selector)) {
+      console.log('figure exists');
+      return d3.select(this.selector);
+    } else {
+      return d3.select(this.parentSelector)
+        .append('svg');
+    }
+  }
+
+  get svgElementHtml () {
+    return document.getElementById('figure');
   }
 
   get parentElement () {
@@ -101,15 +112,7 @@ class Figure {
   }
 
   draw () {
-    var svg;
-    if (document.querySelector(this.selector)) {
-      svg = this.svgElement;
-    } else {
-      svg = d3.select(this.parentSelector)
-        .append('svg');
-    }
-    //var figureElem = d3.select(this.parentSelector)
-    //  .append('svg')
+    var svg = this.svgElement;
     svg.attr('version', '1.1')
       .attr('xmlns', 'http://www.w3.org/2000/svg')
       .attr('width', this.width)
@@ -131,7 +134,7 @@ class Figure {
   }
 
   reset () {
-    if (this.svgElement) {
+    if (document.querySelector(this.selector)) {
       d3.select('.ax').remove();
     }
   }
@@ -250,10 +253,10 @@ class Axis {
   getCoordinateLimits (dataLimits, userLimits) {
     var lim = dataLimits;
     if (userLimits[0] !== 'auto') {
-      lim[0] = toFloat(userLimits[0]);
+      lim[0] = Util.toFloat(userLimits[0]);
     }
     if (userLimits[1] !== 'auto') {
-      lim[1] = toFloat(userLimits[1]);
+      lim[1] = Util.toFloat(userLimits[1]);
     }
     return lim;
   }
@@ -279,7 +282,7 @@ class CoordAxis {
     axElem.append('g')
       .attr('transform', 'translate(' + translatePosition[0] + ',' + translatePosition[1] + ')')
       .attr('class', htmlClass)
-      .attr('stroke-width', currentPlotStyle['axisStrokeWidth'])
+      .attr('stroke-width', fig.svgPercentageToPx(currentPlotStyle['axisStrokeWidth']))
       .style('font-family', axisFont)
       .style('font-size', axisFontSize)
       .call(axis);
@@ -372,9 +375,9 @@ class CoordAxis {
   }
 
   getTickFormat (ticks) {
-    var orderOfMagn = orderOfMagnitude(ticks);
+    var orderOfMagn = Util.orderOfMagnitude(ticks);
     var formatString = '.1e';
-    if (ticks.every(numIsInteger)) {
+    if (ticks.every(Util.numIsInteger)) {
       formatString = 'd';
     } else if (orderOfMagn < -2) {
       formatString = '.1e';
@@ -430,7 +433,7 @@ class Graph {
         .attr('fill', 'none')
         .attr('stroke', currentPlotStyle['dataColor'])
         .attr('clip-path', 'url(#clip_path)')
-        .attr('stroke-width', toPercentWidth(currentPlotStyle['lineStrokeWidth']));
+        .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['lineStrokeWidth'])));
     } else if (plotType === 'scatter') {
       var scatterPlot = axElem.append('g')
         .attr('class', 'curve')
@@ -471,11 +474,11 @@ class XYData {
   }
 
   precisionX () {
-    return formatPrecision(this.x[1] - this.x[0]);
+    return Util.formatPrecision(this.x[1] - this.x[0]);
   }
 
   precisionY () {
-    return formatPrecision(this.y[1] - this.y[0]);
+    return Util.formatPrecision(this.y[1] - this.y[0]);
   }
 
   get xMin () {
@@ -487,7 +490,7 @@ class XYData {
   }
 
   get xRange () {
-    return getSpan(this.x);
+    return Util.getSpan(this.x);
   }
 
   get yMin () {
@@ -499,7 +502,7 @@ class XYData {
   }
 
   get yRange () {
-    return getSpan(this.y);
+    return Util.getSpan(this.y);
   }
 
   makeLineData () {
@@ -515,131 +518,250 @@ class XYData {
   }
 };
 
-function redraw () {
-  plotXY(xyG);
-}
-
-function plotXY (xy) {
-  if (!xy) {
-    return;
-  }
-
-  updatePlotStyle();
-
-  var x = xy[0].slice();
-  var y = xy[1].slice();
-  scaleArray(x, currentPlotStyle['xScaling']);
-  scaleArray(y, currentPlotStyle['yScaling']);
-
-  fig.reset();
-  var ax = fig.addAxis();
-  var graph = ax.plot(x, y);
-  fig.draw();
-  ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
-  ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
-  ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
-  document.querySelector('#toolbar').style.margin = '0  ' + fig.marginPercent.right * 100 + '% 0 ' + fig.marginPercent.left * 100 + '%';
-}
-
-
-function initSideBar () {
-  populateSelectionBoxes();
-  initDefaultValues();
-  addSaveListeners();
-  addRedrawListeners();
-  addLabelListeners();
-}
-
-function addLabelListeners () {
-  document.getElementById('xLabel').addEventListener('input', function (event) {
-    fig.ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
-  });
-  document.getElementById('yLabel').addEventListener('input', function (event) {
-    fig.ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
-  });
-  document.getElementById('title').addEventListener('input', function (event) {
-    fig.ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
-  });
-}
-
-function addSaveListeners () {
-  document.getElementById('svgButton').addEventListener('click', downloadSVG);
-  document.getElementById('pngButton').addEventListener('click', downloadPNG);
-}
-
-function populateSelectionBoxes () {
-  var fontSizesInt = d3.range(0.5, 4.5, 0.5);
-  var fontSizesStr = appendStrtoArr(fontSizesInt, '%');
-
-  var strokeWidthsInt = d3.range(1, 6, 1);
-  var dotRadii = d3.range(1, 10, 0.5);
-
-  populateSelectBox('xFontSize', fontSizesStr);
-  populateSelectBox('yFontSize', fontSizesStr);
-  populateSelectBox('titleFontSize', fontSizesStr);
-  populateSelectBox('lineStrokeWidth', strokeWidthsInt);
-  populateSelectBox('scatterDotRadius', dotRadii);
-}
-
-function initDefaultValues () {
-  document.getElementById('xFontSize').value = defaultPlotStyle['xLabelFontSize'] + '%';
-  document.getElementById('yFontSize').value = defaultPlotStyle['yLabelFontSize'] + '%';
-  document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'] + '%';
-  document.getElementById('xScaling').value = defaultPlotStyle['xScaling'];
-  document.getElementById('yScaling').value = defaultPlotStyle['yScaling'];
-  document.getElementById('lineStrokeWidth').value = defaultPlotStyle['lineStrokeWidth'];
-  document.getElementById('scatterDotRadius').value = defaultPlotStyle['scatterDotRadius'];
-  document.getElementById('plotType').value = defaultPlotStyle['plotType'];
-  resetLimits();
-}
-
-function addRedrawListeners () {
-  var params = ['xFontSize', 'yFontSize', 'titleFontSize',
-    'xScaling', 'yScaling',
-    'xStart', 'xEnd',
-    'yStart', 'yEnd',
-    'plotType', 'dataColor', 'lineStrokeWidth', 'scatterDotRadius'];
-  for (var i = 0; i < params.length; i++) {
-    var id = params[i];
-    document.getElementById(id).addEventListener('change', function (event) { redraw(); });
-  }
-
-  window.addEventListener('resize', function (event) {
-    redraw();
-  });
-}
-
-function updatePlotStyle () {
-  currentPlotStyle['xLabelFontSize'] = document.getElementById('xFontSize').value.replace('%', '');
-  currentPlotStyle['yLabelFontSize'] = document.getElementById('yFontSize').value.replace('%', '');
-  currentPlotStyle['titleFontSize'] = document.getElementById('titleFontSize').value.replace('%', '');
-
-  currentPlotStyle['xScaling'] = toFloat(document.getElementById('xScaling').value);
-  currentPlotStyle['yScaling'] = toFloat(document.getElementById('yScaling').value);
-
-  currentPlotStyle['xStart'] = document.getElementById('xStart').value;
-  currentPlotStyle['xEnd'] = document.getElementById('xEnd').value;
-
-  currentPlotStyle['yStart'] = document.getElementById('yStart').value;
-  currentPlotStyle['yEnd'] = document.getElementById('yEnd').value;
-
-  currentPlotStyle['plotType'] = document.getElementById('plotType').value;
-  currentPlotStyle['dataColor'] = document.getElementById('dataColor').value;
-  currentPlotStyle['lineStrokeWidth'] = document.getElementById('lineStrokeWidth').value;
-  currentPlotStyle['scatterDotRadius'] = document.getElementById('scatterDotRadius').value;
-}
-
-function initFigureArea () {
-  document.getElementById('figure_area').addEventListener('paste', readPasteAndPlot);
-}
-
-class ToolbarFunctions {
+class FigureArea {
   static initialize () {
-    ToolbarFunctions.mouseArea = null;
-    ToolbarFunctions.initResetButton();
-    ToolbarFunctions.initDataCursorButton();
-    ToolbarFunctions.initZoomButton();
-    ToolbarFunctions.initPanButton();
+    document.getElementById('figure_area').addEventListener('paste', FigureArea.readPasteAndPlot);
+    document.getElementById('figure_area').addEventListener('drop', FigureArea.dropHandler);
+    document.getElementById('figure_area').addEventListener('dragover', FigureArea.dragOverHandler);
+    window.addEventListener('resize', function (event) {
+      FigureArea.redraw();
+    });
+  }
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
+  static dropHandler (ev) {
+    ev.preventDefault();
+    if (ev.dataTransfer.items) {
+      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+        if (ev.dataTransfer.items[i].kind === 'file') {
+          var file = ev.dataTransfer.items[i].getAsFile();
+          FigureArea.fileHandler(file);
+        }
+      }
+    }
+    FigureArea.removeDragData(ev);
+  }
+
+  static dragOverHandler (ev) {
+    ev.stopPropagation();
+    ev.preventDefault();
+  }
+
+  static removeDragData (ev) {
+    if (ev.dataTransfer.items) {
+      ev.dataTransfer.items.clear();
+    } else {
+      ev.dataTransfer.clearData();
+    }
+  }
+
+  // https://www.html5rocks.com/en/tutorials/file/dndfiles/
+  static fileHandler (file) {
+    var reader = new FileReader();
+    reader.onload = (function (dataFile) {
+      return function (e) {
+        FigureArea.parseAndPlot(e.target.result, file.name);
+      };
+    })();
+    reader.readAsText(file);
+  }
+
+  // https://stackoverflow.com/questions/2176861/javascript-get-clipboard-data-on-paste-event-cross-browser
+  static readPasteAndPlot (e) {
+    var clipboardData, pastedData;
+    var fileName = 'pasted_data';
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    clipboardData = e.clipboardData || window.clipboardData;
+    pastedData = clipboardData.getData('Text');
+    FigureArea.parseAndPlot(pastedData, fileName);
+  }
+
+  static parseAndPlot (str, fileName) {
+    FigureArea.xy = Util.regexParse(str);
+    FigureArea.fileName = Util.stripFileExtension(fileName);
+    Sidebar.resetLimits();
+    FigureArea.redraw();
+    FigureArea.hideInstruction();
+    Toolbar.show();
+  }
+
+  static hideInstruction () {
+    document.getElementById('instruction_text').style.display = 'none';
+    document.getElementById('figure_area').style.borderStyle = 'hidden';
+  }
+
+  static redraw () {
+    if (!FigureArea.xy) {
+      return;
+    }
+
+    Sidebar.updatePlotStyle();
+
+    var x = FigureArea.xy[0].slice();
+    var y = FigureArea.xy[1].slice();
+    Util.scaleArray(x, currentPlotStyle['xScaling']);
+    Util.scaleArray(y, currentPlotStyle['yScaling']);
+
+    fig.reset();
+    var ax = fig.addAxis();
+    ax.plot(x, y);
+    fig.draw();
+    ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
+    ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
+    ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
+    document.querySelector('#toolbar').style.margin = '0  ' + fig.marginPercent.right * 100 + '% 0 ' + fig.marginPercent.left * 100 + '%';
+  }
+}
+
+class Sidebar {
+  static initialize () {
+    Sidebar.populateSelectionBoxes();
+    Sidebar.initDefaultValues();
+    Sidebar.addRedrawListeners();
+    Sidebar.addLabelListeners();
+  }
+
+  static addLabelListeners () {
+    document.getElementById('xLabel').addEventListener('input', function (event) {
+      fig.ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
+    });
+    document.getElementById('yLabel').addEventListener('input', function (event) {
+      fig.ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
+    });
+    document.getElementById('title').addEventListener('input', function (event) {
+      fig.ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
+    });
+  }
+
+  static populateSelectionBoxes () {
+    var fontSizesStr = Util.appendStrtoArr(fontSizesInt, '%');
+    Util.populateSelectBox('xFontSize', fontSizesStr);
+    Util.populateSelectBox('yFontSize', fontSizesStr);
+    Util.populateSelectBox('titleFontSize', fontSizesStr);
+    Util.populateSelectBox('lineStrokeWidth', strokeWidthsInt);
+    Util.populateSelectBox('scatterDotRadius', dotRadii);
+  }
+
+  static initDefaultValues () {
+    document.getElementById('xFontSize').value = defaultPlotStyle['xLabelFontSize'] + '%';
+    document.getElementById('yFontSize').value = defaultPlotStyle['yLabelFontSize'] + '%';
+    document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'] + '%';
+    document.getElementById('xScaling').value = defaultPlotStyle['xScaling'];
+    document.getElementById('yScaling').value = defaultPlotStyle['yScaling'];
+    document.getElementById('lineStrokeWidth').value = defaultPlotStyle['lineStrokeWidth'];
+    document.getElementById('scatterDotRadius').value = defaultPlotStyle['scatterDotRadius'];
+    document.getElementById('plotType').value = defaultPlotStyle['plotType'];
+    Sidebar.resetLimits();
+  }
+
+  static updateLimits (xStart, xEnd, yStart, yEnd) {
+    document.getElementById('xStart').value = xStart;
+    document.getElementById('xEnd').value = xEnd;
+    document.getElementById('yStart').value = yStart;
+    document.getElementById('yEnd').value = yEnd;
+  }
+
+  static resetLimits () {
+    Sidebar.updateLimits(defaultPlotStyle['xStart'], defaultPlotStyle['xEnd'],
+      defaultPlotStyle['yStart'], defaultPlotStyle['yEnd']);
+  }
+
+  static addRedrawListeners () {
+    var params = ['xFontSize', 'yFontSize', 'titleFontSize',
+      'xScaling', 'yScaling',
+      'xStart', 'xEnd',
+      'yStart', 'yEnd',
+      'plotType', 'dataColor', 'lineStrokeWidth', 'scatterDotRadius'];
+    for (var i = 0; i < params.length; i++) {
+      var id = params[i];
+      document.getElementById(id).addEventListener('change', function (event) { FigureArea.redraw(); });
+    }
+  }
+
+  static updatePlotStyle () {
+    currentPlotStyle['xLabelFontSize'] = Sidebar.xLabelFontSize;
+    currentPlotStyle['yLabelFontSize'] = Sidebar.yLabelFontSize;
+    currentPlotStyle['titleFontSize'] = Sidebar.titleFontSize;
+    currentPlotStyle['xScaling'] = Sidebar.xScaling;
+    currentPlotStyle['yScaling'] = Sidebar.yScaling;
+    currentPlotStyle['xStart'] = Sidebar.xStart;
+    currentPlotStyle['xEnd'] = Sidebar.xEnd;
+    currentPlotStyle['yStart'] = Sidebar.yStart;
+    currentPlotStyle['yEnd'] = Sidebar.yEnd;
+    currentPlotStyle['plotType'] = Sidebar.plotType;
+    currentPlotStyle['dataColor'] = Sidebar.dataColor;
+    currentPlotStyle['lineStrokeWidth'] = Sidebar.lineStrokeWidth;
+    currentPlotStyle['scatterDotRadius'] = Sidebar.scatterDotRadius;
+  }
+
+  static get xLabelFontSize () {
+    return document.getElementById('xFontSize').value.replace('%', '');
+  }
+
+  static get yLabelFontSize () {
+    return document.getElementById('yFontSize').value.replace('%', '');
+  }
+
+  static get titleFontSize () {
+    return document.getElementById('titleFontSize').value.replace('%', '');
+  }
+
+  static get xScaling () {
+    return Util.toFloat(document.getElementById('xScaling').value);
+  }
+
+  static get yScaling () {
+    return Util.toFloat(document.getElementById('yScaling').value);
+  }
+
+  static get xStart () {
+    return document.getElementById('xStart').value;
+  }
+
+  static get xEnd () {
+    return document.getElementById('xEnd').value;
+  }
+
+  static get yStart () {
+    return document.getElementById('yStart').value;
+  }
+
+  static get yEnd () {
+    return document.getElementById('yEnd').value;
+  }
+
+  static get plotType () {
+    return document.getElementById('plotType').value;
+  }
+
+  static get dataColor () {
+    return document.getElementById('dataColor').value;
+  }
+
+  static get lineStrokeWidth () {
+    return document.getElementById('lineStrokeWidth').value;
+  }
+
+  static get scatterDotRadius () {
+    return document.getElementById('scatterDotRadius').value;
+  }
+}
+
+class Toolbar {
+  static initialize () {
+    Toolbar.mouseArea = null;
+    Toolbar.addSaveListeners();
+    Toolbar.initResetButton();
+    Toolbar.initDataCursorButton();
+    Toolbar.initZoomButton();
+    Toolbar.initPanButton();
+  }
+
+  static show () {
+    document.getElementById('toolbar').style.display = 'block';
   }
 
   static get resetButton () {
@@ -658,43 +780,52 @@ class ToolbarFunctions {
     return document.querySelector('#pan_button');
   }
 
+  static addSaveListeners () {
+    document.getElementById('svgButton').addEventListener('click', function () {
+      ImageExport.downloadSVG(fig, FigureArea.fileName);
+    });
+    document.getElementById('pngButton').addEventListener('click', function () {
+      ImageExport.downloadPNG(fig, FigureArea.fileName);
+    });
+  }
+
   static initResetButton () {
-    ToolbarFunctions.resetButton.addEventListener('click', function (event) {
-      resetLimits();
-      redraw();
+    Toolbar.resetButton.addEventListener('click', function (event) {
+      Sidebar.resetLimits();
+      FigureArea.redraw();
     });
   }
 
   static initDataCursorButton () {
-    ToolbarFunctions.dataCursorButton.addEventListener('click', function (event) {
-      if (ToolbarFunctions.dataCursorButton.classList.contains('active')) {
-        ToolbarFunctions.clean();
+    Toolbar.dataCursorButton.addEventListener('click', function (event) {
+      if (Toolbar.dataCursorButton.classList.contains('active')) {
+        Toolbar.clean();
       } else {
-        ToolbarFunctions.activateDataCursor();
-        ToolbarFunctions.dataCursorButton.classList.add('active');
+        Toolbar.activateDataCursor();
+        Toolbar.dataCursorButton.classList.add('active');
       }
     });
   }
 
   static initZoomButton () {
-    ToolbarFunctions.zoomButton.addEventListener('click', function (event) {
-      if (ToolbarFunctions.zoomButton.classList.contains('active')) {
-        ToolbarFunctions.clean();
+    Toolbar.zoomButton.addEventListener('click', function (event) {
+      if (Toolbar.zoomButton.classList.contains('active')) {
+        Toolbar.clean();
       } else {
-        ToolbarFunctions.zoomFunc();
+        Toolbar.zoomFunc();
       }
     });
   }
 
   static initPanButton () {
-    ToolbarFunctions.panButton.addEventListener('click', function (event) {
-      if (ToolbarFunctions.panButton.classList.contains('active')) {
-        ToolbarFunctions.clean();
+    Toolbar.panButton.addEventListener('click', function (event) {
+      if (Toolbar.panButton.classList.contains('active')) {
+        Toolbar.clean();
       } else {
-        ToolbarFunctions.clean();
-        ToolbarFunctions.panButton.classList.add('active');
-        ToolbarFunctions.addMouseArea();
-        ToolbarFunctions.panFunc();
+        Toolbar.clean();
+        Toolbar.panButton.classList.add('active');
+        Toolbar.addMouseArea();
+        Toolbar.panFunc();
       }
     });
   }
@@ -702,7 +833,7 @@ class ToolbarFunctions {
   static clean () {
     d3.selectAll('.toolbar_addon').remove();
     d3.selectAll('.brush').remove();
-    ToolbarFunctions.deactivateButtons();
+    Toolbar.deactivateButtons();
   }
 
   static deactivateButtons () {
@@ -713,18 +844,18 @@ class ToolbarFunctions {
   }
 
   static activateDataCursor () {
-    ToolbarFunctions.clean();
-    ToolbarFunctions.addMouseHandlerFunc(ToolbarFunctions.dataCursorFunc);
+    Toolbar.clean();
+    Toolbar.addMouseHandlerFunc(Toolbar.dataCursorFunc);
   }
 
   static activateZoom () {
-    ToolbarFunctions.clean();
-    ToolbarFunctions.addMouseArea();
-    ToolbarFunctions.zoomFunc();
+    Toolbar.clean();
+    Toolbar.addMouseArea();
+    Toolbar.zoomFunc();
   }
 
   static addMouseArea () {
-    ToolbarFunctions.mouseArea = fig.svgElement.append('rect')
+    Toolbar.mouseArea = fig.svgElement.append('rect')
       .attr('class', 'toolbar_addon')
       .attr('id', 'mouse_area')
       .attr('width', fig.axWidth())
@@ -735,7 +866,7 @@ class ToolbarFunctions {
   }
 
   static addZoomArea () {
-    ToolbarFunctions.brush = fig.svgElement.append('g')
+    Toolbar.brush = fig.svgElement.append('g')
       .attr('class', 'brush')
       .attr('width', fig.axWidth())
       .attr('height', fig.axHeight())
@@ -744,8 +875,8 @@ class ToolbarFunctions {
   }
 
   static addMouseHandlerFunc (func) {
-    ToolbarFunctions.addMouseArea();
-    ToolbarFunctions.mouseArea.on('mousemove', function (e) {
+    Toolbar.addMouseArea();
+    Toolbar.mouseArea.on('mousemove', function (e) {
       const coordinates = d3.mouse(this);
       func(coordinates);
     });
@@ -758,7 +889,7 @@ class ToolbarFunctions {
     if (!point.x) {
       return;
     }
-    
+
     var cursor = fig.ax.axElem.append('g')
       .attr('class', 'data_cursor toolbar_addon');
 
@@ -780,9 +911,9 @@ class ToolbarFunctions {
   }
 
   static zoomFunc () {
-    ToolbarFunctions.clean();
-    ToolbarFunctions.addZoomArea();
-    ToolbarFunctions.zoomButton.classList.add('active');
+    Toolbar.clean();
+    Toolbar.addZoomArea();
+    Toolbar.zoomButton.classList.add('active');
     var brush = d3.brush()
       .extent([[0, 0], [fig.ax.width, fig.ax.height]])
       .on('end', function () {
@@ -804,7 +935,7 @@ class ToolbarFunctions {
 
         document.getElementById('yStart').value = yMin;
         document.getElementById('yEnd').value = yMax;
-        redraw();
+        FigureArea.redraw();
         fig.svgElement.select('.brush').call(brush.move, null);
       });
     d3.select('.brush')
@@ -824,11 +955,11 @@ class ToolbarFunctions {
       }
       panDraw.startX = x;
       panDraw.startY = y;
-      updateLimits(fig.ax.xLim()[0] - xPan * xDelta,
+      Sidebar.updateLimits(fig.ax.xLim()[0] - xPan * xDelta,
         fig.ax.xLim()[1] - xPan * xDelta,
         fig.ax.yLim()[0] - yPan * yDelta,
         fig.ax.yLim()[1] - yPan * yDelta);
-      redraw();
+      FigureArea.redraw();
     }
 
     panDraw.startX = undefined;
@@ -837,7 +968,7 @@ class ToolbarFunctions {
     var xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
     var yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
 
-    ToolbarFunctions.mouseArea.call(d3.zoom()
+    Toolbar.mouseArea.call(d3.zoom()
       .scaleExtent([1, 1])
       .on('zoom', function () {
         var transform = d3.zoomTransform(this);
@@ -849,20 +980,148 @@ class ToolbarFunctions {
   }
 }
 
-function updateLimits (xStart, xEnd, yStart, yEnd) {
-  document.getElementById('xStart').value = xStart;
-  document.getElementById('xEnd').value = xEnd;
-  document.getElementById('yStart').value = yStart;
-  document.getElementById('yEnd').value = yEnd;
+class ImageExport {
+  static downloadSVG (fig, fileName) {
+    var svgFileName = fileName + '.svg';
+    var svg = fig.svgElementHtml;
+    var svgUrl = ImageExport.getSvgUrl(svg);
+    var downloadLink = document.createElement('a');
+    downloadLink.href = svgUrl;
+    downloadLink.download = svgFileName;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  }
+
+  static downloadPNG (fig, fileName) {
+    var pngFileName = fileName + '.png';
+    var svg = fig.svgElementHtml;
+    var svgUrl = ImageExport.getSvgUrl(svg);
+    var canvas = document.getElementById('cvs');
+    canvas.width = svg.width.animVal.value * canvasResFactor;
+    canvas.height = svg.height.animVal.value * canvasResFactor;
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+
+    img.onload = function () {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      canvas.toBlob(function (blob) {
+        saveAs(blob, pngFileName);
+      });
+    };
+    img.src = svgUrl;
+  }
+
+  static getSvgUrl (svg) {
+    // get svg source.
+    var serializer = new XMLSerializer();
+    var source = serializer.serializeToString(svg);
+
+    // add name spaces.
+    if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    if (!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+    }
+
+    // add xml declaration
+    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+    // convert svg source to URI data scheme.
+    var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source);
+    return url;
+  }
 }
 
-function resetLimits () {
-  updateLimits(defaultPlotStyle['xStart'], defaultPlotStyle['xEnd'],
-    defaultPlotStyle['yStart'], defaultPlotStyle['yEnd']);
+class Util {
+  static toPercentWidth (intStrokeWidth) {
+    return 0.1 * intStrokeWidth;
+  }
+
+  static toFloat (numStr) {
+    return parseFloat(numStr.replace(/,/, '.'));
+  }
+
+  static getFileName () {
+    return document.getElementById('figure').dataset.filename;
+  }
+
+  static formatPrecision (num) {
+    var precision = 1;
+    var orderOfMagn = Math.floor(Math.log10(Math.abs(num)));
+    if (orderOfMagn < 0) {
+      precision = -orderOfMagn + 1;
+    } else if (orderOfMagn === 0) {
+      precision = 2;
+    } else if (orderOfMagn === 1) {
+      precision = 1;
+    } else {
+      precision = 0;
+    }
+    return precision;
+  }
+
+  static stripFileExtension (fileName) {
+    // https://stackoverflow.com/questions/4250364/how-to-trim-a-file-extension-from-a-string-in-javascript
+    return fileName.replace(/\.[^/.]+$/, '');
+  }
+
+  static getSpan (arr) {
+    return Math.abs(d3.max(arr) - d3.min(arr));
+  }
+
+  static orderOfMagnitude (arr) {
+    return Math.floor(Math.log10(Math.max(Math.abs(arr[0]), Math.abs(arr[arr.length - 1]))));
+  }
+
+  static numIsInteger (num) {
+    return num % 1 === 0;
+  }
+
+  static appendStrtoArr (arr, str) {
+    var output = [];
+    for (var i = 0; i < arr.length; i++) {
+      output.push(arr[i] + str);
+    }
+    return output;
+  }
+
+  // https://stackoverflow.com/questions/9895082/javascript-populate-drop-down-list-with-array
+  static populateSelectBox (idSelector, optionArray) {
+    var box = document.getElementById(idSelector);
+    for (var i = 0; i < optionArray.length; i++) {
+      var option = optionArray[i];
+      var el = document.createElement('option');
+      el.textContent = option;
+      el.value = option;
+      box.appendChild(el);
+    }
+  }
+
+  static scaleArray (arr, multiplier) {
+    for (var i = 0; i < arr.length; i++) {
+      arr[i] *= multiplier;
+    }
+  }
+
+  static regexParse (str) {
+    var rowRe = /^\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)(\t|,|[\s]+)\s?([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s?$/mg;
+    var arr;
+    var x = [];
+    var y = [];
+    while (arr = rowRe.exec(str)) {
+      x.push(Util.toFloat(arr[1]));
+      y.push(Util.toFloat(arr[5]));
+    }
+    return [x, y];
+  }
 }
 
 var fig = new Figure('#figure_area');
-ToolbarFunctions.initialize();
-
-initSideBar();
-initFigureArea();
+Toolbar.initialize();
+Sidebar.initialize();
+FigureArea.initialize();
