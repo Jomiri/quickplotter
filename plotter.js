@@ -21,7 +21,7 @@ const defaultPlotStyle = {
   'yStart': 'auto',
   'yEnd': 'auto',
   'scatterDotRadius': 5,
-  'lineStrokeWidth': '3',
+  'lineStrokeWidth': '1.5',
   'dataColor': 'black',
   'graphMarginX': 0.05,
   'graphMarginY': 0.05
@@ -29,12 +29,12 @@ const defaultPlotStyle = {
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
 
-var canvasResFactor = 1;
-var axisFont = 'Sans-Serif';
-var nTicks = 5;
-var fontSizesInt = d3.range(0.5, 4.5, 0.5);
-var strokeWidthsInt = d3.range(1, 6, 1);
-var dotRadii = d3.range(1, 10, 0.5);
+const canvasResFactor = 1;
+const axisFont = 'Sans-Serif';
+const nTicks = 5;
+const fontSizesInt = d3.range(0.5, 4.5, 0.5);
+const strokeWidthsInt = d3.range(1, 6, 0.5);
+const dotRadii = d3.range(1, 10, 0.5);
 
 class Figure {
   constructor (parentSelector) {
@@ -51,7 +51,6 @@ class Figure {
 
   get svgElement () {
     if (document.querySelector(this.selector)) {
-      console.log('figure exists');
       return d3.select(this.selector);
     } else {
       return d3.select(this.parentSelector)
@@ -379,7 +378,7 @@ class CoordAxis {
     var orderOfMagn = Util.orderOfMagnitude(ticks);
     var formatString = '.1e';
     if (ticks.every(Util.numIsInteger)) {
-      formatString = 'd';
+      formatString = '.1f';
     } else if (orderOfMagn < -2) {
       formatString = '.1e';
     } else if (orderOfMagn <= 0) {
@@ -593,11 +592,11 @@ class FigureArea {
     document.getElementById('instruction_text').style.display = 'none';
     document.getElementById('figure_area').style.borderStyle = 'hidden';
   }
-  
+
   static transformData (arr, varStr, transformationStr) {
-    let maxRegex = new RegExp('max(\\s*' + varStr + '\\s*)', 'g');
-    let minRegex = new RegExp('min(\\s*' + varStr + '\\s*)', 'g');
-    let meanRegex = new RegExp('mean(\\s*' + varStr + '\\s*)', 'g');
+    let maxRegex = new RegExp('max\\(\\s*' + varStr + '\\s*\\)', 'g');
+    let minRegex = new RegExp('min\\(\\s*' + varStr + '\\s*\\)', 'g');
+    let meanRegex = new RegExp('mean\\(\\s*' + varStr + '\\s*\\)', 'g');
     transformationStr = transformationStr.replace(maxRegex, math.max(arr));
     transformationStr = transformationStr.replace(minRegex, math.min(arr));
     transformationStr = transformationStr.replace(meanRegex, math.mean(arr));
@@ -893,6 +892,7 @@ class Toolbar {
       .attr('height', fig.axHeight())
       .attr('transform', 'translate(' + fig.axMargin().left + ',' + fig.axMargin().top + ')')
       .style('fill', 'transparent')
+      .style('opacity', '0')
       .style('pointer-events', 'all');
   }
 
@@ -954,6 +954,7 @@ class Toolbar {
         }
         var x = [coord[0][0], coord[1][0]];
         var y = [coord[0][1], coord[1][1]];
+
 
         var xMin = fig.ax.xScale.invert(Math.min(x[0], x[1]));
         var xMax = fig.ax.xScale.invert(Math.max(x[0], x[1]));
