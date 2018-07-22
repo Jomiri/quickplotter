@@ -30,7 +30,7 @@ const defaultPlotStyle = {
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
 
-const canvasResFactor = 1;
+const canvasResFactor = 2;
 const axisFont = 'Sans-Serif';
 const nTicks = 5;
 const fontSizesInt = d3.range(0.5, 2.75, 0.25);

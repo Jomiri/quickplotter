@@ -67,15 +67,12 @@ h1 sup {
     margin-bottom: 5px;
 }
 
-#sidebar .right {
-    display: inline-block;
-}
-
-#sidebar .left {
+#sidebar .left .right {
     display: inline-block;
 }
 
 #sidebar label {
+    font-size: 14px;
     display: block;
     padding-left: 2px;
     padding-bottom: 2px;
