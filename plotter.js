@@ -9,8 +9,8 @@ const defaultPlotStyle = {
   'plotType': 'line',
   'majorTickSize': 0.6, // %
   'minorTickSize': 0.4, // %
-  'axisStrokeWidth': 0.3, // %
-  'axisFontSize': 1.3, // %
+  'axisStrokeWidth': 2, // %
+  'axisFontSize': 1.25, // %
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
   'titleFontSize': 2, // %
@@ -32,7 +32,7 @@ var currentPlotStyle = Object.assign({}, defaultPlotStyle);
 const canvasResFactor = 1;
 const axisFont = 'Sans-Serif';
 const nTicks = 5;
-const fontSizesInt = d3.range(0.5, 4.5, 0.5);
+const fontSizesInt = d3.range(0.5, 2.75, 0.25);
 const strokeWidthsInt = d3.range(1, 6, 0.5);
 const dotRadii = d3.range(1, 10, 0.5);
 
@@ -282,7 +282,7 @@ class CoordAxis {
     axElem.append('g')
       .attr('transform', 'translate(' + translatePosition[0] + ',' + translatePosition[1] + ')')
       .attr('class', htmlClass)
-      .attr('stroke-width', fig.svgPercentageToPx(currentPlotStyle['axisStrokeWidth']))
+      .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
       .style('font-family', axisFont)
       .style('font-size', axisFontSize)
       .call(axis);
@@ -663,7 +663,9 @@ class Sidebar {
     Util.populateSelectBox('xFontSize', fontSizesStr);
     Util.populateSelectBox('yFontSize', fontSizesStr);
     Util.populateSelectBox('titleFontSize', fontSizesStr);
+    Util.populateSelectBox('axisFontSize', fontSizesStr);
     Util.populateSelectBox('lineStrokeWidth', strokeWidthsInt);
+    Util.populateSelectBox('axisStrokeWidth', strokeWidthsInt);
     Util.populateSelectBox('scatterDotRadius', dotRadii);
   }
 
@@ -671,11 +673,13 @@ class Sidebar {
     document.getElementById('xFontSize').value = defaultPlotStyle['xLabelFontSize'] + '%';
     document.getElementById('yFontSize').value = defaultPlotStyle['yLabelFontSize'] + '%';
     document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'] + '%';
+    document.getElementById('axisFontSize').value = defaultPlotStyle['axisFontSize'] + '%';
     document.getElementById('xScaling').value = defaultPlotStyle['xScaling'];
     document.getElementById('yScaling').value = defaultPlotStyle['yScaling'];
     document.getElementById('lineStrokeWidth').value = defaultPlotStyle['lineStrokeWidth'];
     document.getElementById('scatterDotRadius').value = defaultPlotStyle['scatterDotRadius'];
     document.getElementById('plotType').value = defaultPlotStyle['plotType'];
+    document.getElementById('axisStrokeWidth').value = defaultPlotStyle['axisStrokeWidth'];
     Sidebar.resetLimits();
   }
 
@@ -695,7 +699,9 @@ class Sidebar {
     var params = ['xFontSize', 'yFontSize', 'titleFontSize',
       'xStart', 'xEnd',
       'yStart', 'yEnd',
-      'plotType', 'dataColor', 'lineStrokeWidth', 'scatterDotRadius'];
+      'plotType', 'dataColor',
+      'lineStrokeWidth', 'scatterDotRadius',
+      'axisStrokeWidth', 'axisFontSize'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       document.getElementById(id).addEventListener('change', function (event) { FigureArea.redraw(); });
@@ -725,6 +731,8 @@ class Sidebar {
     currentPlotStyle['dataColor'] = Sidebar.dataColor;
     currentPlotStyle['lineStrokeWidth'] = Sidebar.lineStrokeWidth;
     currentPlotStyle['scatterDotRadius'] = Sidebar.scatterDotRadius;
+    currentPlotStyle['axisStrokeWidth'] = Sidebar.axisStrokeWidth;
+    currentPlotStyle['axisFontSize'] = Sidebar.axisFontSize;
   }
 
   static get xLabelFontSize () {
@@ -777,6 +785,14 @@ class Sidebar {
 
   static get scatterDotRadius () {
     return document.getElementById('scatterDotRadius').value;
+  }
+
+  static get axisStrokeWidth () {
+    return document.getElementById('axisStrokeWidth').value;
+  }
+
+  static get axisFontSize () {
+    return document.getElementById('axisFontSize').value.replace('%', '');
   }
 }
 
