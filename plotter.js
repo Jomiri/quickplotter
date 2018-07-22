@@ -4,6 +4,7 @@
 /* global XMLSerializer */
 /* global d3 */
 /* global math */
+/* global alert */
 
 const defaultPlotStyle = {
   'plotType': 'line',
@@ -580,7 +581,12 @@ class FigureArea {
   }
 
   static parseAndPlot (str, fileName) {
-    FigureArea.xy = Util.regexParse(str);
+    var xy = Util.regexParse(str);
+    if (xy[0].length < 2) {
+      alert('Input data could not be parsed! Please use two columns separated by tab, comma, semicolon and/or spaces.');
+      return;
+    }
+    FigureArea.xy = xy;
     FigureArea.fileName = Util.stripFileExtension(fileName);
     Sidebar.resetLimits();
     FigureArea.redraw();
@@ -971,7 +977,6 @@ class Toolbar {
         var x = [coord[0][0], coord[1][0]];
         var y = [coord[0][1], coord[1][1]];
 
-
         var xMin = fig.ax.xScale.invert(Math.min(x[0], x[1]));
         var xMax = fig.ax.xScale.invert(Math.max(x[0], x[1]));
 
@@ -1157,7 +1162,7 @@ class Util {
   }
 
   static regexParse (str) {
-    var rowRe = /^\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)(\t|,|[\s]+)\s?([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s?$/mg;
+    var rowRe = /^\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s*(,|;|\s)\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s?$/mg;
     var arr;
     var x = [];
     var y = [];
