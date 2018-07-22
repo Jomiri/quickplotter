@@ -232,7 +232,7 @@ class Axis {
       .attr('class', 'y_label')
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
-      .attr('y', -this.parentFig.svgPercentageToPxInt(8))
+      .attr('y', -this.parentFig.svgPercentageToPxInt(6))
       .attr('x', -center)
       .attr('dy', '0.35em')
       .attr('font-family', axisFont)
