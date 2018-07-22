@@ -999,6 +999,8 @@ class Toolbar {
     function panDraw (x, y, k) {
       var xPan;
       var yPan;
+      var xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
+      var yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
       if (!panDraw.startX) {
         xPan = x;
         yPan = y;
@@ -1017,9 +1019,6 @@ class Toolbar {
 
     panDraw.startX = undefined;
     panDraw.startY = undefined;
-
-    var xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
-    var yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
 
     Toolbar.mouseArea.call(d3.zoom()
       .scaleExtent([1, 1])
