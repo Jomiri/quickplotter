@@ -46,8 +46,8 @@ h1 sup {
 
 #sidebar ul {
     list-style-type: none;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: 12px;
+    padding-right: 12px;
     overflow-y: hidden;
 }
 
@@ -67,7 +67,7 @@ h1 sup {
     margin-bottom: 5px;
 }
 
-#sidebar .left .right {
+#sidebar .left, #sidebar .right {
     display: inline-block;
 }
 
@@ -83,7 +83,6 @@ h1 sup {
     border-radius: 5px;
     display: inline-block;
     background-color: #ebebeb;
-    box-sizing: content-box;
 }
 
 #sidebar .long_input {
@@ -95,14 +94,10 @@ h1 sup {
     margin-right: 5%;
 }
 
-#sidebar li #plotType {
-    max-width: 100%;
-}
-
 #side-footer {
     position: fixed;
     bottom: 0;
-    height: 60px;
+    height: 120px;
     z-index: 2;
 }
 
@@ -110,7 +105,6 @@ h1 sup {
     padding-left: 15px;
     line-height: 0.5;
 }
-
 
 #fine_print {
     position: absolute;
@@ -199,11 +193,26 @@ h1 sup {
     margin-right: -50%;
     transform: translate(-50%, -50%);
     font-family: Sans-Serif;
-    font-size: 20px;
+    font-size: 1.5rem;
 }
 
 #instruction_text p {
     text-align: center;
+}
+
+#instruction_header {
+    font-size: 2rem;
+}
+
+#instruction_dragdrop {
+    color: crimson;
+    font-weight: bold;
+
+}
+
+#instruction_copypaste {
+    color: darkblue;
+    font-weight: bold;
 }
 
 canvas {

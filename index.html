@@ -125,6 +125,8 @@
         <div id='side-footer'>
             <div id='fine_print'>
                 <p><small>See the source code on <a href='https://github.com/Jomiri/quickplotter'>GitHub</a></small></p>
+                <p><small>Contact:</small></p>
+                <p><small><a href='mailto:joona.m.rissanen@gmail.com'>joona.m.rissanen@gmail.com</a></small></p>
                 <p><small>&copy; 2018, Joona Rissanen</small></p>
             </div>
         </div>
@@ -133,8 +135,11 @@
         <div id='figure_container' >
         <div id='figure_area' contenteditable='true'>
             <div id='instruction_text'>
-                <p>Drag and drop your two-column data file here or paste from clipboard.</p>
-                <p>Your data will be processed in your own browser.</p>
+                <p id='instruction_header'>Welcome to Quickplotter!</p>
+                <p><span id='instruction_dragdrop'>Drag and drop</span>
+                 or <span id='instruction_copypaste'>copy and paste</span>
+                your two-column data here to plot.</p>
+                <p>The plot will be generated entirely in your own browser.</p>
             </div>
         </div>
 
