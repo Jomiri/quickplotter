@@ -188,7 +188,7 @@ h1 sup {
 #toolbar #coordinates p {
     color: #ebebeb;
     margin: 6px 6px 6px 0;
-    display: inline-block;
+    line-height: 1rem;
 }
 
 #instruction_text {

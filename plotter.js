@@ -168,12 +168,24 @@ class Axis {
       .range([this.height, 0]);
 
     this.drawClipPath(axElem);
+    this.drawAxes();
     this.graph.draw(axElem, this.xScale, this.yScale);
+  }
 
-    this.drawCoordAxis(axElem, this.xScale, this.xLim(), 'bottom', [0, this.height], 'x_axis', true, [0, 5]);
-    this.drawCoordAxis(axElem, this.xScale, this.xLim(), 'top', [0, 0], 'x_axis_top', false, [0, 0]);
-    this.drawCoordAxis(axElem, this.yScale, this.yLim(), 'left', [0, 0], 'y_axis', true, [-5, 0]);
-    this.drawCoordAxis(axElem, this.yScale, this.yLim(), 'right', [this.width, 0], 'y_axis_right', false, [0, 0]);
+  drawAxes () {
+    this.xScale.domain(this.xLim());
+    this.yScale.domain(this.yLim());
+    this.drawCoordAxis(this.axElem, this.xScale, this.xLim(), 'bottom', [0, this.height], 'x_axis', true, [0, 5]);
+    this.drawCoordAxis(this.axElem, this.xScale, this.xLim(), 'top', [0, 0], 'x_axis_top', false, [0, 0]);
+    this.drawCoordAxis(this.axElem, this.yScale, this.yLim(), 'left', [0, 0], 'y_axis', true, [-5, 0]);
+    this.drawCoordAxis(this.axElem, this.yScale, this.yLim(), 'right', [this.width, 0], 'y_axis_right', false, [0, 0]);
+  }
+
+  removeAxes () {
+    d3.select('.x_axis').remove();
+    d3.select('.x_axis_top').remove();
+    d3.select('.y_axis').remove();
+    d3.select('.y_axis_right').remove();
   }
 
   drawCoordAxis (axElem, scale, limits, orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
@@ -186,7 +198,7 @@ class Axis {
   }
 
   drawClipPath (axElem) {
-    axElem.append('clipPath')
+    axElem.append('defs').append('clipPath')
       .attr('id', 'clip_path')
       .append('rect')
       .attr('x', 0)
@@ -268,7 +280,7 @@ class CoordAxis {
     this.orientation = orientation;
   }
 
-  draw (axElem, scale, limits, htmlClass, translatePosition, tickLabelsVisible, labelTranslate,
+  draw (axElem, scale, limits, htmlId, translatePosition, tickLabelsVisible, labelTranslate,
     majorTickSize, minorTickSize, axisFontSize) {
     var majorTickValues = scale.ticks(nTicks);
     var tickValues = this.addMinorTicks(majorTickValues, limits);
@@ -282,14 +294,14 @@ class CoordAxis {
     // Add axes to the ax group
     axElem.append('g')
       .attr('transform', 'translate(' + translatePosition[0] + ',' + translatePosition[1] + ')')
-      .attr('class', htmlClass)
+      .attr('class', htmlId)
       .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
       .style('font-family', axisFont)
       .style('font-size', axisFontSize)
       .call(axis);
 
-    this.drawTickLines('.' + htmlClass, majorTickSize, minorTickSize);
-    this.drawTickLabels('.' + htmlClass, tickLabelsVisible, labelTranslate);
+    this.drawTickLines('.' + htmlId, majorTickSize, minorTickSize);
+    this.drawTickLabels('.' + htmlId, tickLabelsVisible, labelTranslate);
   }
 
   drawTickLabels (htmlClass, isVisible, translatePosition) {
@@ -419,6 +431,9 @@ class Graph {
   draw (axElem, xScale, yScale) {
     var dataPoints = this.xyData.makeLineData();
     var plotType = currentPlotStyle['plotType'];
+    this.clipGroup = axElem.append('g')
+      .attr('clip-path', 'url(#clip_path)');
+    this.plotGroup = this.clipGroup.append('g');
     if (plotType === 'line') {
       var drawFunc = d3.line()
         .x(function (d) {
@@ -428,20 +443,18 @@ class Graph {
           return yScale(d.y_coord);
         });
       // Add the plotted curve as path
-      axElem.append('path')
+      this.plotLine = this.plotGroup.append('path')
         .attr('d', drawFunc(dataPoints))
         .attr('class', 'curve')
         .attr('fill', 'none')
         .attr('stroke', currentPlotStyle['dataColor'])
-        .attr('clip-path', 'url(#clip_path)')
         .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['lineStrokeWidth'])));
     } else if (plotType === 'scatter') {
-      var scatterPlot = axElem.append('g')
+      var scatterPlot = this.plotGroup.append('g')
         .attr('class', 'curve')
-        .attr('id', 'scatterPlot')
-        .attr('clip-path', 'url(#clip_path)');
+        .attr('id', 'scatterPlot');
 
-      scatterPlot.selectAll('scatter-dots')
+      this.plotMarkers = scatterPlot.selectAll('scatter-dots')
         .data(dataPoints)
         .enter().append('circle')
         .attr('class', 'scatter_dot')
@@ -453,6 +466,12 @@ class Graph {
         })
         .attr('r', currentPlotStyle['scatterDotRadius'])
         .attr('fill', currentPlotStyle['dataColor']);
+    }
+  }
+
+  panTransform (transform) {
+    if (this.plotGroup) {
+      this.plotGroup.attr('transform', transform);
     }
   }
 };
@@ -630,7 +649,7 @@ class FigureArea {
       y = FigureArea.transformData(y, 'y', Sidebar.yScaling);
     } catch (exception) {
       console.error(exception);
-      alert('Function not recognized! Refer to <a href=http://mathjs.org/docs/expressions/syntax.html>Mathjs</a> and http://mathjs.org/docs/reference/functions.html#arithmetic-functions for help.');
+      alert('Function not recognized!');
     }
 
     fig.reset();
@@ -640,7 +659,8 @@ class FigureArea {
     ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
     ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
     ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
-    document.querySelector('#toolbar').style.margin = '0  ' + fig.marginPercent.right * 100 + '% 0 ' + fig.marginPercent.left * 100 + '%';
+    Toolbar.applyMargin();
+    Toolbar.reactivateButton();
   }
 }
 
@@ -804,6 +824,7 @@ class Sidebar {
 
 class Toolbar {
   static initialize () {
+    Toolbar.buttonList = ['reset_button', 'zoom_button', 'pan_button', 'data_cursor_button'];
     Toolbar.mouseArea = null;
     Toolbar.addSaveListeners();
     Toolbar.initResetButton();
@@ -814,6 +835,10 @@ class Toolbar {
 
   static show () {
     document.getElementById('toolbar').style.display = 'block';
+  }
+
+  static applyMargin () {
+    document.querySelector('#toolbar').style.margin = '0  ' + fig.marginPercent.right * 100 + '% 0 ' + fig.marginPercent.left * 100 + '%';
   }
 
   static get resetButton () {
@@ -849,37 +874,43 @@ class Toolbar {
   }
 
   static initDataCursorButton () {
-    Toolbar.dataCursorButton.addEventListener('click', function (event) {
-      if (Toolbar.dataCursorButton.classList.contains('active')) {
-        Toolbar.clean();
-      } else {
-        Toolbar.activateDataCursor();
-        Toolbar.dataCursorButton.classList.add('active');
-      }
-    });
+    Toolbar.dataCursorButton.addEventListener('click', Toolbar.dataCursorButtonOnClick);
+  }
+
+  static dataCursorButtonOnClick () {
+    if (Toolbar.dataCursorButton.classList.contains('active')) {
+      Toolbar.clean();
+    } else {
+      Toolbar.activateDataCursor();
+      Toolbar.dataCursorButton.classList.add('active');
+    }
   }
 
   static initZoomButton () {
-    Toolbar.zoomButton.addEventListener('click', function (event) {
-      if (Toolbar.zoomButton.classList.contains('active')) {
-        Toolbar.clean();
-      } else {
-        Toolbar.zoomFunc();
-      }
-    });
+    Toolbar.zoomButton.addEventListener('click', Toolbar.zoomButtonOnClick);
+  }
+
+  static zoomButtonOnClick () {
+    if (Toolbar.zoomButton.classList.contains('active')) {
+      Toolbar.clean();
+    } else {
+      Toolbar.zoomFunc();
+    }
   }
 
   static initPanButton () {
-    Toolbar.panButton.addEventListener('click', function (event) {
-      if (Toolbar.panButton.classList.contains('active')) {
-        Toolbar.clean();
-      } else {
-        Toolbar.clean();
-        Toolbar.panButton.classList.add('active');
-        Toolbar.addMouseArea();
-        Toolbar.panFunc();
-      }
-    });
+    Toolbar.panButton.addEventListener('click', Toolbar.panButtonOnClick);
+  }
+
+  static panButtonOnClick () {
+    if (Toolbar.panButton.classList.contains('active')) {
+      Toolbar.clean();
+    } else {
+      Toolbar.clean();
+      Toolbar.panButton.classList.add('active');
+      Toolbar.addMouseArea();
+      Toolbar.panFunc();
+    }
   }
 
   static clean () {
@@ -889,9 +920,23 @@ class Toolbar {
   }
 
   static deactivateButtons () {
-    var buttonList = ['reset_button', 'zoom_button', 'pan_button', 'data_cursor_button'];
-    for (var i = 0; i < buttonList.length; i++) {
-      document.querySelector('#' + buttonList[i]).classList.remove('active');
+    for (var i = 0; i < Toolbar.buttonList.length; i++) {
+      document.querySelector('#' + Toolbar.buttonList[i]).classList.remove('active');
+    }
+  }
+
+  static reactivateButton () {
+    var activeButton = document.querySelector('#toolbar .active');
+    if (!activeButton) {
+      return;
+    }
+    Toolbar.deactivateButtons();
+    if (activeButton.id === 'pan_button') {
+      Toolbar.panButtonOnClick();
+    } else if (activeButton.id === 'zoom_button') {
+      Toolbar.zoomButtonOnClick();
+    } else if (activeButton.id === 'data_cursor_button') {
+      Toolbar.dataCursorButtonOnClick();
     }
   }
 
@@ -996,38 +1041,30 @@ class Toolbar {
   }
 
   static panFunc () {
-    function panDraw (x, y, k) {
-      var xPan;
-      var yPan;
+    function panDraw () {
       var xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
       var yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
-      if (!panDraw.startX) {
-        xPan = x;
-        yPan = y;
-      } else {
-        xPan = x - panDraw.startX;
-        yPan = y - panDraw.startY;
-      }
-      panDraw.startX = x;
-      panDraw.startY = y;
-      Sidebar.updateLimits(fig.ax.xLim()[0] - xPan * xDelta,
-        fig.ax.xLim()[1] - xPan * xDelta,
-        fig.ax.yLim()[0] - yPan * yDelta,
-        fig.ax.yLim()[1] - yPan * yDelta);
-      FigureArea.redraw();
+      var transform = d3.event.transform;
+      var xPan = transform.x;
+      var yPan = transform.y;
+      Sidebar.updateLimits(panDraw.startXLim[0] - xPan * xDelta,
+        panDraw.startXLim[1] - xPan * xDelta,
+        panDraw.startYLim[0] - yPan * yDelta,
+        panDraw.startYLim[1] - yPan * yDelta);
+      Sidebar.updatePlotStyle();
+      fig.ax.graph.panTransform(d3.event.transform);
+      fig.ax.removeAxes();
+      fig.ax.drawAxes();
+      //FigureArea.redraw();
     }
 
-    panDraw.startX = undefined;
-    panDraw.startY = undefined;
+    panDraw.startXLim = fig.ax.xLim();
+    panDraw.startYLim = fig.ax.yLim();
 
     Toolbar.mouseArea.call(d3.zoom()
       .scaleExtent([1, 1])
       .on('zoom', function () {
-        var transform = d3.zoomTransform(this);
-        var x = transform.x;
-        var y = transform.y;
-        var k = transform.k;
-        panDraw(x, y, k);
+        panDraw();
       }));
   }
 }
