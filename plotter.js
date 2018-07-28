@@ -1121,7 +1121,7 @@ class Toolbar {
       return;
     }
 
-    var cursor = fig.ax.axElem.append('g')
+    var cursor = fig.ax.dataAxElem.append('g')
       .attr('class', 'data_cursor toolbar_addon');
 
     const cursorSize = 8;
