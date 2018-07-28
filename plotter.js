@@ -25,7 +25,9 @@ const defaultPlotStyle = {
   'lineStrokeWidth': '1.5',
   'dataColor': 'black',
   'graphMarginX': 0.05,
-  'graphMarginY': 0.05
+  'graphMarginY': 0.05,
+  'horizontalGrid': false,
+  'verticalGrid': false
 };
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
@@ -158,7 +160,8 @@ class Axis {
   }
 
   draw (axElem) {
-    this.axElem = axElem;
+    this.dataAxElem = axElem;
+    this.helperAxElem = axElem.append('g');
     this.xScale = d3.scaleLinear()
       .domain(this.xLim())
       .range([0, this.width]);
@@ -167,34 +170,59 @@ class Axis {
       .domain(this.yLim())
       .range([this.height, 0]);
 
-    this.drawClipPath(axElem);
+    this.drawClipPath(this.dataAxElem);
+    this.createAxes();
+    this.drawGrids();
     this.drawAxes();
-    this.graph.draw(axElem, this.xScale, this.yScale);
+    this.graph.draw(this.dataAxElem, this.xScale, this.yScale);
+  }
+
+  createAxes () {
+    this.xAxis = this.createCoordAxis('bottom', [0, this.height], 'x_axis', true, [0, 5]);
+    this.xAxisTop = this.createCoordAxis('top', [0, 0], 'x_axis_top', false, [0, 0]);
+    this.yAxis = this.createCoordAxis('left', [0, 0], 'y_axis', true, [-5, 0]);
+    this.yAxisRight = this.createCoordAxis('right', [this.width, 0], 'y_axis_right', false, [0, 0]);
+    this.updateAxes();
+  }
+
+  updateAxes () {
+    this.xScale.domain(this.xLim());
+    this.yScale.domain(this.yLim());
+    this.xAxis.update(this.xScale, this.xLim());
+    this.xAxisTop.update(this.xScale, this.xLim());
+    this.yAxis.update(this.yScale, this.yLim());
+    this.yAxisRight.update(this.yScale, this.yLim());
   }
 
   drawAxes () {
-    this.xScale.domain(this.xLim());
-    this.yScale.domain(this.yLim());
-    this.drawCoordAxis(this.axElem, this.xScale, this.xLim(), 'bottom', [0, this.height], 'x_axis', true, [0, 5]);
-    this.drawCoordAxis(this.axElem, this.xScale, this.xLim(), 'top', [0, 0], 'x_axis_top', false, [0, 0]);
-    this.drawCoordAxis(this.axElem, this.yScale, this.yLim(), 'left', [0, 0], 'y_axis', true, [-5, 0]);
-    this.drawCoordAxis(this.axElem, this.yScale, this.yLim(), 'right', [this.width, 0], 'y_axis_right', false, [0, 0]);
+    this.xAxis.draw(this.helperAxElem);
+    this.xAxisTop.draw(this.helperAxElem);
+    this.yAxis.draw(this.helperAxElem);
+    this.yAxisRight.draw(this.helperAxElem);
   }
 
-  removeAxes () {
+  removeAxesDrawings () {
     d3.select('.x_axis').remove();
     d3.select('.x_axis_top').remove();
     d3.select('.y_axis').remove();
     d3.select('.y_axis_right').remove();
+    d3.selectAll('line.bottomGrid').remove();
+    d3.selectAll('line.leftGrid').remove();
   }
 
-  drawCoordAxis (axElem, scale, limits, orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
-    var cAx = new CoordAxis(orientation);
+  drawGrids () {
+    this.xAxis.drawGrid(this.helperAxElem, currentPlotStyle['verticalGrid']);
+    this.yAxis.drawGrid(this.helperAxElem, currentPlotStyle['horizontalGrid']);
+  }
+
+  createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
     var majorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['majorTickSize']);
     var minorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['minorTickSize']);
     var axisFontSize = this.parentFig.svgPercentageToPx(currentPlotStyle['axisFontSize']);
-    cAx.draw(axElem, scale, limits, htmlClass, translatePosition, tickLabelsVisible, labelTranslate, majorTickSize,
-      minorTickSize, axisFontSize);
+    var cAx = new CoordAxis(orientation, translatePosition,
+      htmlClass, tickLabelsVisible, labelTranslate,
+      majorTickSize, minorTickSize, axisFontSize);
+    return cAx;
   }
 
   drawClipPath (axElem) {
@@ -276,32 +304,84 @@ class Axis {
 };
 
 class CoordAxis {
-  constructor (orientation) {
+  constructor (orientation, translatePosition,
+    htmlClass, tickLabelsVisible, labelTranslate,
+    majorTickSize, minorTickSize, axisFontSize) {
     this.orientation = orientation;
+    this.translatePosition = translatePosition;
+    this.htmlId = htmlClass;
+    this.tickLabelsVisible = tickLabelsVisible;
+    this.labelTranslate = labelTranslate;
+    this.majorTickSize = majorTickSize * this.getTickDirection();
+    this.minorTickSize = minorTickSize * this.getTickDirection();
+    this.axisFontSize = axisFontSize;
+    this.limits = undefined;
+    this.scale = undefined;
+    this.majorTickValues = undefined;
   }
 
-  draw (axElem, scale, limits, htmlId, translatePosition, tickLabelsVisible, labelTranslate,
-    majorTickSize, minorTickSize, axisFontSize) {
-    var majorTickValues = scale.ticks(nTicks);
-    var tickValues = this.addMinorTicks(majorTickValues, limits);
-    var tickFormat = this.getTickFormat(majorTickValues);
+  update (scale, limits) {
+    this.scale = scale;
+    this.limits = limits;
+    var suggestedTickValues = this.scale.ticks(nTicks);
+    this.tickValues = this.addMinorTicks(suggestedTickValues, this.limits);
+    this.majorTickValues = this.tickValues.filter(function (item, idx) {
+      return idx % 2 === 0;
+    });
+  }
 
-    var axis = this.makeAxisFunc(scale, tickValues, tickFormat);
-
-    majorTickSize *= this.getTickDirection();
-    minorTickSize *= this.getTickDirection();
+  draw (axElem) {
+    var tickFormat = this.getTickFormat(this.majorTickValues);
+    var axis = this.makeAxisFunc(this.scale, this.tickValues, tickFormat);
 
     // Add axes to the ax group
     axElem.append('g')
-      .attr('transform', 'translate(' + translatePosition[0] + ',' + translatePosition[1] + ')')
-      .attr('class', htmlId)
+      .attr('transform', 'translate(' + this.translatePosition[0] + ',' + this.translatePosition[1] + ')')
+      .attr('class', this.htmlId)
       .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
       .style('font-family', axisFont)
-      .style('font-size', axisFontSize)
+      .style('font-size', this.axisFontSize)
       .call(axis);
 
-    this.drawTickLines('.' + htmlId, majorTickSize, minorTickSize);
-    this.drawTickLabels('.' + htmlId, tickLabelsVisible, labelTranslate);
+    this.drawTickLines('.' + this.htmlId, this.majorTickSize, this.minorTickSize);
+    this.drawTickLabels('.' + this.htmlId, this.tickLabelsVisible, this.labelTranslate);
+  }
+
+  drawGrid (axElem, gridOn) {
+    if (!gridOn) {
+      return;
+    }
+    let gridClass = this.orientation + 'Grid';
+    let tickLongitudinalEnd = this.getTickCoordinate();
+    let tickLongitudinalStart = this.getTickCoordinate().replace('2', '1');
+    let gridStart = 0; // fig.axMargin()[this.orientation];
+    var gridLength;
+    var tickPosStart;
+    var tickPosEnd;
+    var tickPosScale;
+    if (tickLongitudinalEnd === 'x2') {
+      gridLength = fig.axWidth();
+      tickPosStart = 'y1';
+      tickPosEnd = 'y2';
+      tickPosScale = fig.ax.yScale;
+    } else {
+      gridLength = fig.axHeight();
+      tickPosStart = 'x1';
+      tickPosEnd = 'x2';
+      tickPosScale = fig.ax.xScale;
+    }
+
+    axElem.selectAll('line.' + gridClass).data(this.majorTickValues).enter()
+      .append('line')
+      .attr('class', gridClass)
+      .attr(tickLongitudinalStart, gridStart)
+      .attr(tickLongitudinalEnd, gridLength)
+      .attr(tickPosStart, function (d) { return tickPosScale(d); })
+      .attr(tickPosEnd, function (d) { return tickPosScale(d); })
+      .attr('fill', 'none')
+      .attr('stroke', 'gray')
+      .attr('opacity', '0.5')
+      .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])));
   }
 
   drawTickLabels (htmlClass, isVisible, translatePosition) {
@@ -727,7 +807,8 @@ class Sidebar {
       'yStart', 'yEnd',
       'plotType', 'dataColor',
       'lineStrokeWidth', 'scatterDotRadius',
-      'axisStrokeWidth', 'axisFontSize'];
+      'axisStrokeWidth', 'axisFontSize',
+      'horizontalGrid', 'verticalGrid'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       document.getElementById(id).addEventListener('change', function (event) { FigureArea.redraw(); });
@@ -759,6 +840,8 @@ class Sidebar {
     currentPlotStyle['scatterDotRadius'] = Sidebar.scatterDotRadius;
     currentPlotStyle['axisStrokeWidth'] = Sidebar.axisStrokeWidth;
     currentPlotStyle['axisFontSize'] = Sidebar.axisFontSize;
+    currentPlotStyle['horizontalGrid'] = Sidebar.horizontalGrid;
+    currentPlotStyle['verticalGrid'] = Sidebar.verticalGrid;
   }
 
   static get xLabelFontSize () {
@@ -819,6 +902,14 @@ class Sidebar {
 
   static get axisFontSize () {
     return document.getElementById('axisFontSize').value.replace('%', '');
+  }
+
+  static get horizontalGrid () {
+    return document.getElementById('horizontalGrid').checked;
+  }
+
+  static get verticalGrid () {
+    return document.getElementById('verticalGrid').checked;
   }
 }
 
@@ -1053,7 +1144,9 @@ class Toolbar {
         panDraw.startYLim[1] - yPan * yDelta);
       Sidebar.updatePlotStyle();
       fig.ax.graph.panTransform(d3.event.transform);
-      fig.ax.removeAxes();
+      fig.ax.removeAxesDrawings();
+      fig.ax.updateAxes();
+      fig.ax.drawGrids();
       fig.ax.drawAxes();
       //FigureArea.redraw();
     }
