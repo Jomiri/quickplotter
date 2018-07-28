@@ -10,7 +10,7 @@ const defaultPlotStyle = {
   'plotType': 'line',
   'majorTickSize': 0.6, // %
   'minorTickSize': 0.4, // %
-  'axisStrokeWidth': 2, // %
+  'axisStrokeWidth': 2.5, // %/10
   'axisFontSize': 1.25, // %
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
@@ -27,7 +27,15 @@ const defaultPlotStyle = {
   'graphMarginX': 0.05,
   'graphMarginY': 0.05,
   'horizontalGrid': false,
-  'verticalGrid': false
+  'verticalGrid': false,
+  'horizontalMinorGrid': false,
+  'verticalMinorGrid': false,
+  'majorGridOpacity': 0.8,
+  'minorGridOpacity': 0.8,
+  'majorGridStrokeWidth': 0.1,
+  'minorGridStrokeWidth': 0.1,
+  'majorGridColor': 'black',
+  'minorGridColor': 'gray'
 };
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
@@ -208,11 +216,15 @@ class Axis {
     d3.select('.y_axis_right').remove();
     d3.selectAll('line.bottomGrid').remove();
     d3.selectAll('line.leftGrid').remove();
+    d3.selectAll('line.bottomMinorGrid').remove();
+    d3.selectAll('line.leftMinorGrid').remove();
   }
 
   drawGrids () {
-    this.xAxis.drawGrid(this.helperAxElem, currentPlotStyle['verticalGrid']);
-    this.yAxis.drawGrid(this.helperAxElem, currentPlotStyle['horizontalGrid']);
+    this.xAxis.drawMajorGrid(this.helperAxElem, currentPlotStyle['verticalGrid']);
+    this.yAxis.drawMajorGrid(this.helperAxElem, currentPlotStyle['horizontalGrid']);
+    this.xAxis.drawMinorGrid(this.helperAxElem, currentPlotStyle['verticalMinorGrid']);
+    this.yAxis.drawMinorGrid(this.helperAxElem, currentPlotStyle['horizontalMinorGrid']);
   }
 
   createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
@@ -318,6 +330,7 @@ class CoordAxis {
     this.limits = undefined;
     this.scale = undefined;
     this.majorTickValues = undefined;
+    this.minorrTickValues = undefined;
   }
 
   update (scale, limits) {
@@ -327,6 +340,9 @@ class CoordAxis {
     this.tickValues = this.addMinorTicks(suggestedTickValues, this.limits);
     this.majorTickValues = this.tickValues.filter(function (item, idx) {
       return idx % 2 === 0;
+    });
+    this.minorTickValues = this.tickValues.filter(function (item, idx) {
+      return idx % 2 !== 0;
     });
   }
 
@@ -347,11 +363,26 @@ class CoordAxis {
     this.drawTickLabels('.' + this.htmlId, this.tickLabelsVisible, this.labelTranslate);
   }
 
-  drawGrid (axElem, gridOn) {
+  drawMajorGrid (axElem, gridOn) {
+    let gridClass = this.orientation + 'Grid';
+    let strokeWidth = fig.svgPercentageToPx(currentPlotStyle['majorGridStrokeWidth']);
+    let color = currentPlotStyle['majorGridColor'];
+    let opacity = currentPlotStyle['majorGridOpacity'];
+    this.drawGrid(axElem, gridClass, this.majorTickValues, gridOn, opacity, strokeWidth, color);
+  }
+
+  drawMinorGrid (axElem, gridOn) {
+    let gridClass = this.orientation + 'MinorGrid';
+    let strokeWidth = fig.svgPercentageToPx(currentPlotStyle['minorGridStrokeWidth']);
+    let color = currentPlotStyle['minorGridColor'];
+    let opacity = currentPlotStyle['minorGridOpacity'];
+    this.drawGrid(axElem, gridClass, this.minorTickValues, gridOn, opacity, strokeWidth, color);
+  }
+
+  drawGrid (axElem, gridClass, tickValues, gridOn, opacity, strokeWidth, color) {
     if (!gridOn) {
       return;
     }
-    let gridClass = this.orientation + 'Grid';
     let tickLongitudinalEnd = this.getTickCoordinate();
     let tickLongitudinalStart = this.getTickCoordinate().replace('2', '1');
     let gridStart = 0; // fig.axMargin()[this.orientation];
@@ -371,7 +402,7 @@ class CoordAxis {
       tickPosScale = fig.ax.xScale;
     }
 
-    axElem.selectAll('line.' + gridClass).data(this.majorTickValues).enter()
+    axElem.selectAll('line.' + gridClass).data(tickValues).enter()
       .append('line')
       .attr('class', gridClass)
       .attr(tickLongitudinalStart, gridStart)
@@ -379,9 +410,9 @@ class CoordAxis {
       .attr(tickPosStart, function (d) { return tickPosScale(d); })
       .attr(tickPosEnd, function (d) { return tickPosScale(d); })
       .attr('fill', 'none')
-      .attr('stroke', 'gray')
-      .attr('opacity', '0.5')
-      .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])));
+      .attr('stroke', color)
+      .attr('opacity', opacity)
+      .attr('stroke-width', strokeWidth);
   }
 
   drawTickLabels (htmlClass, isVisible, translatePosition) {
@@ -808,7 +839,8 @@ class Sidebar {
       'plotType', 'dataColor',
       'lineStrokeWidth', 'scatterDotRadius',
       'axisStrokeWidth', 'axisFontSize',
-      'horizontalGrid', 'verticalGrid'];
+      'horizontalGrid', 'verticalGrid',
+      'horizontalMinorGrid', 'verticalMinorGrid'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       document.getElementById(id).addEventListener('change', function (event) { FigureArea.redraw(); });
@@ -842,6 +874,8 @@ class Sidebar {
     currentPlotStyle['axisFontSize'] = Sidebar.axisFontSize;
     currentPlotStyle['horizontalGrid'] = Sidebar.horizontalGrid;
     currentPlotStyle['verticalGrid'] = Sidebar.verticalGrid;
+    currentPlotStyle['horizontalMinorGrid'] = Sidebar.horizontalMinorGrid;
+    currentPlotStyle['verticalMinorGrid'] = Sidebar.verticalMinorGrid;
   }
 
   static get xLabelFontSize () {
@@ -910,6 +944,14 @@ class Sidebar {
 
   static get verticalGrid () {
     return document.getElementById('verticalGrid').checked;
+  }
+
+  static get horizontalMinorGrid () {
+    return document.getElementById('horizontalMinorGrid').checked;
+  }
+
+  static get verticalMinorGrid () {
+    return document.getElementById('verticalMinorGrid').checked;
   }
 }
 

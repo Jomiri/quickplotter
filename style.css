@@ -98,6 +98,10 @@ body, #main-content {
     margin-right: 5%;
 }
 
+#sidebar .grid_label {
+    margin-bottom: 5px;
+}
+
 #sidebar .checkbox_label {
     vertical-align: bottom;
     margin-right: 10px
