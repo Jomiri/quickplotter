@@ -127,10 +127,14 @@ h1 sup {
     overflow: hidden;
 }
 
+#mouse_area {
+    cursor: crosshair;
+}
+
 #toolbar {
     padding: 0px 4px;
     position: absolute;
-    height: 5%;
+    height: 50px;
     bottom: 0;
     left: 2%;
     right: 0%;
@@ -138,11 +142,6 @@ h1 sup {
     display: none;
     border-radius: 10px 10px 0 0;
     background-color: #252525;
-    /*background-color:rgb(49, 165, 248);*/
-}
-
-#mouse_area {
-    cursor: crosshair;
 }
 
 #toolbar_buttons {

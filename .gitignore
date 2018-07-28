@@ -3,3 +3,4 @@ obsolete/
 *.json
 .eslintrc.js
 node_modules/
+favicons/
