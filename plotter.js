@@ -15,8 +15,8 @@ const defaultPlotStyle = {
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
   'titleFontSize': 2, // %
-  'xScaling': '1 * x',
-  'yScaling': '1 * y',
+  'xScaling': 'x',
+  'yScaling': 'y',
   'xStart': 'auto',
   'xEnd': 'auto',
   'yStart': 'auto',
@@ -566,7 +566,7 @@ class Graph {
       .y(function (d) {
         return yScale(d.y_coord);
       });
-    
+
     var dashArray = ('1, 0');
     if (currentPlotStyle.lineStyle === 'solid') {
       dashArray = ('1, 0');
@@ -913,15 +913,18 @@ class Sidebar {
       let id = params[i];
       let elem = document.getElementById(id);
       let parent = elem.closest('.has-tooltip');
+      let input = parent.querySelector('select, input');
       let tooltip = parent.querySelector('.tooltip-wrapper');
       parent.addEventListener('mouseover', function (event) {
         tooltip.style.display = 'block';
         let viewportOffset = elem.getBoundingClientRect();
         let top = viewportOffset.top;
-        tooltip.style.top = top + 'px';
+        tooltip.style.top = top - 10 + 'px';
+        input.classList.add('active');
       });
       parent.addEventListener('mouseout', function (event) {
         tooltip.style.display = 'none';
+        input.classList.remove('active');
       });
     }
   }

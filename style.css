@@ -1,9 +1,10 @@
 h1 {
     color: #ebebeb;
     padding-left: 15px;
-    font-size: 30px;
+    font-size: 32px;
     position: fixed;
     height: 50px;
+    margin-bottom: 0;
 }
 
 h1 sup {
@@ -31,14 +32,17 @@ body, #main-content {
 }
 
 #side-header {
+    position:absolute;
     top: 0;
     height: 70px;
-    font-size: 0.8em;
     z-index: 3;
+    /*border-bottom: 20px solid rgba(37,37,37,0.5);*/
+    background-clip: padding-box;
 }
 
 #sidebar {
     top: 70px;
+    position: absolute;
     bottom: 0;
     height: calc(100vh - 70px - 100px);
     font-size: 0.9rem;
@@ -55,7 +59,7 @@ body, #main-content {
 
 #sidebar div {
     font-family: inherit;
-    color: #ebebeb;
+    color: lightgray;
 }
 
 #sidebar .row {
@@ -68,17 +72,22 @@ body, #main-content {
 }
 
 #sidebar label {
+    font-weight: bold;
     display: block;
     padding-left: 2px;
     padding-bottom: 2px;
 }
 
 #sidebar input, #sidebar select {
-    border: 2px solid grey;
+    border: 2px solid darkgrey;
     border-radius: 5px;
     display: inline-block;
     background-color: #ebebeb;
     min-width: 68px;
+}
+
+#sidebar .active {
+    border: 2px solid orange;
 }
 
 #sidebar #lineColor {
@@ -114,7 +123,7 @@ body, #main-content {
     display: none;
     position: fixed;
     left: 280px;
-    z-index: 10
+    z-index: 4;
 }
 
 .tooltip-wrapper .tooltip-inner {
@@ -135,12 +144,14 @@ body, #main-content {
     margin: 0 auto;
     padding: 5px;
     background-color: #252525;
+    color: #ebebeb;
     border-bottom: 1px solid gray;
     border-top-right-radius: 5px;
     border-top-left-radius: 5px;
     font-size: 1rem;
     text-align: center;
     text-transform: uppercase;
+    font-weight: bold;
 }
 
 .tooltip .tooltip-body {
@@ -155,12 +166,6 @@ body, #main-content {
     margin: 0;
     color: black;
 }
-
-/*
-.has-tooltip:hover .tooltip-wrapper {
-    visibility: visible;
-}
-*/
 
 #side-footer {
     position: absolute;
@@ -280,11 +285,20 @@ body, #main-content {
 #instruction_dragdrop {
     color: crimson;
     font-weight: bold;
-
 }
 
 #instruction_copypaste {
     color: darkblue;
+    font-weight: bold;
+}
+
+#instruction_twocol {
+    color: forestgreen;
+    font-weight: bold;
+}
+
+#instruction_plot {
+    color: orange;
     font-weight: bold;
 }
 
