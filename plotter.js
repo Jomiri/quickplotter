@@ -46,7 +46,7 @@ var currentPlotStyle = Object.assign({}, defaultPlotStyle);
 const canvasResFactor = 2;
 const axisFont = 'Sans-Serif';
 const nTicks = 5;
-const fontSizesInt = d3.range(0.0, 3.1, 0.25);
+const fontSizesInt = d3.range(0.0, 3.6, 0.25);
 const strokeWidthsInt = d3.range(0, 6.1, 0.5);
 const markerSizes = d3.range(0, 21, 1);
 
@@ -261,7 +261,7 @@ class Axis {
       .attr('y', -this.parentFig.svgPercentageToPxInt(1))
       .attr('font-family', axisFont)
       .attr('font-size', fontSize)
-      .text(titleText);
+      .html(titleText);
   }
 
   addXLabel (labelText, fontSize) {
@@ -276,7 +276,7 @@ class Axis {
       .attr('dy', '0.35em')
       .attr('font-family', axisFont)
       .attr('font-size', fontSize)
-      .text(labelText);
+      .html(labelText);
   }
 
   addYLabel (labelText, fontSize) {
@@ -293,7 +293,7 @@ class Axis {
       .attr('dy', '0.35em')
       .attr('font-family', axisFont)
       .attr('font-size', fontSize)
-      .text(labelText);
+      .html(labelText);
   }
 
   xLim () {

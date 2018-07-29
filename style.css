@@ -190,7 +190,7 @@ body, #main-content {
     top: 10px;
     bottom: 0;
     left: 260px;
-    width: calc(100% - 280px);
+    width: calc(100% - 270px);
     display: block;
 }
 
