@@ -30,12 +30,12 @@ const defaultPlotStyle = {
   'verticalGrid': false,
   'horizontalMinorGrid': false,
   'verticalMinorGrid': false,
-  'majorGridOpacity': 0.8,
-  'minorGridOpacity': 0.8,
+  'majorGridOpacity': 0.6,
+  'minorGridOpacity': 0.6,
   'majorGridStrokeWidth': 0.1,
   'minorGridStrokeWidth': 0.1,
-  'majorGridColor': 'black',
-  'minorGridColor': 'gray'
+  'majorGridColor': 'lightgray',
+  'minorGridColor': 'lightgray'
 };
 
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
@@ -1190,7 +1190,6 @@ class Toolbar {
       fig.ax.updateAxes();
       fig.ax.drawGrids();
       fig.ax.drawAxes();
-      //FigureArea.redraw();
     }
 
     panDraw.startXLim = fig.ax.xLim();

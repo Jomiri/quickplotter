@@ -22,7 +22,7 @@ body, #main-content {
     font-family: Sans-Serif;
     background-color: #252525;
     color: #ebebeb;
-    width: 240px;
+    width: 250px;
 }
 
 #side {
@@ -30,9 +30,7 @@ body, #main-content {
     height: 100vh;
 }
 
-
 #side-header {
-    position: absolute;
     top: 0;
     height: 70px;
     font-size: 0.8em;
@@ -40,7 +38,6 @@ body, #main-content {
 }
 
 #sidebar {
-    position: absolute;
     top: 70px;
     bottom: 0;
     height: calc(100% - 70px - 100px);
@@ -53,12 +50,6 @@ body, #main-content {
     list-style-type: none;
     padding-left: 12px;
     padding-right: 12px;
-}
-
-#sidebar button:hover {
-    background-color: #87CEFA;
-    border-color: #87CEFA;
-    color: black;
 }
 
 #sidebar div {
@@ -87,6 +78,7 @@ body, #main-content {
     border-radius: 5px;
     display: inline-block;
     background-color: #ebebeb;
+
 }
 
 #sidebar .long_input {
@@ -94,8 +86,8 @@ body, #main-content {
 }
 
 #sidebar .half_item {
-    width: 90%;
-    margin-right: 5%;
+    width: 50px;
+    margin-right: 10px;
 }
 
 #sidebar .grid_label {
@@ -111,6 +103,54 @@ body, #main-content {
     transform: scale(1.5);
     margin: 0 0 2px 5px;
     vertical-align: bottom;
+}
+
+.tooltip-wrapper {
+    visibility: hidden;
+    display: inline-block;
+    position: absolute;
+    left: 280px;
+    z-index: 10
+
+}
+
+.tooltip {
+    display: block;
+    position: relative;
+    max-width: 240px;
+    top: -20px;
+    margin: 0;
+    box-shadow: 8px 5px 5px gray;
+    border-radius: 5px;
+}
+
+#sidebar .tooltip .tooltip-header {
+    margin: 0 auto;
+    padding: 5px;
+    background-color: #252525;
+    border-bottom: 1px solid gray;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    font-size: 1rem;
+    text-align: center;
+    text-transform: upercase;
+}
+
+.tooltip .tooltip-body {
+    padding: 8px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    background-color: orange;
+    font-size: 1rem;
+}
+
+.tooltip .tooltip-body p {
+    margin: 0;
+    color: black;
+}
+
+.has-tooltip:hover .tooltip-wrapper {
+    visibility: visible;
 }
 
 #side-footer {
@@ -140,8 +180,8 @@ body, #main-content {
     position: absolute;
     top: 10px;
     bottom: 0;
-    left: 250px;
-    width: calc(100% - 270px);
+    left: 260px;
+    width: calc(100% - 280px);
     display: block;
 }
 
