@@ -43,8 +43,8 @@ var currentPlotStyle = Object.assign({}, defaultPlotStyle);
 const canvasResFactor = 2;
 const axisFont = 'Sans-Serif';
 const nTicks = 5;
-const fontSizesInt = d3.range(0.5, 2.75, 0.25);
-const strokeWidthsInt = d3.range(1, 6, 0.5);
+const fontSizesInt = d3.range(0.0, 3.1, 0.25);
+const strokeWidthsInt = d3.range(0, 6.1, 0.5);
 const dotRadii = d3.range(1, 10, 0.5);
 
 class Figure {
@@ -781,6 +781,7 @@ class Sidebar {
     Sidebar.initDefaultValues();
     Sidebar.addRedrawListeners();
     Sidebar.addLabelListeners();
+    Sidebar.addTooltipListeners();
   }
 
   static addLabelListeners () {
@@ -852,6 +853,33 @@ class Sidebar {
       document.getElementById(id).addEventListener('change', function (event) {
         Sidebar.resetLimits();
         FigureArea.redraw();
+      });
+    }
+  }
+
+  static addTooltipListeners () {
+    var params = ['title', 'xLabel', 'yLabel', 'xFontSize', 'yFontSize', 'titleFontSize',
+      'xStart', 'xEnd',
+      'yStart', 'yEnd',
+      'xScaling', 'yScaling',
+      'plotType', 'dataColor',
+      'lineStrokeWidth', 'scatterDotRadius',
+      'axisStrokeWidth', 'axisFontSize',
+      'horizontalGrid', 'verticalGrid',
+      'horizontalMinorGrid', 'verticalMinorGrid'];
+    for (let i = 0; i < params.length; i++) {
+      let id = params[i];
+      let elem = document.getElementById(id);
+      let parent = elem.closest('.has-tooltip');
+      let tooltip = parent.querySelector('.tooltip-wrapper');
+      parent.addEventListener('mouseover', function (event) {
+        tooltip.style.display = 'block';
+        let viewportOffset = elem.getBoundingClientRect();
+        let top = viewportOffset.top;
+        tooltip.style.top = top + 'px';
+      });
+      parent.addEventListener('mouseout', function (event) {
+        tooltip.style.display = 'none';
       });
     }
   }
