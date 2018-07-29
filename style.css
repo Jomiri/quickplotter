@@ -203,6 +203,7 @@ body, #main-content {
     border: 5px solid gray;
     border-style: dashed;
     overflow: hidden;
+    cursor: default;
 }
 
 #mouse_area {
