@@ -223,9 +223,10 @@
             </div></li>
             <li class='plotParam'><div class='row has-tooltip'>
                 <label>plot type:</label>
-                <select type='text' id='plotType'  name='plotType' value=''>
+                <select type='text' id='plotType' class='long_input' name='plotType' value=''>
                     <option value='line'>Line</option>
                     <option value='scatter'>Scatter</option>
+                    <option value='line + scatter'>Line + scatter</option>
                 </select>
                 <div class='tooltip-wrapper'>
                     <div class='tooltip'>
@@ -238,11 +239,11 @@
             </div></li>
             <li class='plotParam'><div class='row'>
                 <div class='left has-tooltip'>
-                    <label>stroke width:</label>
+                    <label>line width:</label>
                     <select type='text' id='lineStrokeWidth' class='half_item' name='lineStrokeWidth' value=''></select>
                     <div class='tooltip-wrapper'>
                         <div class='tooltip'>
-                            <div class='tooltip-header'>Line stroke width</div>
+                            <div class='tooltip-header'>Line width</div>
                             <div class='tooltip-body'>
                                 <p>Select the thickness of the line plot.</p>
                             </div>
@@ -251,7 +252,7 @@
                 </div>
                 <div class='right has-tooltip'>
                     <label>marker size:</label>
-                    <select type='text' id='scatterDotRadius' class='half_item' name='scatterDotRadius' value=''></select>
+                    <select type='text' id='markerSize' class='half_item' name='markerSize' value=''></select>
                     <div class='tooltip-wrapper'>
                         <div class='tooltip'>
                             <div class='tooltip-header'>Marker size</div>
@@ -262,17 +263,67 @@
                     </div>
                 </div>
             </div></li>
-            <li class='plotParam'><div class='row has-tooltip'>
-                    <label>plot color:</label>
-                    <input type='color' id='dataColor' name='dataColor' value='black'>
+            <li class='plotParam'><div class='row'>
+                <div class='left has-tooltip'>
+                    <label>line color:</label>
+                    <input type='color' id='lineColor' name='lineColor' value='black'>
                     <div class='tooltip-wrapper'>
                         <div class='tooltip'>
-                            <div class='tooltip-header'>Plot color</div>
+                            <div class='tooltip-header'>Line color</div>
                             <div class='tooltip-body'>
-                                <p>Select the color of the lines and markers.</p>
+                                <p>Select the color of the plot line.</p>
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class='right has-tooltip'>
+                    <label>marker color:</label>
+                    <input type='color' id='markerColor' name='markerColor' value='red'>
+                    <div class='tooltip-wrapper'>
+                        <div class='tooltip'>
+                            <div class='tooltip-header'>Marker color</div>
+                            <div class='tooltip-body'>
+                                <p>Select the color of the scatter plot markers.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div></li>
+            <li class='plotParam'><div class='row'>
+                <div class='left has-tooltip'>
+                    <label>line style:</label>
+                    <select type='text' id='lineStyle' name='lineStyle' value=''>
+                        <option value='solid'>Solid</option>
+                        <option value='dashed'>Dashed</option>
+                    </select>
+                    <div class='tooltip-wrapper'>
+                        <div class='tooltip'>
+                            <div class='tooltip-header'>Line style</div>
+                            <div class='tooltip-body'>
+                                <p>Select the style of the plot line.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='right has-tooltip'>
+                    <label>marker style:</label>
+                    <select type='text' id='markerStyle' name='markerStyle' value=''>
+                        <option value='Circle'>Circle</option>
+                        <option value='Cross'>Cross</option>
+                        <option value='Diamond'>Diamond</option>
+                        <option value='Square'>Square</option>
+                        <option value='Triangle'>Triangle</option>
+                        <option value='Star'>Star</option>
+                    </select>
+                    <div class='tooltip-wrapper'>
+                        <div class='tooltip'>
+                            <div class='tooltip-header'>Marker style</div>
+                            <div class='tooltip-body'>
+                                <p>Select the style of the scatter plot markers.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div></li>
             <li class='plotParam'><div class='row'>
                 <div class='left has-tooltip'>

@@ -21,9 +21,12 @@ const defaultPlotStyle = {
   'xEnd': 'auto',
   'yStart': 'auto',
   'yEnd': 'auto',
-  'scatterDotRadius': 5,
+  'markerSize': 10,
   'lineStrokeWidth': '1.5',
-  'dataColor': 'black',
+  'lineColor': 'black',
+  'markerColor': 'red',
+  'lineStyle': 'solid',
+  'markerStyle': 'Circle',
   'graphMarginX': 0.05,
   'graphMarginY': 0.05,
   'horizontalGrid': false,
@@ -45,7 +48,7 @@ const axisFont = 'Sans-Serif';
 const nTicks = 5;
 const fontSizesInt = d3.range(0.0, 3.1, 0.25);
 const strokeWidthsInt = d3.range(0, 6.1, 0.5);
-const dotRadii = d3.range(1, 10, 0.5);
+const markerSizes = d3.range(0, 21, 1);
 
 class Figure {
   constructor (parentSelector) {
@@ -546,38 +549,73 @@ class Graph {
       .attr('clip-path', 'url(#clip_path)');
     this.plotGroup = this.clipGroup.append('g');
     if (plotType === 'line') {
-      var drawFunc = d3.line()
-        .x(function (d) {
-          return xScale(d.x_coord);
-        })
-        .y(function (d) {
-          return yScale(d.y_coord);
-        });
-      // Add the plotted curve as path
-      this.plotLine = this.plotGroup.append('path')
-        .attr('d', drawFunc(dataPoints))
-        .attr('class', 'curve')
-        .attr('fill', 'none')
-        .attr('stroke', currentPlotStyle['dataColor'])
-        .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['lineStrokeWidth'])));
+      this.drawLine(dataPoints, xScale, yScale);
     } else if (plotType === 'scatter') {
-      var scatterPlot = this.plotGroup.append('g')
-        .attr('class', 'curve')
-        .attr('id', 'scatterPlot');
-
-      this.plotMarkers = scatterPlot.selectAll('scatter-dots')
-        .data(dataPoints)
-        .enter().append('circle')
-        .attr('class', 'scatter_dot')
-        .attr('cx', function (d) {
-          return xScale(d.x_coord);
-        })
-        .attr('cy', function (d) {
-          return yScale(d.y_coord);
-        })
-        .attr('r', currentPlotStyle['scatterDotRadius'])
-        .attr('fill', currentPlotStyle['dataColor']);
+      this.drawScatter(dataPoints, xScale, yScale);
+    } else if (plotType === 'line + scatter') {
+      this.drawLine(dataPoints, xScale, yScale);
+      this.drawScatter(dataPoints, xScale, yScale);
     }
+  }
+
+  drawLine (dataPoints, xScale, yScale) {
+    var drawFunc = d3.line()
+      .x(function (d) {
+        return xScale(d.x_coord);
+      })
+      .y(function (d) {
+        return yScale(d.y_coord);
+      });
+    
+    var dashArray = ('1, 0');
+    if (currentPlotStyle.lineStyle === 'solid') {
+      dashArray = ('1, 0');
+    } else if (currentPlotStyle.lineStyle === 'dashed') {
+      dashArray = ('12, 4');
+    }
+    this.plotLine = this.plotGroup.append('path')
+      .attr('d', drawFunc(dataPoints))
+      .attr('class', 'curve')
+      .attr('fill', 'none')
+      .attr('stroke', currentPlotStyle['lineColor'])
+      .attr('stroke-dasharray', dashArray)
+      .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['lineStrokeWidth'])));
+  }
+
+  drawScatter (dataPoints, xScale, yScale) {
+    var scatterPlot = this.plotGroup.append('g')
+      .attr('class', 'curve')
+      .attr('id', 'scatterPlot');
+
+    let symbolType = 'symbol' + currentPlotStyle.markerStyle;
+    let symbolSize = currentPlotStyle.markerSize ** 2;
+    let symbol = d3.symbol();
+    this.plotMarkers = scatterPlot.selectAll('.point')
+      .data(dataPoints)
+      .enter().append('path')
+      .attr('class', 'point')
+      .attr('d', symbol.size(symbolSize).type(function (d) { return d3[symbolType]; }))
+      .attr('transform', function (d) { return 'translate(' + xScale(d.x_coord) + ',' + yScale(d.y_coord) + ')'; })
+      .attr('fill', currentPlotStyle['markerColor']);
+  }
+
+  drawScatterOld (dataPoints, xScale, yScale) {
+    var scatterPlot = this.plotGroup.append('g')
+      .attr('class', 'curve')
+      .attr('id', 'scatterPlot');
+
+    this.plotMarkers = scatterPlot.selectAll('scatter-dots')
+      .data(dataPoints)
+      .enter().append('circle')
+      .attr('class', 'scatter_dot')
+      .attr('cx', function (d) {
+        return xScale(d.x_coord);
+      })
+      .attr('cy', function (d) {
+        return yScale(d.y_coord);
+      })
+      .attr('r', currentPlotStyle['markerSize'])
+      .attr('fill', currentPlotStyle['markerColor']);
   }
 
   panTransform (transform) {
@@ -804,7 +842,7 @@ class Sidebar {
     Util.populateSelectBox('axisFontSize', fontSizesStr);
     Util.populateSelectBox('lineStrokeWidth', strokeWidthsInt);
     Util.populateSelectBox('axisStrokeWidth', strokeWidthsInt);
-    Util.populateSelectBox('scatterDotRadius', dotRadii);
+    Util.populateSelectBox('markerSize', markerSizes);
   }
 
   static initDefaultValues () {
@@ -815,7 +853,7 @@ class Sidebar {
     document.getElementById('xScaling').value = defaultPlotStyle['xScaling'];
     document.getElementById('yScaling').value = defaultPlotStyle['yScaling'];
     document.getElementById('lineStrokeWidth').value = defaultPlotStyle['lineStrokeWidth'];
-    document.getElementById('scatterDotRadius').value = defaultPlotStyle['scatterDotRadius'];
+    document.getElementById('markerSize').value = defaultPlotStyle['markerSize'];
     document.getElementById('plotType').value = defaultPlotStyle['plotType'];
     document.getElementById('axisStrokeWidth').value = defaultPlotStyle['axisStrokeWidth'];
     Sidebar.resetLimits();
@@ -837,8 +875,10 @@ class Sidebar {
     var params = ['xFontSize', 'yFontSize', 'titleFontSize',
       'xStart', 'xEnd',
       'yStart', 'yEnd',
-      'plotType', 'dataColor',
-      'lineStrokeWidth', 'scatterDotRadius',
+      'plotType',
+      'lineColor', 'markerColor',
+      'lineStyle', 'markerStyle',
+      'lineStrokeWidth', 'markerSize',
       'axisStrokeWidth', 'axisFontSize',
       'horizontalGrid', 'verticalGrid',
       'horizontalMinorGrid', 'verticalMinorGrid'];
@@ -862,8 +902,10 @@ class Sidebar {
       'xStart', 'xEnd',
       'yStart', 'yEnd',
       'xScaling', 'yScaling',
-      'plotType', 'dataColor',
-      'lineStrokeWidth', 'scatterDotRadius',
+      'plotType',
+      'lineColor', 'markerColor',
+      'lineStyle', 'markerStyle',
+      'lineStrokeWidth', 'markerSize',
       'axisStrokeWidth', 'axisFontSize',
       'horizontalGrid', 'verticalGrid',
       'horizontalMinorGrid', 'verticalMinorGrid'];
@@ -895,9 +937,12 @@ class Sidebar {
     currentPlotStyle['yStart'] = Sidebar.yStart;
     currentPlotStyle['yEnd'] = Sidebar.yEnd;
     currentPlotStyle['plotType'] = Sidebar.plotType;
-    currentPlotStyle['dataColor'] = Sidebar.dataColor;
+    currentPlotStyle['lineColor'] = Sidebar.lineColor;
+    currentPlotStyle['markerColor'] = Sidebar.markerColor;
+    currentPlotStyle['lineStyle'] = Sidebar.lineStyle;
+    currentPlotStyle['markerStyle'] = Sidebar.markerStyle;
     currentPlotStyle['lineStrokeWidth'] = Sidebar.lineStrokeWidth;
-    currentPlotStyle['scatterDotRadius'] = Sidebar.scatterDotRadius;
+    currentPlotStyle['markerSize'] = Sidebar.markerSize;
     currentPlotStyle['axisStrokeWidth'] = Sidebar.axisStrokeWidth;
     currentPlotStyle['axisFontSize'] = Sidebar.axisFontSize;
     currentPlotStyle['horizontalGrid'] = Sidebar.horizontalGrid;
@@ -946,16 +991,28 @@ class Sidebar {
     return document.getElementById('plotType').value;
   }
 
-  static get dataColor () {
-    return document.getElementById('dataColor').value;
+  static get lineColor () {
+    return document.getElementById('lineColor').value;
+  }
+
+  static get markerColor () {
+    return document.getElementById('markerColor').value;
+  }
+
+  static get lineStyle () {
+    return document.getElementById('lineStyle').value;
+  }
+
+  static get markerStyle () {
+    return document.getElementById('markerStyle').value;
   }
 
   static get lineStrokeWidth () {
     return document.getElementById('lineStrokeWidth').value;
   }
 
-  static get scatterDotRadius () {
-    return document.getElementById('scatterDotRadius').value;
+  static get markerSize () {
+    return document.getElementById('markerSize').value;
   }
 
   static get axisStrokeWidth () {

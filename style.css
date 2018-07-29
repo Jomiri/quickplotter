@@ -73,11 +73,16 @@ body, #main-content {
     padding-bottom: 2px;
 }
 
-#sidebar input, select {
+#sidebar input, #sidebar select {
     border: 2px solid grey;
     border-radius: 5px;
     display: inline-block;
     background-color: #ebebeb;
+    min-width: 68px;
+}
+
+#sidebar #lineColor {
+    margin-right: 9px;
 }
 
 #sidebar .long_input {
@@ -102,6 +107,7 @@ body, #main-content {
     transform: scale(1.5);
     margin: 0 0 2px 5px;
     vertical-align: bottom;
+    min-width: 0px;
 }
 
 .tooltip-wrapper {
@@ -254,8 +260,8 @@ body, #main-content {
 
 #instruction_text {
     margin: 0;
-    position: absolute;
-    top: 50%;
+    position: relative;
+    top: 40%;
     left: 50%;
     margin-right: -50%;
     transform: translate(-50%, -50%);
