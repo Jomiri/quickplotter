@@ -72,7 +72,6 @@ body, #main-content {
 }
 
 #sidebar label {
-    font-weight: bold;
     display: block;
     padding-left: 2px;
     padding-bottom: 2px;
@@ -265,13 +264,14 @@ body, #main-content {
 
 #instruction_text {
     margin: 0;
-    position: relative;
+    position: absolute;
     top: 40%;
     left: 50%;
     margin-right: -50%;
     transform: translate(-50%, -50%);
     font-family: Sans-Serif;
     font-size: 1.5rem;
+    padding: 5px;
 }
 
 #instruction_text p {
