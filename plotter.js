@@ -1414,9 +1414,7 @@ class Util {
   }
 
   static scaleArray (arr, multiplier) {
-    for (var i = 0; i < arr.length; i++) {
-      arr[i] *= multiplier;
-    }
+    arr.map(x => x * 2);
   }
 
   static regexParse (str) {
