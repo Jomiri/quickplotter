@@ -54,6 +54,27 @@
         </div>
         <div id='sidebar'>
             <ul>
+            <li><div class='row has-tooltip' id='table_row'> 
+                <table id='traceTable'>
+                    <tr><th>Traces</th></tr>
+                </table>
+                <div class='tooltip-wrapper'>
+                    <div class='tooltip'>
+                        <div class='tooltip-header'>Trace list</div>
+                        <div class='tooltip-body'>
+                            <p>This listing shows your imported datasets.
+                                One of the traces is <b>active</b>. The styling options
+                                and the data cursor tool are applied only to the active trace. Double-click a trace to activate it.
+                                You can hide or delete individual traces by clicking the buttons on the right.
+                                The editable trace names are used to generate the legend. 
+                                Use the legend location setting below to show the legend.
+                            </p>
+                            <p><b>Performance notice:</b> Depending on your computer, plotting large files or multiple files can take time. 
+                                Scatter plots are especially demanding.</p>
+                        </div>
+                    </div>
+                </div>
+            </div></li>
             <li><div class='row'> 
                 <div class='left has-tooltip'>
                     <label>title:</label>
@@ -186,6 +207,8 @@
                 </div>
             </div></li>
             <li><div class='row has-tooltip'>
+            </div></li>
+            <li><div class='row has-tooltip'>
                 <label>apply function to x:</label>
                 <input type='text' id='xScaling' class='long_input' name='xScaling' value=''>
                 <div class='tooltip-wrapper'>
@@ -284,7 +307,7 @@
                 </div>
                 <div class='right has-tooltip'>
                     <label>marker color:</label>
-                    <input type='color' id='markerColor' name='markerColor' value='red'>
+                    <input type='color' id='markerColor' name='markerColor' value='black'>
                     <div class='tooltip-wrapper'>
                         <div class='tooltip'>
                             <div class='tooltip-header'>Marker color</div>
@@ -353,6 +376,24 @@
                             <div class='tooltip-body'>
                                 <p>Select the thickness of the coordinate axes.</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div></li>
+            <li class='plotParam'><div class='row has-tooltip'>
+                <label>legend location:</label>
+                <select type='text' id='legendLocation' class='long_input' name='legendLocation' value=''>
+                    <option value='none'>None</option>
+                    <option value='northeast'>Northeast</option>
+                    <option value='southeast'>Southeast</option>
+                    <option value='southwest'>Southwest</option>
+                    <option value='northwest'>Northwest</option>
+                </select>
+                <div class='tooltip-wrapper'>
+                    <div class='tooltip'>
+                        <div class='tooltip-header'>Legend</div>
+                        <div class='tooltip-body'>
+                            <p>Select whether to show a legend and where to show it.</p>
                         </div>
                     </div>
                 </div>

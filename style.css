@@ -48,6 +48,7 @@ body, #main-content {
     font-size: 0.9rem;
     overflow-y: auto;
     overflow-x: hidden;
+    display: none;
 }
 
 #sidebar ul {
@@ -62,7 +63,7 @@ body, #main-content {
 }
 
 #sidebar div {
-    color: lightgray;
+    color: #ebebeb;
 }
 
 #sidebar .row {
@@ -86,6 +87,7 @@ body, #main-content {
     display: inline-block;
     background-color: #ebebeb;
     min-width: 68px;
+    text-align: left;
 }
 
 #sidebar .active {
@@ -98,6 +100,74 @@ body, #main-content {
 
 #sidebar .long_input {
     width: 130px;
+}
+
+#sidebar #traceTable {
+   width: 100%;
+   table-layout: fixed;
+}
+
+#traceTable tr:not(:first-child) {
+    color: black;
+}
+
+#traceTable th {
+    width: 134px;
+}
+
+#traceTable .text_cell {
+    height: 26px;
+    background-color: #ebebeb;
+    border-radius: 5px;
+    border: 2px solid darkgrey;
+    padding: 0 0px;
+}
+
+#sidebar #traceTable .text_cell input {
+    display: inline-block;
+    margin-top: 2px;
+    margin-bottom: 3px;
+    border: 0;
+    width: 105px;
+}
+
+#sidebar #traceTable .active .text_cell input {
+    font-weight: bold;
+}
+
+#sidebar #traceTable .active .text_cell, #sidebar #traceTable .active .button_cell .trace_button {
+    border: 2px solid red;
+}
+
+#traceTable .text_cell .color_square {
+    width: 14px;
+    height: 14px;
+    margin: 0 4px 0 4px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    display: inline-block;
+}
+
+#traceTable .button_cell {
+    width: 40px;
+    height: 30px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+#traceTable .button_cell .trace_button {
+    width: 60px;
+    height: 16px;
+    font-size: 10px;
+    font-weight: bold;
+    vertical-align: middle;
+    background-color: orange;
+    color: black;
+    border: 2px solid grey;
+    border-radius: 5px;
+}
+
+#traceTable .button_cell .trace_button:hover {
+    background-color: lightsalmon;
 }
 
 #sidebar .half_item {

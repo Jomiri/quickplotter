@@ -7,7 +7,6 @@
 /* global alert */
 
 const defaultPlotStyle = {
-  'plotType': 'line',
   'majorTickSize': 0.6, // %
   'minorTickSize': 0.4, // %
   'axisStrokeWidth': 2.5, // %/10
@@ -15,33 +14,65 @@ const defaultPlotStyle = {
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
   'titleFontSize': 2, // %
-  'xScaling': 'x',
-  'yScaling': 'y',
   'xStart': 'auto',
   'xEnd': 'auto',
   'yStart': 'auto',
   'yEnd': 'auto',
-  'markerSize': 10,
-  'lineStrokeWidth': '1.5',
-  'lineColor': 'black',
-  'markerColor': 'red',
-  'lineStyle': 'solid',
-  'markerStyle': 'Circle',
+  'majorGridOpacity': 0.6,
+  'minorGridOpacity': 0.6,
+  'majorGridStrokeWidth': 0.1,
+  'minorGridStrokeWidth': 0.1,
+  'majorGridColor': 'lightgray',
+  'minorGridColor': 'lightgray',
   'graphMarginX': 0.05,
   'graphMarginY': 0.05,
   'horizontalGrid': false,
   'verticalGrid': false,
   'horizontalMinorGrid': false,
   'verticalMinorGrid': false,
-  'majorGridOpacity': 0.6,
-  'minorGridOpacity': 0.6,
-  'majorGridStrokeWidth': 0.1,
-  'minorGridStrokeWidth': 0.1,
-  'majorGridColor': 'lightgray',
-  'minorGridColor': 'lightgray'
+  'legendLocation': 'none',
+  'marginPercent': { top: 0.05, bottom: 0.08, left: 0.08, right: 0.02 }
 };
 
+const defaultTraceStyle = {
+  'xScaling': 'x',
+  'yScaling': 'y',
+  'plotType': 'line',
+  'markerSize': 10,
+  'lineStrokeWidth': '1.5',
+  'lineColor': 'black',
+  'markerColor': '#ff0000',
+  'lineStyle': 'solid',
+  'markerStyle': 'Circle'
+};
+
+const kellyColorsAndBlack = [
+  '#000000',
+  '#C10020',
+  '#FFB300',
+  '#803E75',
+  '#FF6800',
+  '#A6BDD7',
+  '#CEA262',
+  '#817066',
+  '#007D34',
+  '#F6768E',
+  '#00538A',
+  '#FF7A5C',
+  '#53377A',
+  '#FF8E00',
+  '#B32851',
+  '#F4C800',
+  '#7F180D',
+  '#93AA00',
+  '#593315',
+  '#F13A13',
+  '#232C16'
+];
+
+
 var currentPlotStyle = Object.assign({}, defaultPlotStyle);
+var currentTraceStyle = Object.assign({}, defaultTraceStyle);
 
 const canvasResFactor = 2;
 const axisFont = 'Sans-Serif';
@@ -50,17 +81,26 @@ const fontSizesInt = d3.range(0.0, 3.6, 0.25);
 const strokeWidthsInt = d3.range(0, 6.1, 0.5);
 const markerSizes = d3.range(0, 21, 1);
 
+class ColorGenerator {
+  constructor () {
+    this.idx = 0;
+  }
+
+  nextColor () {
+    if (this.idx === kellyColorsAndBlack.length) {
+      this.idx = 0;
+    }
+    var color = kellyColorsAndBlack[this.idx];
+    this.idx++;
+    return color;
+  }
+}
+
 class Figure {
   constructor (parentSelector) {
     this.ax = undefined;
     this.parentSelector = parentSelector;
     this.selector = '#figure';
-    this.marginPercent = {
-      top: 0.05,
-      bottom: 0.08,
-      left: 0.08,
-      right: 0.02
-    };
   }
 
   get svgElement () {
@@ -103,10 +143,10 @@ class Figure {
   axMargin () {
     var diag = this.diagonal;
     var margin = {
-      top: Math.floor(this.marginPercent.top * diag),
-      bottom: Math.floor(this.marginPercent.bottom * diag),
-      left: Math.floor(this.marginPercent.left * diag),
-      right: Math.floor(this.marginPercent.right * diag)
+      top: Math.floor(currentPlotStyle.marginPercent.top * diag),
+      bottom: Math.floor(currentPlotStyle.marginPercent.bottom * diag),
+      left: Math.floor(currentPlotStyle.marginPercent.left * diag),
+      right: Math.floor(currentPlotStyle.marginPercent.right * diag)
     };
     return margin;
   }
@@ -159,15 +199,21 @@ class Axis {
     this.width = width;
     this.height = height;
     this.parentFig = parentFig;
-    this.graph = undefined;
+    this.graphList = [];
     this.xScale = undefined;
     this.yScale = undefined;
     this.axElem = undefined;
   }
 
-  plot (x, y) {
-    this.graph = new Graph(x, y);
-    return this.graph;
+  plot (x, y, style) {
+    let graph = new Graph(x, y);
+    graph.setStyle(style);
+    this.graphList.push(graph);
+  }
+
+  get activeGraph () {
+    const graphIdx = Sidebar.traceList.activeGraphIdx();
+    return this.graphList[graphIdx];
   }
 
   draw (axElem) {
@@ -185,7 +231,10 @@ class Axis {
     this.createAxes();
     this.drawGrids();
     this.drawAxes();
-    this.graph.draw(this.dataAxElem, this.xScale, this.yScale);
+    var xScale = this.xScale;
+    var yScale = this.yScale;
+    var dataAxElem = this.dataAxElem;
+    this.graphList.map(function (graph) { graph.draw(dataAxElem, xScale, yScale); });
   }
 
   createAxes () {
@@ -250,6 +299,66 @@ class Axis {
       .attr('height', this.height);
   }
 
+  addLegend (location, fontSize) {
+    if (location === 'none') {
+      return;
+    }
+
+    var legendData = Sidebar.traceList.getLegendData();
+
+    var labelOffsetX = 18;
+    var labelOffsetY = 11;
+    var deltaY = 20;
+    const legendHeight = legendData.length * deltaY;
+    const legendWidth = 130;
+
+    var startX;
+    var startY;
+
+    if (location === 'northeast') {
+      startX = fig.ax.width - legendWidth;
+      startY = 15;
+    } else if (location === 'southeast') {
+      startX = fig.ax.width - legendWidth;
+      startY = fig.ax.height - legendHeight - deltaY / 2;
+    } else if (location === 'southwest') {
+      startX = 15;
+      startY = fig.ax.height - legendHeight - deltaY / 2;
+    } else if (location === 'northwest') {
+      startX = 15;
+      startY = 15;
+    }
+    var axis = d3.select('#ax');
+    var legend = axis.append('g')
+      .attr('class', 'legend')
+      .attr('font-family', 'sans-serif')
+      /*.attr('text-anchor', 'start')*/
+      .selectAll('g')
+      .data(legendData)
+      .enter()
+      .append('g')
+      .attr('transform', function (d, i) {
+        return 'translate(0,' + i * deltaY + ')';
+      });
+
+    legend.append('rect')
+      .attr('x', startX)
+      .attr('y', startY)
+      .attr('height', 12)
+      .attr('width', 12)
+      .attr('fill', function (d) {
+        return d.color;
+      });
+
+    legend.append('text')
+      .attr('x', startX + labelOffsetX)
+      .attr('y', startY + labelOffsetY)
+      /*.attr('dy', '0.25em')*/
+      .text(function (d) {
+        return d.name;
+      });
+  }
+
   addTitle (titleText, fontSize) {
     var center = Math.floor(this.width / 2);
     var axis = d3.select('#ax');
@@ -298,12 +407,29 @@ class Axis {
 
   xLim () {
     var userLimits = [currentPlotStyle['xStart'], currentPlotStyle['xEnd']];
-    return this.getCoordinateLimits(this.graph.xLim(), userLimits);
+    var dataLimitList = this.graphList.map(function (e) { return e.xLim(); });
+    var dataLimits = this.dataLimitsFromList(dataLimitList);
+    return this.getCoordinateLimits(dataLimits, userLimits);
   }
 
   yLim () {
     var userLimits = [currentPlotStyle['yStart'], currentPlotStyle['yEnd']];
-    return this.getCoordinateLimits(this.graph.yLim(), userLimits);
+    var dataLimitList = this.graphList.map(function (e) { return e.yLim(); });
+    var dataLimits = this.dataLimitsFromList(dataLimitList);
+    return this.getCoordinateLimits(dataLimits, userLimits);
+  }
+
+  dataLimitsFromList (dataLimitList) {
+    var dataLimits = dataLimitList[0];
+    for (var i = 1; i < dataLimitList.length; i++) {
+      if (dataLimitList[i][0] < dataLimits[0]) {
+        dataLimits[0] = dataLimitList[i][0];
+      }
+      if (dataLimitList[i][1] > dataLimits[1]) {
+        dataLimits[1] = dataLimitList[i][1];
+      }
+    }
+    return dataLimits;
   }
 
   getCoordinateLimits (dataLimits, userLimits) {
@@ -315,6 +441,12 @@ class Axis {
       lim[1] = Util.toFloat(userLimits[1]);
     }
     return lim;
+  }
+
+  panTransform (transform) {
+    for (var i = 0; i < this.graphList.length; i++) {
+      this.graphList[i].panTransform(transform);
+    }
   }
 };
 
@@ -522,6 +654,10 @@ class Graph {
     this.xyData = new XYData(x, y);
   }
 
+  setStyle (style) {
+    this.style = style;
+  }
+
   get graphMarginX () {
     return currentPlotStyle['graphMarginX'];
   }
@@ -544,7 +680,7 @@ class Graph {
 
   draw (axElem, xScale, yScale) {
     var dataPoints = this.xyData.makeLineData();
-    var plotType = currentPlotStyle['plotType'];
+    var plotType = this.style.plotType;
     this.clipGroup = axElem.append('g')
       .attr('clip-path', 'url(#clip_path)');
     this.plotGroup = this.clipGroup.append('g');
@@ -568,18 +704,18 @@ class Graph {
       });
 
     var dashArray = ('1, 0');
-    if (currentPlotStyle.lineStyle === 'solid') {
+    if (this.style.lineStyle === 'solid') {
       dashArray = ('1, 0');
-    } else if (currentPlotStyle.lineStyle === 'dashed') {
+    } else if (this.style.lineStyle === 'dashed') {
       dashArray = ('12, 4');
     }
     this.plotLine = this.plotGroup.append('path')
       .attr('d', drawFunc(dataPoints))
       .attr('class', 'curve')
       .attr('fill', 'none')
-      .attr('stroke', currentPlotStyle['lineColor'])
+      .attr('stroke', this.style.lineColor)
       .attr('stroke-dasharray', dashArray)
-      .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['lineStrokeWidth'])));
+      .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(this.style.lineStrokeWidth)));
   }
 
   drawScatter (dataPoints, xScale, yScale) {
@@ -587,8 +723,8 @@ class Graph {
       .attr('class', 'curve')
       .attr('id', 'scatterPlot');
 
-    let symbolType = 'symbol' + currentPlotStyle.markerStyle;
-    let symbolSize = currentPlotStyle.markerSize ** 2;
+    let symbolType = 'symbol' + this.style.markerStyle;
+    let symbolSize = this.style.markerSize ** 2;
     let symbol = d3.symbol();
     this.plotMarkers = scatterPlot.selectAll('.point')
       .data(dataPoints)
@@ -596,7 +732,7 @@ class Graph {
       .attr('class', 'point')
       .attr('d', symbol.size(symbolSize).type(function (d) { return d3[symbolType]; }))
       .attr('transform', function (d) { return 'translate(' + xScale(d.x_coord) + ',' + yScale(d.y_coord) + ')'; })
-      .attr('fill', currentPlotStyle['markerColor']);
+      .attr('fill', this.style.markerColor);
   }
 
   drawScatterOld (dataPoints, xScale, yScale) {
@@ -614,8 +750,8 @@ class Graph {
       .attr('cy', function (d) {
         return yScale(d.y_coord);
       })
-      .attr('r', currentPlotStyle['markerSize'])
-      .attr('fill', currentPlotStyle['markerColor']);
+      .attr('r', this.style.markerSize)
+      .attr('fill', this.style.markerColor);
   }
 
   panTransform (transform) {
@@ -687,6 +823,179 @@ class XYData {
   }
 };
 
+class Trace {
+  constructor (xy, style, name) {
+    this.xy = xy;
+    this.style = style;
+    this.name = name;
+    this.isVisible = true;
+  }
+
+  get legendColor () {
+    if (this.style.plotType === 'scatter') {
+      return this.style.markerColor;
+    }
+    return this.style.lineColor;
+  }
+}
+
+class TraceList {
+  constructor () {
+    this.id = 'traceTable';
+    this.traces = [];
+    this.lastTraceNumber = 0;
+    this.activeTraceIdx = -1;
+    this.colorGenerator = new ColorGenerator();
+  }
+
+  get htmlTableBody () {
+    return document.getElementById(this.id).getElementsByTagName('tbody')[0];
+  }
+
+  newTraceName (userTraceName) {
+    if (userTraceName === 'pasted-data') {
+      return 'Trace ' + (this.lastTraceNumber + 1);
+    } else {
+      return userTraceName;
+    }
+  }
+
+  get activeTrace () {
+    return this.traces[this.activeTraceIdx];
+  }
+
+  activeGraphIdx () {
+    var graphIdx = this.activeTraceIdx;
+    for (var i = 0; i < this.activeTraceIdx; i++) {
+      if (!Sidebar.traceList.traces[i].isVisible) {
+        graphIdx--;
+      }
+    }
+    return graphIdx;
+  }
+
+  getLegendData () {
+    this.updateTraceLabels();
+    var legendData = [];
+    for (var i = 0; i < this.traces.length; i++) {
+      var trace = this.traces[i];
+      if (trace.isVisible) {
+        legendData.push({
+          'name': trace.name,
+          'color': trace.legendColor
+        });
+      }
+    }
+    return legendData;
+  }
+
+  updateActiveTraceStyle (newStyle) {
+    this.activeTrace.style = newStyle;
+    this.updateActiveTraceColorSquare();
+  }
+
+  updateTraceLabels () {
+    for (var i = 0; i < this.traces.length; i++) {
+      this.traces[i].name = this.htmlTableBody.rows[i + 1].querySelector('input').value;
+    }
+  }
+
+  activateTrace (listIdx) {
+    if (this.activeTraceIdx >= 0) {
+      this.htmlTableBody.rows[this.activeTraceIdx + 1].classList.remove('active');
+    }
+    this.activeTraceIdx = listIdx;
+    this.htmlTableBody.rows[this.activeTraceIdx + 1].classList.add('active');
+  }
+
+  updateActiveTraceColorSquare () {
+    let colorSquare = this.htmlTableBody.querySelector('.active .color_square');
+    colorSquare.style.backgroundColor = this.activeTrace.legendColor;
+  }
+
+  addTrace (xy, traceName) {
+    var style = Object.assign({}, currentTraceStyle);
+    this.colorGenerator.idx = this.traces.length;
+    var color = this.colorGenerator.nextColor();
+    style.markerColor = color;
+    style.lineColor = color;
+    var label = this.newTraceName(traceName);
+    var newTrace = new Trace(xy, style, label);
+    this.traces.push(newTrace);
+    this.lastTraceNumber++;
+    currentTraceStyle = Object.assign({}, style);
+    this.addTableRow(newTrace.name, newTrace.legendColor);
+    this.activateTrace(this.traces.length - 1);
+    Sidebar.showCurrentTraceStyle();
+  }
+
+  deleteTrace (listIdx) {
+    var activeIdx = this.activeTraceIdx;
+    if (listIdx <= activeIdx) {
+      activeIdx = this.traces.length - 2;
+      this.activeTraceIdx = activeIdx;
+    }
+    this.traces.splice(listIdx, 1);
+    this.deleteTableRow(listIdx + 1);
+    return activeIdx;
+  }
+
+  addTableRow (label, color) {
+    let tableBody = this.htmlTableBody;
+    var addedRow = tableBody.insertRow(tableBody.rows.length);
+    var textCell = addedRow.insertCell(0);
+    var buttonCell = addedRow.insertCell(1);
+
+    textCell.classList.add('text_cell');
+    buttonCell.classList.add('button_cell');
+
+    // https://stackoverflow.com/questions/45656949/how-to-return-the-row-and-column-index-of-a-table-cell-by-clicking
+    addedRow.addEventListener('dblclick', function (e) {
+      const rowList = Array.from(tableBody.rows);
+      const rowIdx = rowList.findIndex(row => row.contains(e.target));
+      Sidebar.activateTrace(rowIdx - 1);
+    });
+
+    var colorSquare = document.createElement('div');
+    colorSquare.classList.add('color_square');
+    colorSquare.style.backgroundColor = color;
+
+    var txt = document.createElement('input');
+    txt.type = 'text';
+    txt.value = label;
+    txt.contentEditable = true;
+    txt.addEventListener('change', function (event) { FigureArea.redraw(); });
+
+    var showHideButton = document.createElement('button');
+    showHideButton.classList.add('trace_button');
+    showHideButton.textContent = 'Hide';
+    showHideButton.addEventListener('click', function (e) {
+      showHideButton.textContent = showHideButton.textContent === 'Hide' ? 'Show' : 'Hide';
+      const rowList = Array.from(tableBody.rows);
+      const rowIdx = rowList.findIndex(row => row.contains(e.target));
+      Sidebar.toggleTraceVisibility(rowIdx - 1);
+    });
+    var clearButton = document.createElement('button');
+    clearButton.classList.add('trace_button');
+    clearButton.textContent = 'Clear';
+    clearButton.addEventListener('click', function (e) {
+      const rowList = Array.from(tableBody.rows);
+      const rowIdx = rowList.findIndex(row => row.contains(e.target));
+      Sidebar.deleteTrace(rowIdx - 1);
+    });
+
+    textCell.appendChild(colorSquare);
+    textCell.appendChild(txt);
+    buttonCell.appendChild(showHideButton);
+    buttonCell.appendChild(clearButton);
+    Util.resetPosition(txt);
+  }
+
+  deleteTableRow (rowIdx) {
+    this.htmlTableBody.deleteRow(rowIdx);
+  }
+}
+
 class FigureArea {
   static initialize () {
     document.getElementById('figure_area').addEventListener('paste', FigureArea.readPasteAndPlot);
@@ -754,12 +1063,13 @@ class FigureArea {
       alert('Input data could not be parsed! Please use two columns separated by tab, comma, semicolon and/or spaces.');
       return;
     }
-    FigureArea.xy = xy;
     FigureArea.fileName = Util.stripFileExtension(fileName);
+    Sidebar.traceList.addTrace(xy, FigureArea.fileName);
     Sidebar.resetLimits();
     FigureArea.redraw();
     FigureArea.hideInstruction();
     Toolbar.show();
+    Sidebar.show();
   }
 
   static hideInstruction () {
@@ -785,29 +1095,38 @@ class FigureArea {
   }
 
   static redraw () {
-    if (!FigureArea.xy) {
+    fig.reset();
+    var traces = Sidebar.traceList.traces;
+    if (traces.length === 0 || traces.every((tr) => !tr.isVisible)) {
       return;
     }
 
     Sidebar.updatePlotStyle();
+    var ax = fig.addAxis();
 
-    var x = FigureArea.xy[0].slice();
-    var y = FigureArea.xy[1].slice();
-    try {
-      x = FigureArea.transformData(x, 'x', Sidebar.xScaling);
-      y = FigureArea.transformData(y, 'y', Sidebar.yScaling);
-    } catch (exception) {
-      console.error(exception);
-      alert('Function not recognized!');
+    for (var i = 0; i < traces.length; i++) {
+      let trace = traces[i];
+      if (!trace.isVisible) {
+        continue;
+      }
+      var x = trace.xy[0].slice();
+      var y = trace.xy[1].slice();
+      try {
+        x = FigureArea.transformData(x, 'x', trace.style.xScaling);
+        y = FigureArea.transformData(y, 'y', trace.style.yScaling);
+      } catch (exception) {
+        console.error(exception);
+        alert('Function not recognized!');
+      }
+
+      ax.plot(x, y, trace.style);
     }
 
-    fig.reset();
-    var ax = fig.addAxis();
-    ax.plot(x, y);
     fig.draw();
     ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
     ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
     ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
+    ax.addLegend(currentPlotStyle.legendLocation, fig.svgPercentageToPx(currentPlotStyle.axisFontSize));
     Toolbar.applyMargin();
     Toolbar.reactivateButton();
   }
@@ -820,6 +1139,15 @@ class Sidebar {
     Sidebar.addRedrawListeners();
     Sidebar.addLabelListeners();
     Sidebar.addTooltipListeners();
+    Sidebar.traceList = new TraceList();
+  }
+
+  static show () {
+    document.getElementById('sidebar').style.display = 'block';
+  }
+
+  static hide () {
+    document.getElementById('sidebar').style.display = 'none';
   }
 
   static addLabelListeners () {
@@ -850,12 +1178,13 @@ class Sidebar {
     document.getElementById('yFontSize').value = defaultPlotStyle['yLabelFontSize'] + '%';
     document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'] + '%';
     document.getElementById('axisFontSize').value = defaultPlotStyle['axisFontSize'] + '%';
-    document.getElementById('xScaling').value = defaultPlotStyle['xScaling'];
-    document.getElementById('yScaling').value = defaultPlotStyle['yScaling'];
-    document.getElementById('lineStrokeWidth').value = defaultPlotStyle['lineStrokeWidth'];
-    document.getElementById('markerSize').value = defaultPlotStyle['markerSize'];
-    document.getElementById('plotType').value = defaultPlotStyle['plotType'];
     document.getElementById('axisStrokeWidth').value = defaultPlotStyle['axisStrokeWidth'];
+
+    document.getElementById('xScaling').value = defaultTraceStyle['xScaling'];
+    document.getElementById('yScaling').value = defaultTraceStyle['yScaling'];
+    document.getElementById('lineStrokeWidth').value = defaultTraceStyle['lineStrokeWidth'];
+    document.getElementById('markerSize').value = defaultTraceStyle['markerSize'];
+    document.getElementById('plotType').value = defaultTraceStyle['plotType'];
     Sidebar.resetLimits();
   }
 
@@ -881,19 +1210,31 @@ class Sidebar {
       'lineStrokeWidth', 'markerSize',
       'axisStrokeWidth', 'axisFontSize',
       'horizontalGrid', 'verticalGrid',
-      'horizontalMinorGrid', 'verticalMinorGrid'];
+      'horizontalMinorGrid', 'verticalMinorGrid',
+      'legendLocation'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
-      document.getElementById(id).addEventListener('change', function (event) { FigureArea.redraw(); });
+      let elem = document.getElementById(id);
+      elem.addEventListener('change', function (event) {
+        FigureArea.redraw();
+      });
     }
 
     var rescaleParams = ['xScaling', 'yScaling'];
     for (let i = 0; i < rescaleParams.length; i++) {
       let id = rescaleParams[i];
-      document.getElementById(id).addEventListener('change', function (event) {
+      let elem = document.getElementById(id);
+      elem.addEventListener('change', function (event) {
         Sidebar.resetLimits();
         FigureArea.redraw();
       });
+    }
+  }
+
+  static hideTooltips () {
+    var tooltips = document.querySelectorAll('.tooltip-wrapper');
+    for (var i = 0; i < tooltips.length; i++) {
+      tooltips[i].style.display = 'none';
     }
   }
 
@@ -908,7 +1249,8 @@ class Sidebar {
       'lineStrokeWidth', 'markerSize',
       'axisStrokeWidth', 'axisFontSize',
       'horizontalGrid', 'verticalGrid',
-      'horizontalMinorGrid', 'verticalMinorGrid'];
+      'horizontalMinorGrid', 'verticalMinorGrid',
+      'legendLocation', 'traceTable'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       let elem = document.getElementById(id);
@@ -918,11 +1260,15 @@ class Sidebar {
       parent.addEventListener('mouseover', function (event) {
         tooltip.style.display = 'block';
         tooltip.style.top = Sidebar.getTooltipPositionPx(elem);
-        input.classList.add('active');
+        if (input != null) { // null check for traceTable -> consider refactoring
+          input.classList.add('active');
+        }
       });
       parent.addEventListener('mouseout', function (event) {
         tooltip.style.display = 'none';
-        input.classList.remove('active');
+        if (input != null) { // null check for traceTable -> consider refactoring
+          input.classList.remove('active');
+        }
       });
     }
   }
@@ -937,25 +1283,66 @@ class Sidebar {
     currentPlotStyle['xLabelFontSize'] = Sidebar.xLabelFontSize;
     currentPlotStyle['yLabelFontSize'] = Sidebar.yLabelFontSize;
     currentPlotStyle['titleFontSize'] = Sidebar.titleFontSize;
-    currentPlotStyle['xScaling'] = Sidebar.xScaling;
-    currentPlotStyle['yScaling'] = Sidebar.yScaling;
     currentPlotStyle['xStart'] = Sidebar.xStart;
     currentPlotStyle['xEnd'] = Sidebar.xEnd;
     currentPlotStyle['yStart'] = Sidebar.yStart;
     currentPlotStyle['yEnd'] = Sidebar.yEnd;
-    currentPlotStyle['plotType'] = Sidebar.plotType;
-    currentPlotStyle['lineColor'] = Sidebar.lineColor;
-    currentPlotStyle['markerColor'] = Sidebar.markerColor;
-    currentPlotStyle['lineStyle'] = Sidebar.lineStyle;
-    currentPlotStyle['markerStyle'] = Sidebar.markerStyle;
-    currentPlotStyle['lineStrokeWidth'] = Sidebar.lineStrokeWidth;
-    currentPlotStyle['markerSize'] = Sidebar.markerSize;
     currentPlotStyle['axisStrokeWidth'] = Sidebar.axisStrokeWidth;
     currentPlotStyle['axisFontSize'] = Sidebar.axisFontSize;
     currentPlotStyle['horizontalGrid'] = Sidebar.horizontalGrid;
     currentPlotStyle['verticalGrid'] = Sidebar.verticalGrid;
     currentPlotStyle['horizontalMinorGrid'] = Sidebar.horizontalMinorGrid;
     currentPlotStyle['verticalMinorGrid'] = Sidebar.verticalMinorGrid;
+    currentPlotStyle['activeTrace'] = Sidebar.activeTrace;
+    currentPlotStyle['legendLocation'] = Sidebar.legendLocation;
+
+    currentTraceStyle['xScaling'] = Sidebar.xScaling;
+    currentTraceStyle['yScaling'] = Sidebar.yScaling;
+    currentTraceStyle['plotType'] = Sidebar.plotType;
+    currentTraceStyle['lineColor'] = Sidebar.lineColor;
+    currentTraceStyle['markerColor'] = Sidebar.markerColor;
+    currentTraceStyle['lineStyle'] = Sidebar.lineStyle;
+    currentTraceStyle['markerStyle'] = Sidebar.markerStyle;
+    currentTraceStyle['lineStrokeWidth'] = Sidebar.lineStrokeWidth;
+    currentTraceStyle['markerSize'] = Sidebar.markerSize;
+    Sidebar.traceList.updateActiveTraceStyle(Object.assign({}, currentTraceStyle));
+    Sidebar.traceList.updateTraceLabels();
+  }
+
+  static activateTrace (idx) {
+    Sidebar.traceList.activateTrace(idx);
+    currentTraceStyle = Sidebar.traceList.activeTrace.style;
+    Sidebar.showCurrentTraceStyle();
+  }
+
+  static deleteTrace (idx) {
+    let newActiveIdx = Sidebar.traceList.deleteTrace(idx);
+    if (newActiveIdx >= 0) {
+      Sidebar.activateTrace(newActiveIdx);
+    }
+    if (Sidebar.traceList.traces.length === 0) {
+      Sidebar.hide();
+      Toolbar.hide();
+    }
+    Sidebar.hideTooltips();
+    FigureArea.redraw();
+  }
+
+  static toggleTraceVisibility (idx) {
+    Sidebar.traceList.traces[idx].isVisible = !Sidebar.traceList.traces[idx].isVisible;
+    FigureArea.redraw();
+  }
+
+  static showCurrentTraceStyle () {
+    document.getElementById('xScaling').value = currentTraceStyle.xScaling;
+    document.getElementById('yScaling').value = currentTraceStyle.yScaling;
+    document.getElementById('plotType').value = currentTraceStyle.plotType;
+    document.getElementById('lineColor').value = currentTraceStyle.lineColor;
+    document.getElementById('markerColor').value = currentTraceStyle.markerColor;
+    document.getElementById('lineStyle').value = currentTraceStyle.lineStyle;
+    document.getElementById('markerStyle').value = currentTraceStyle.markerStyle;
+    document.getElementById('lineStrokeWidth').value = currentTraceStyle.lineStrokeWidth;
+    document.getElementById('markerSize').value = currentTraceStyle.markerSize;
   }
 
   static get xLabelFontSize () {
@@ -1045,6 +1432,10 @@ class Sidebar {
   static get verticalMinorGrid () {
     return document.getElementById('verticalMinorGrid').checked;
   }
+
+  static get legendLocation () {
+    return document.getElementById('legendLocation').value;
+  }
 }
 
 class Toolbar {
@@ -1062,8 +1453,12 @@ class Toolbar {
     document.getElementById('toolbar').style.display = 'block';
   }
 
+  static hide () {
+    document.getElementById('toolbar').style.display = 'none';
+  }
+
   static applyMargin () {
-    document.querySelector('#toolbar').style.margin = '0  ' + fig.marginPercent.right * 100 + '% 0 ' + fig.marginPercent.left * 100 + '%';
+    document.querySelector('#toolbar').style.margin = '0  ' + currentPlotStyle.marginPercent.right * 100 + '% 0 ' + currentPlotStyle.marginPercent.left * 100 + '%';
   }
 
   static get resetButton () {
@@ -1207,8 +1602,13 @@ class Toolbar {
 
   static dataCursorFunc (coordinates) {
     d3.select('.data_cursor').remove();
+    if (!Sidebar.traceList.activeTrace.isVisible) {
+      Toolbar.clean();
+      alert('Active trace is hidden. Please select a visible active trace.');
+      return;
+    }
     var xExact = fig.ax.xScale.invert(coordinates[0]);
-    var point = fig.ax.graph.xyData.nearestPoint(xExact);
+    var point = fig.ax.activeGraph.xyData.nearestPoint(xExact);
     if (!point.x) {
       return;
     }
@@ -1229,8 +1629,8 @@ class Toolbar {
       .attr('x', cursorX)
       .attr('y', cursorY);
 
-    document.querySelector('#toolbar #x_coord').textContent = 'x = ' + point.x.toFixed(fig.ax.graph.xyData.precisionX());
-    document.querySelector('#toolbar #y_coord').textContent = 'y = ' + point.y.toFixed(fig.ax.graph.xyData.precisionY());
+    document.querySelector('#toolbar #x_coord').textContent = 'x = ' + point.x.toFixed(fig.ax.activeGraph.xyData.precisionX());
+    document.querySelector('#toolbar #y_coord').textContent = 'y = ' + point.y.toFixed(fig.ax.activeGraph.xyData.precisionY());
   }
 
   static zoomFunc () {
@@ -1277,7 +1677,7 @@ class Toolbar {
         panDraw.startYLim[0] - yPan * yDelta,
         panDraw.startYLim[1] - yPan * yDelta);
       Sidebar.updatePlotStyle();
-      fig.ax.graph.panTransform(d3.event.transform);
+      fig.ax.panTransform(d3.event.transform);
       fig.ax.removeAxesDrawings();
       fig.ax.updateAxes();
       fig.ax.drawGrids();
@@ -1353,6 +1753,12 @@ class ImageExport {
 }
 
 class Util {
+  // https://stackoverflow.com/questions/3329566/show-beginning-of-html-input-value-on-blur-with-javascript
+  static resetPosition (element) {
+    var v = element.value;
+    element.value = '';
+    setTimeout(function () { element.value = v; }, 1);
+}
   static toPercentWidth (intStrokeWidth) {
     return 0.1 * intStrokeWidth;
   }
