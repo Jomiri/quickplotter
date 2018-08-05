@@ -917,9 +917,7 @@ class Sidebar {
       let tooltip = parent.querySelector('.tooltip-wrapper');
       parent.addEventListener('mouseover', function (event) {
         tooltip.style.display = 'block';
-        let viewportOffset = elem.getBoundingClientRect();
-        let top = viewportOffset.top;
-        tooltip.style.top = top - 10 + 'px';
+        tooltip.style.top = Sidebar.getTooltipPositionPx(elem);
         input.classList.add('active');
       });
       parent.addEventListener('mouseout', function (event) {
@@ -927,6 +925,12 @@ class Sidebar {
         input.classList.remove('active');
       });
     }
+  }
+
+  static getTooltipPositionPx (element) {
+    let viewportOffset = element.getBoundingClientRect();
+    let top = viewportOffset.top;
+    return top - 30 + 'px';
   }
 
   static updatePlotStyle () {
@@ -1386,7 +1390,10 @@ class Util {
   }
 
   static orderOfMagnitude (arr) {
-    return Math.floor(Math.log10(Math.max(Math.abs(arr[0]), Math.abs(arr[arr.length - 1]))));
+    let first = Math.abs(arr[0]);
+    let last = Math.abs(arr[arr.length - 1]);
+    let span = Math.abs(last - first);
+    return Math.floor(Math.log10(Math.max(first, last, span)));
   }
 
   static numIsInteger (num) {
@@ -1394,11 +1401,7 @@ class Util {
   }
 
   static appendStrtoArr (arr, str) {
-    var output = [];
-    for (var i = 0; i < arr.length; i++) {
-      output.push(arr[i] + str);
-    }
-    return output;
+    return arr.map(elem => elem + str);
   }
 
   // https://stackoverflow.com/questions/9895082/javascript-populate-drop-down-list-with-array
