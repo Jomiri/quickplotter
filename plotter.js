@@ -212,7 +212,9 @@ class Axis {
       .attr('class', 'ax')
       .attr('id', 'ax');
 
-    this.helperAxElem = this.dataAxElem.append('g');
+    this.gridElem = this.dataAxElem.append('g');
+    this.graphElem = this.dataAxElem.append('g');
+    this.axisElem = this.dataAxElem.append('g');
 
     this.xScale = d3.scaleLinear()
       .domain(this.xLim())
@@ -228,7 +230,7 @@ class Axis {
     this.drawAxes();
     var xScale = this.xScale;
     var yScale = this.yScale;
-    var dataAxElem = this.dataAxElem;
+    var dataAxElem = this.graphElem;
     this.graphList.map(function (graph) { graph.draw(dataAxElem, xScale, yScale); });
   }
 
@@ -256,10 +258,10 @@ class Axis {
   }
 
   drawAxes () {
-    this.xAxis.draw(this.helperAxElem);
-    this.xAxisTop.draw(this.helperAxElem);
-    this.yAxis.draw(this.helperAxElem);
-    this.yAxisRight.draw(this.helperAxElem);
+    this.xAxis.draw(this.axisElem);
+    this.xAxisTop.draw(this.axisElem);
+    this.yAxis.draw(this.axisElem);
+    this.yAxisRight.draw(this.axisElem);
   }
 
   removeAxesDrawings () {
@@ -274,10 +276,10 @@ class Axis {
   }
 
   drawGrids () {
-    this.xAxis.drawMajorGrid(this.helperAxElem, currentPlotStyle['verticalGrid']);
-    this.yAxis.drawMajorGrid(this.helperAxElem, currentPlotStyle['horizontalGrid']);
-    this.xAxis.drawMinorGrid(this.helperAxElem, currentPlotStyle['verticalMinorGrid']);
-    this.yAxis.drawMinorGrid(this.helperAxElem, currentPlotStyle['horizontalMinorGrid']);
+    this.xAxis.drawMajorGrid(this.gridElem, currentPlotStyle['verticalGrid']);
+    this.yAxis.drawMajorGrid(this.gridElem, currentPlotStyle['horizontalGrid']);
+    this.xAxis.drawMinorGrid(this.gridElem, currentPlotStyle['verticalMinorGrid']);
+    this.yAxis.drawMinorGrid(this.gridElem, currentPlotStyle['horizontalMinorGrid']);
   }
 
   createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
