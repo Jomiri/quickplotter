@@ -689,6 +689,11 @@ class Graph {
     } else if (plotType === 'line + scatter') {
       this.drawLine(dataPoints, xScale, yScale);
       this.drawScatter(dataPoints, xScale, yScale);
+    } else if (plotType === 'area') {
+      this.drawArea(dataPoints, xScale, yScale, 1);
+    } else if (plotType === 'line + area') {
+      this.drawLine(dataPoints, xScale, yScale);
+      this.drawArea(dataPoints, xScale, yScale, 0.6);
     }
   }
 
@@ -735,6 +740,18 @@ class Graph {
         return 'translate(' + xScale(d.x) + ',' + yScale(d.y) + ')';
       })
       .attr('fill', this.style.markerColor);
+  }
+
+  drawArea (dataPoints, xScale, yScale, opacity) {
+    let areaFunc = d3.area()
+      .x(d => xScale(d.x))
+      .y0(yScale(0))
+      .y1(d => yScale(d.y));
+    this.plotGroup.append('g').append('path')
+      .attr('class',  'area')
+      .attr('fill', this.style.lineColor)
+      .style('opacity', opacity)
+      .attr('d', areaFunc(dataPoints));
   }
 
   panTransform (transform) {

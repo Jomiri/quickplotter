@@ -10,13 +10,13 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    
+
     gtag('config', 'UA-38729488-2');
 </script>
 
 <meta charset='UTF-8'>
 <meta name='author' content='Joona Rissanen'>
-<meta name='description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure. 
+<meta name='description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure.
  Export your figure as PNG or SVG.'/>
 <meta name='viewport' content='width=device-width, initial-scale=1'>
 
@@ -36,7 +36,7 @@
 <meta property='og:type' content='website'/>
 <meta property='og:image' content='https://quickplotter.com/favicon-og.png'/>
 <meta property='og:url' content='https://quickplotter.com'/>
-<meta property='og:description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure. 
+<meta property='og:description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure.
  Export as PNG or SVG.'/>
 
 <script src='https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js'></script>
@@ -54,7 +54,7 @@
         </div>
         <div id='sidebar'>
             <ul>
-            <li><div class='row has-tooltip' id='table_row'> 
+            <li><div class='row has-tooltip' id='table_row'>
                 <table id='traceTable'>
                     <tr><th>Traces</th></tr>
                 </table>
@@ -66,16 +66,16 @@
                                 One of the traces is <b>active</b>. The styling options
                                 and the data cursor tool are applied only to the active trace. Double-click a trace to activate it.
                                 You can hide or delete individual traces by clicking the buttons on the right.
-                                The editable trace names are used to generate the legend. 
+                                The editable trace names are used to generate the legend.
                                 Use the legend location setting below to show the legend.
                             </p>
-                            <p><b>Performance notice:</b> Depending on your computer, plotting large files or multiple files can take time. 
+                            <p><b>Performance notice:</b> Depending on your computer, plotting large files or multiple files can take time.
                                 Scatter plots are especially demanding.</p>
                         </div>
                     </div>
                 </div>
             </div></li>
-            <li><div class='row'> 
+            <li><div class='row'>
                 <div class='left has-tooltip'>
                     <label>title:</label>
                     <input type='text' id='title' class='long_input' name='title' value=''>
@@ -256,6 +256,8 @@
                     <option value='line'>Line</option>
                     <option value='scatter'>Scatter</option>
                     <option value='line + scatter'>Line + Scatter</option>
+                    <option value='area'>Area</option>
+                    <option value='line + area'>Line + Area</option>
                 </select>
                 <div class='tooltip-wrapper'>
                     <div class='tooltip'>
@@ -459,7 +461,7 @@
             </div>
         </div>
         </div>
-        
+
         <div id='figure_container' >
         <div id='figure_area' contenteditable='true'>
             <div id='instruction_text'>
@@ -487,7 +489,7 @@
             </div>
         </div>
         </div>
-        
+
         <canvas id='cvs' width='100' height='100'></canvas>
 
     </div>
