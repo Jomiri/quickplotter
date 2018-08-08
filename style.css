@@ -48,7 +48,6 @@ body, #main-content {
     font-size: 0.9rem;
     overflow-y: auto;
     overflow-x: hidden;
-    display: none;
 }
 
 #sidebar ul {
@@ -398,10 +397,6 @@ a {
     font-size: 1.2em;
     position: absolute;
     text-align: center;
-}
-
-#text_container {
-
 }
 
 #text_column {
