@@ -49,15 +49,15 @@ const defaultTraceStyle = {
 const kellyColorsAndBlack = [
   '#000000',
   '#C10020',
+  '#00538A',
+  '#007D34',
   '#FFB300',
   '#803E75',
   '#FF6800',
   '#A6BDD7',
   '#CEA262',
   '#817066',
-  '#007D34',
   '#F6768E',
-  '#00538A',
   '#FF7A5C',
   '#53377A',
   '#FF8E00',
@@ -176,7 +176,7 @@ class Figure {
   }
 
   reset () {
-    if (document.querySelector(this.selector)) {
+    if (this.ax) {
       this.ax.remove();
     }
   }
@@ -233,7 +233,9 @@ class Axis {
   }
 
   remove () {
-    this.dataAxElem.remove();
+    if (this.dataAxElem) {
+      this.dataAxElem.remove();
+    }
   }
 
   createAxes () {
@@ -307,7 +309,9 @@ class Axis {
     const labelOffsetY = 11;
     const deltaY = 20;
     const legendHeight = legendData.length * deltaY;
-    const legendWidth = 130;
+    const font = '16px arial';
+    let labelWidths = legendData.map(e => Util.getTextWidth(e.traceLabel, font));
+    const legendWidth = d3.max(labelWidths) + 32;
 
     let startX;
     let startY;
@@ -350,7 +354,7 @@ class Axis {
       .attr('y', startY + labelOffsetY)
       /* .attr('dy', '0.25em') */
       .text(function (d) {
-        return d.name;
+        return d.traceLabel;
       });
   }
 
@@ -801,11 +805,11 @@ class XYData {
 }
 
 class Trace {
-  constructor (xy, style, name) {
+  constructor (xy, style, label) {
     this.x = xy[0];
     this.y = xy[1];
     this.style = style;
-    this.name = name;
+    this.traceLabel = label;
     this.isVisible = true;
   }
 
@@ -878,13 +882,12 @@ class TraceList {
   }
 
   getLegendData () {
-    this.updateTraceLabels();
     let legendData = [];
     for (var i = 0; i < this.traces.length; i++) {
       var trace = this.traces[i];
       if (trace.isVisible) {
         legendData.push({
-          'name': trace.name,
+          'traceLabel': trace.traceLabel,
           'color': trace.legendColor
         });
       }
@@ -893,13 +896,9 @@ class TraceList {
   }
 
   updateActiveTraceStyle (newStyle) {
-    this.activeTrace.style = newStyle;
-    this.updateActiveTraceColorSquare();
-  }
-
-  updateTraceLabels () {
-    for (var i = 0; i < this.traces.length; i++) {
-      this.traces[i].name = this.htmlTableBody.rows[i + 1].querySelector('input').value;
+    if (this.activeTrace) {
+      this.activeTrace.style = newStyle;
+      this.updateActiveTraceColorSquare();
     }
   }
 
@@ -919,6 +918,13 @@ class TraceList {
     this.htmlTableBody.rows[idx].classList.add('active');
   }
 
+  updateTraceLabels () {
+    for (var i = 0; i < this.traces.length; i++) {
+      let input = this.htmlTableBody.rows[i + 1].querySelector('input');
+      this.traces[i].traceLabel = input.value;
+    }
+  }
+
   updateActiveTraceColorSquare () {
     let colorSquare = this.htmlTableBody.querySelector('.active .color_square');
     colorSquare.style.backgroundColor = this.activeTrace.legendColor;
@@ -932,9 +938,10 @@ class TraceList {
     style.lineColor = color;
     var label = this.newTraceName(traceName);
     var newTrace = new Trace(xy, style, label);
+    newTrace['traceLabel'] = label;
     this.traces.push(newTrace);
     currentTraceStyle = Object.assign({}, style);
-    this.addTableRow(newTrace.name, newTrace.legendColor);
+    this.addTableRow(newTrace.traceLabel, newTrace.legendColor);
     this.activateTrace(this.traces.length - 1);
     Sidebar.showCurrentTraceStyle();
   }
@@ -971,7 +978,10 @@ class TraceList {
     txt.type = 'text';
     txt.value = label;
     txt.contentEditable = true;
-    txt.addEventListener('change', function (event) { FigureArea.redraw(); });
+    txt.addEventListener('change', function (event) {
+      Sidebar.traceList.updateTraceLabels();
+      FigureArea.redraw();
+    });
 
     var showHideButton = document.createElement('button');
     showHideButton.classList.add('trace_button');
@@ -1073,10 +1083,11 @@ class FigureArea {
     FigureArea.fileName = Util.stripFileExtension(fileName);
     Sidebar.traceList.addTrace(xy, FigureArea.fileName);
     Sidebar.resetLimits();
+    Sidebar.show();
+    Toolbar.show();
     FigureArea.redraw();
     FigureArea.hideInstruction();
-    Toolbar.show();
-    Sidebar.show();
+    FigureArea.redraw();
   }
 
   static hideInstruction () {
@@ -1089,6 +1100,7 @@ class FigureArea {
     Sidebar.updatePlotStyle();
     var ax = fig.addAxis();
     var traces = Sidebar.traceList.visibleTraces;
+    if (traces.length === 0) { return; }
 
     for (var i = 0; i < traces.length; i++) {
       let trace = traces[i];
@@ -1283,7 +1295,6 @@ class Sidebar {
     currentTraceStyle['lineStrokeWidth'] = Sidebar.lineStrokeWidth;
     currentTraceStyle['markerSize'] = Sidebar.markerSize;
     Sidebar.traceList.updateActiveTraceStyle(Object.assign({}, currentTraceStyle));
-    Sidebar.traceList.updateTraceLabels();
   }
 
   static activateTrace (idx) {
@@ -1323,7 +1334,7 @@ class Sidebar {
   }
 
   static get title () {
-    return document.getElementById('xLabel').value;
+    return document.getElementById('title').value;
   }
 
   static get xLabel () {
@@ -1331,7 +1342,7 @@ class Sidebar {
   }
 
   static get yLabel () {
-    return document.getElementById('xLabel').value;
+    return document.getElementById('yLabel').value;
   }
 
   static get xLabelFontSize () {
@@ -1731,6 +1742,15 @@ class ImageExport {
 }
 
 class Util {
+  // https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
+  static getTextWidth (text, font) {
+    // re-use canvas object for better performance
+    var canvas = Util.canvas || (Util.canvas = document.createElement("canvas"));
+    var context = canvas.getContext('2d');
+    context.font = font;
+    var metrics = context.measureText(text);
+    return metrics.width;
+  }
   // https://stackoverflow.com/questions/3329566/show-beginning-of-html-input-value-on-blur-with-javascript
   static resetPosition (element) {
     var v = element.value;
