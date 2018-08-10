@@ -1148,6 +1148,7 @@ class Sidebar {
     Sidebar.addTooltipListeners();
     Sidebar.hide();
     Sidebar.traceList = new TraceList();
+    Sidebar.curveFitter = new CurveFitter();
   }
 
   static show () {
@@ -1871,7 +1872,55 @@ class Util {
   }
 }
 
+class CurveFitter {
+  constructor () {
+    this.funcInput = document.getElementById('fitFunc');
+    this.parser = math.parser();
+    const parser = this.parser;
+    this.funcInput.addEventListener('change', function (event) {
+      let functionStr = document.getElementById('fitFunc').value;
+      let numParams = 0;
+      const possibleParams = [...Array(10).keys()].map(e => 'a' + e);
+      console.log(possibleParams);
+      for (let i = 0; i < possibleParams.length; i++) {
+        if (functionStr.contains(possibleParams[i])) {
+          numParams++;
+        }
+      }
+      let paramsStr = possibleParams.slice(0, numParams).join(', ');
+      let fundDef = 'f(x, ' + paramsStr + ') = ' + functionStr;
+      parser.eval(fundDef);
+    })
+  }
+  /*
+function sinFunction([a, b]) {
+  return (t) => a * Math.sin(b * t);
+}
+  var len = 200;
+  var data = {
+    x: new Array(len),
+    y: new Array(len)
+  };
+  var sampleFunction = sinFunction([2, 2]);
+  for (var i = 0; i < len; i++) {
+  data.x[i] = i;
+  data.y[i] = sampleFunction(i);
+}
+const options = {
+  damping: 0.001,
+  initialValues: [3, 3],
+  maxIterations: 30000
+};
+
+console.log(ans);
+*/
+  static fit (data, func, options) {
+    return curveFit.levenbergMarquardt(data, func, options);
+  }
+}
+
 var fig = new Figure('#figure_area');
 Toolbar.initialize();
 Sidebar.initialize();
 FigureArea.initialize();
+

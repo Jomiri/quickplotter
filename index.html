@@ -43,7 +43,8 @@
 <script src='https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js'></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.3/math.min.js"></script>
 <script src='https://d3js.org/d3.v5.min.js'></script>
-<script type='text/javascript' src='plotter.js' defer></script>
+<script type='text/javascript' src='curve_fitter.js'></script>
+    <script type='text/javascript' src='plotter.js' defer></script>
 </head>
 
 <body>
@@ -451,6 +452,18 @@
                     </div>
                 </div>
             </div></li>
+                <li><div class='row has-tooltip'>
+                    <label>Fit function to data:</label>
+                    <input type='text' id='fitFunc' class='long_input' name='fitFunc' value=''>
+                    <div class='tooltip-wrapper'>
+                        <div class='tooltip'>
+                            <div class='tooltip-header'>Curve fitting</div>
+                            <div class='tooltip-body'>
+                                <p>in progress</p>
+                            </div>
+                        </div>
+                    </div>
+                </div></li>
             </ul>
         </div>
         <div id='side-footer'>
