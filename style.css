@@ -20,7 +20,7 @@ body, #main-content {
 }
 
 #side, #side-header, #sidebar, #side-footer {
-    font-family: Helvetica, Sans-Serif;
+    font-family: sans-serif;
     background-color: #252525;
     color: #ebebeb;
     width: 250px;
@@ -77,6 +77,14 @@ body, #main-content {
     margin-bottom: 5px;
 }
 
+#sidebar .inline_row {
+    margin: 3px 0;
+    position: relative;
+    height: 25px;
+    vertical-align: center;
+
+}
+
 #sidebar .left, #sidebar .right {
     display: inline-block;
 }
@@ -87,13 +95,33 @@ body, #main-content {
     padding-bottom: 2px;
 }
 
+#sidebar .inline_label {
+    display: inline;
+    padding-bottom: 0;
+    bottom: 50%;
+    top: 50%;
+    position: absolute;
+    transform: translate(0, -50%);
+    height: 25px;
+}
+
 #sidebar input, #sidebar select {
     border: 2px solid darkgrey;
     border-radius: 5px;
     display: inline-block;
     background-color: #ebebeb;
-    min-width: 68px;
     text-align: left;
+}
+
+#sidebar .inline_input {
+    position: absolute;
+    left: 70px;
+}
+
+#sidebar .inline_input[type='checkbox'] {
+    position: absolute;
+    left: 90px;
+    transform: scale(1.5);
 }
 
 #sidebar .active {
@@ -270,7 +298,7 @@ body, #main-content {
     transform: scale(1.5);
     margin: 0 0 2px 5px;
     vertical-align: bottom;
-    min-width: 0px;
+    min-width: 0;
 }
 
 .tooltip-wrapper {
@@ -362,12 +390,12 @@ body, #main-content {
 }
 
 #toolbar {
-    padding: 0px 4px;
+    padding: 0 4px;
     position: absolute;
     height: 50px;
     bottom: 0;
     left: 2%;
-    right: 0%;
+    right: 0;
     margin-right: 0;
     display: none;
     border-radius: 10px 10px 0 0;
@@ -415,13 +443,12 @@ body, #main-content {
 }
 
 #instruction_text {
-    margin: 0;
+    margin: 0 -50% 0 0;
     position: absolute;
     top: 40%;
     left: 50%;
-    margin-right: -50%;
     transform: translate(-50%, -50%);
-    font-family: Sans-Serif;
+    font-family: sans-serif;
     font-size: 1.5rem;
     padding: 5px;
 }
@@ -458,7 +485,6 @@ canvas {
     display: none;
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
-    image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
 

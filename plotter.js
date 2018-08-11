@@ -293,8 +293,6 @@ class Axis {
   createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
     var majorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['majorTickSize']));
     var minorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['minorTickSize']));
-    console.log(majorTickSize, minorTickSize);
-    console.log(currentPlotStyle);
     var axisFontSize = this.parentFig.svgPercentageToPx(currentPlotStyle['axisFontSize']);
     return new CoordAxis(orientation, translatePosition,
       htmlClass, tickLabelsVisible, labelTranslate,

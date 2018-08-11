@@ -319,9 +319,9 @@
                 </div>
                 <button class='accordion_button'>Coordinate limits</button>
                 <div class='accordion_panel'>
-                    <div class='row has-tooltip'>
-                        <label>x start:</label>
-                        <input type='text' id='xStart' class='long_input' name='xStart' value=''>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>x start:</label>
+                        <input type='text' id='xStart' class='inline_input' name='xStart' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X start</div>
@@ -331,9 +331,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='row has-tooltip'>
-                        <label>x end:</label>
-                        <input type='text' id='xEnd' class='long_input' name='xEnd' value=''>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>x end:</label>
+                        <input type='text' id='xEnd' class='inline_input' name='xEnd' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X end</div>
@@ -343,9 +343,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='row has-tooltip'>
-                        <label>y start:</label>
-                        <input type='text' id='yStart' class='long_input' name='yStart' value=''>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>y start:</label>
+                        <input type='text' id='yStart' class='inline_input' name='yStart' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y start</div>
@@ -355,9 +355,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='row has-tooltip'>
-                        <label>y end:</label>
-                        <input type='text' id='yEnd' class='long_input' name='yEnd' value=''>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>y end:</label>
+                        <input type='text' id='yEnd' class='inline_input' name='yEnd' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y end</div>
@@ -370,50 +370,46 @@
                 </div>
                 <button class='accordion_button'>Axes settings</button>
                 <div class='accordion_panel'>
-                    <div class='row'>
-                        <div class='left has-tooltip'>
-                            <label class='checkbox_label'>x axis on: <input type='checkbox' id='xAxisVisibility'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>X-axis visibility</div>
-                                    <div class='tooltip-body'>
-                                        <p>Toggle x-axis visibility.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class='right has-tooltip'>
-                            <label class='checkbox_label'>top axis on: <input type='checkbox' id='topXAxisVisibility'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Top axis visibility</div>
-                                    <div class='tooltip-body'>
-                                        <p>Toggle top axis visibility.</p>
-                                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>x axis on: <input class='inline_input' type='checkbox' id='xAxisVisibility'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>X-axis visibility</div>
+                                <div class='tooltip-body'>
+                                    <p>Toggle x-axis visibility.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class='row'>
-                        <div class='left has-tooltip'>
-                            <label class='checkbox_label'>y axis on: <input type='checkbox' id='yAxisVisibility'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Y-axis visibility</div>
-                                    <div class='tooltip-body'>
-                                        <p>Toggle y-axis visibility.</p>
-                                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>top axis on: <input class='inline_input' type='checkbox' id='topXAxisVisibility'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Top axis visibility</div>
+                                <div class='tooltip-body'>
+                                    <p>Toggle top axis visibility.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class='right has-tooltip'>
-                            <label class='checkbox_label'>right axis on: <input type='checkbox' id='rightYAxisVisibility'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Right axis visibility</div>
-                                    <div class='tooltip-body'>
-                                        <p>Toggle right axis visibility.</p>
-                                    </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>y axis on: <input class='inline_input' type='checkbox' id='yAxisVisibility'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Y-axis visibility</div>
+                                <div class='tooltip-body'>
+                                    <p>Toggle y-axis visibility.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>right axis on: <input class='inline_input' type='checkbox' id='rightYAxisVisibility'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Right axis visibility</div>
+                                <div class='tooltip-body'>
+                                    <p>Toggle right axis visibility.</p>
                                 </div>
                             </div>
                         </div>
@@ -452,7 +448,9 @@
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Major tick size</div>
                                     <div class='tooltip-body'>
-                                        <p>Select the size of the major ticks. Negative tick size means outward ticks.</p>
+                                        <p>Select the size of the major ticks.
+                                        Negative tick size generates outward ticks.
+                                        Set tick size to zero to hide them.</p>
                                     </div>
                                 </div>
                             </div>
@@ -464,7 +462,9 @@
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Minor tick size</div>
                                     <div class='tooltip-body'>
-                                        <p>Select the size of the minor ticks. Negative tick size means outward ticks./p>
+                                        <p>Select the size of the minor ticks.
+                                            Negative tick size generates outward ticks.
+                                            Set tick size to zero to hide them.</p>
                                     </div>
                                 </div>
                             </div>
@@ -494,7 +494,7 @@
                     <div class='row'>
                         <label class='grid_label'>show major grid</label>
                         <div class='left has-tooltip'>
-                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalGrid'></input></label>
+                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalGrid'></label>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Horizontal major grid</div>
@@ -505,7 +505,7 @@
                             </div>
                         </div>
                         <div class='right has-tooltip'>
-                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalGrid'></input></label>
+                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalGrid'></label>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Vertical major grid</div>
@@ -519,7 +519,7 @@
                     <div class='row'>
                         <label class='grid_label'>show minor grid</label>
                         <div class='left has-tooltip'>
-                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalMinorGrid'></input></label>
+                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalMinorGrid'></label>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Horizontal minor grid</div>
@@ -530,7 +530,7 @@
                             </div>
                         </div>
                         <div class='right has-tooltip'>
-                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalMinorGrid'></input></label>
+                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalMinorGrid'></label>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Vertical minor grid</div>
