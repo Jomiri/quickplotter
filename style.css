@@ -507,8 +507,9 @@ a {
 }
 
 #text_column {
-   position: relative;
-   margin: 0 auto;
-   font-family: sans-serif;
-   max-width: 500px;
+    position: relative;
+    margin: 0 auto;
+    padding-top: 25px;
+    font-family: sans-serif;
+    max-width: 500px;
 }
