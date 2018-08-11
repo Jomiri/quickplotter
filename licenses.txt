@@ -1,7 +1,7 @@
 Quickplotter.com owes a big thanks to the following open source libraries and tools:
 
 D3.js: https://github.com/d3/d3
-FileSaver.js: https://github.com/eligrey/FileSaver.js#supported-browsers
+FileSaver.js: https://github.com/eligrey/FileSaver.js
 Math.js: http://mathjs.org/
 
 Their respective licenses are listed below:

@@ -20,7 +20,7 @@ body, #main-content {
 }
 
 #side, #side-header, #sidebar, #side-footer {
-    font-family: Helvetica,Sans-Serif;
+    font-family: Helvetica, Sans-Serif;
     background-color: #252525;
     color: #ebebeb;
     width: 250px;
@@ -50,10 +50,17 @@ body, #main-content {
     overflow-x: hidden;
 }
 
+#sidebar .accordion_panel {
+    padding: 6px 2px 6px 12px;
+}
+
 #sidebar ul {
-    list-style-type: none;
     padding-left: 12px;
     padding-right: 12px;
+}
+
+#sidebar ul {
+    list-style-type: none;
 }
 
 #sidebar #links {
@@ -106,6 +113,10 @@ body, #main-content {
    table-layout: fixed;
 }
 
+#sidebar #table_row {
+    padding-top: 0;
+}
+
 #traceTable tr:not(:first-child) {
     color: black;
 }
@@ -114,59 +125,131 @@ body, #main-content {
     width: 134px;
 }
 
-#traceTable .text_cell {
-    height: 26px;
-    background-color: #ebebeb;
-    border-radius: 5px;
-    border: 2px solid darkgrey;
-    padding: 0 0px;
-}
-
-#sidebar #traceTable .text_cell input {
+#traceTable .text_cell, #traceTable .button_cell {
+    position: relative;
     display: inline-block;
-    margin-top: 2px;
-    margin-bottom: 3px;
-    border: 0;
-    width: 105px;
+    vertical-align: top;
+    height: 32px;
+    box-sizing: border-box;
 }
 
-#sidebar #traceTable .active .text_cell input {
-    font-weight: bold;
+#traceTable .text_cell {
+    width: 148px;
+    background-color: #c4c4c4;
+    border-radius: 5px;
+    border: 1px solid darkgrey;
+    padding: 0 0;
+    margin: 0 4px 0 0;
 }
 
-#sidebar #traceTable .active .text_cell, #sidebar #traceTable .active .button_cell .trace_button {
-    border: 2px solid red;
-}
 
 #traceTable .text_cell .color_square {
     width: 14px;
     height: 14px;
-    margin: 0 4px 0 4px;
     border: 1px solid rgba(0, 0, 0, 0.3);
     display: inline-block;
+    left: 3px;
+    bottom: 50%;
+    top: 50%;
+    position: absolute;
+    transform: translate(0, -50%);
+}
+
+#sidebar #traceTable .text_cell input {
+    display: inline-block;
+    border: 0;
+    width: 123px;
+    bottom: 50%;
+    top: 50%;
+    left: 20px;
+    transform: translate(0, -50%);
+    position: absolute;
+    background-color: #c4c4c4;
+}
+
+#sidebar #traceTable .active .text_cell input {
+    font-weight: bold;
+    background-color: white;
+}
+
+#sidebar #traceTable .active .text_cell{
+    background-color: white;
+    border-color: white;
 }
 
 #traceTable .button_cell {
-    width: 40px;
-    height: 30px;
+    width: 60px;
     margin: 0 auto;
     padding: 0;
+    vertical-align: top;
+    top: 0;
+    position: relative;
+}
+
+#traceTable .active .button_cell button {
+    background-color: white;
+    border-color: white;
 }
 
 #traceTable .button_cell .trace_button {
-    width: 60px;
-    height: 16px;
+    top: 0;
+    width: 45px;
+    height: 14px;
     font-size: 10px;
     font-weight: bold;
-    vertical-align: middle;
-    background-color: orange;
+    display: block;
+    background-color: #c4c4c4;
     color: black;
-    border: 2px solid grey;
+    border: 1px solid grey;
     border-radius: 5px;
 }
 
+#traceTable .button_cell .trace_button:nth-child(2) {
+    margin-top: 4px;
+}
+
 #traceTable .button_cell .trace_button:hover {
-    background-color: lightsalmon;
+    background-color: lightblue;
+}
+
+#sidebar .accordion_button {
+    width: 100%;
+    font-size: 16px;
+    background-color: #252525;
+    color: #ebebeb;
+    text-align: left;
+    transition: 0.2s;
+    border: 1px solid #505050;
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+
+#sidebar .accordion_button:after {
+    content: '+';
+    float: right;
+    font-size: 14px;
+    color: #ebebeb;
+    border-width: 0;
+    margin-right: 5px;
+    text-align: center;
+}
+
+#sidebar .accordion_active:after {
+    content: '-';
+    font-size: 14px;
+    padding-right: 2px;
+}
+
+#sidebar .accordion_button:hover {
+    background-color: #505050;
+}
+
+#sidebar .accordion_active {
+    background-color: #505050;
+}
+
+#sidebar .accordion_panel {
+   display: none;
 }
 
 #sidebar .half_item {
@@ -259,19 +342,17 @@ body, #main-content {
     bottom: 0;
 }
 
-#figure_container, #text_container {
+#figure_container {
     position: absolute;
     top: 10px;
     bottom: 0;
     left: 260px;
     width: calc(100% - 270px);
-    display: block;
 }
 
 #figure_area {
     height: 92%;
-    border: 5px solid gray;
-    border-style: dashed;
+    border: 5px dashed gray;
     overflow: hidden;
     cursor: default;
 }

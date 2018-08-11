@@ -53,405 +53,496 @@
             <h1>Quickplotter <sup>beta</sup> </h1>
         </div>
         <div id='sidebar'>
-            <ul>
-            <li><div class='row has-tooltip' id='table_row'>
-                <table id='traceTable'>
-                    <tr><th>Traces</th></tr>
-                </table>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>Trace list</div>
-                        <div class='tooltip-body'>
-                            <p>This listing shows your imported datasets.
-                                One of the traces is <b>active</b>. The styling options
-                                and the data cursor tool are applied only to the active trace. Double-click a trace to activate it.
-                                You can hide or delete individual traces by clicking the buttons on the right.
-                                The editable trace names are used to generate the legend.
-                                Use the legend location setting below to show the legend.
-                            </p>
-                            <p><b>Performance notice:</b> Depending on your computer, plotting large files or multiple files can take time.
-                                Scatter plots are especially demanding.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li><div class='row'>
-                <div class='left has-tooltip'>
-                    <label>title:</label>
-                    <input type='text' id='title' class='long_input' name='title' value=''>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Graph Title</div>
-                            <div class='tooltip-body'>
-                                <p>Add a title to the top of the graph. To write Unicode characters, use <em>HTML character entity references</em> such as
-                                    <b>&amp;pi;</b> which evaluates to
-                                    <b>&pi;</b>. Alternatively, just copy and paste any exotic characters here.</p>
+            <div class='accordion'>
+                <button class='accordion_button'>Trace list</button>
+                <div class='accordion_panel'>
+                    <div class='row has-tooltip' id='table_row'>
+                        <table id='traceTable'>
+                            <thead><tr><td rowspan='1'></td></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Trace list</div>
+                                <div class='tooltip-body'>
+                                    <p>This listing shows your imported datasets.
+                                        One of the traces is <b>active</b>. The styling options
+                                        and the data cursor tool are applied only to the active trace. Double-click a trace to activate it.
+                                        You can hide or delete individual traces by clicking the buttons on the right.
+                                        The editable trace names are used to generate the legend.
+                                        Use the legend location setting below to show the legend.
+                                    </p>
+                                    <p><b>Performance notice:</b> Depending on your computer, plotting large files or multiple files can take time.
+                                        Scatter plots are especially demanding.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class='right has-tooltip'>
-                    <label>font size:</label>
-                    <select type='text' id='titleFontSize' name='titleFontSize' value=''></select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Title font size</div>
-                            <div class='tooltip-body'>
-                                <p>Select the title font size as a percentage of the figure diagonal.</p>
+                <button class='accordion_button'>Current trace</button>
+                <div class='accordion_panel'>
+                    <div class='row has-tooltip'>
+                        <label>apply function to x:</label>
+                        <input type='text' id='xScaling' class='long_input' name='xScaling' value=''>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>X function</div>
+                                <div class='tooltip-body'>
+                                    <p>Transform your <b>x</b> coordinates with a custom function. Supports basic mathematical operators and functions provided
+                                        by Math.js, such as <b>*</b>, <b>/</b>, <b>+</b>, <b>-</b>,
+                                        <b>sqrt(x)</b>,
+                                        <b>pow(x, n)</b> and
+                                        <b>log(x)</b>
+                                        as well as the following statistical functions:
+                                        <b>max(x)</b>,
+                                        <b>min(x)</b> and
+                                        <b>mean(x)</b>. The argument in the statistical functions must be exactly <b>x</b>. For example, <b>2*max(x)</b> is accepted but <b>max(2*x)</b>
+                                        is not.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row has-tooltip'>
+                        <label>apply function to y:</label>
+                        <input type='text' id='yScaling' class='long_input' name='yScaling' value=''>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Y function</div>
+                                <div class='tooltip-body'>
+                                    <p>Transform your <b>y</b> coordinates with a custom function. Supports basic mathematical operators and functions provided
+                                        by Math.js, such as <b>*</b>, <b>/</b>, <b>+</b>, <b>-</b>,
+                                        <b>sqrt(y)</b>,
+                                        <b>pow(y, n)</b> and
+                                        <b>log(y)</b>
+                                        as well as the following statistical functions:
+                                        <b>max(y)</b>,
+                                        <b>min(y)</b> and
+                                        <b>mean(y)</b>. The argument in the statistical functions must be exactly <b>y</b>. For example, <b>2*max(y)</b> is accepted but <b>max(2*y)</b>
+                                        is not.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row has-tooltip'>
+                        <label>plot type:</label>
+                        <select type='text' id='plotType' class='long_input' name='plotType' value=''>
+                            <option value='line'>Line</option>
+                            <option value='scatter'>Scatter</option>
+                            <option value='line + scatter'>Line + Scatter</option>
+                            <option value='area'>Area</option>
+                            <option value='line + area'>Line + Area</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Plot type</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the basic type of the plot.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>line width:</label>
+                            <select type='text' id='lineStrokeWidth' class='half_item' name='lineStrokeWidth' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Line width</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the thickness of the line plot.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>marker size:</label>
+                            <select type='text' id='markerSize' class='half_item' name='markerSize' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Marker size</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the size of the scatter plot markers.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>line color:</label>
+                            <input type='color' id='lineColor' name='lineColor' value='black'>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Line color</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the color of the plot line.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>marker color:</label>
+                            <input type='color' id='markerColor' name='markerColor' value='black'>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Marker color</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the fill color of the scatter plot markers.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>line style:</label>
+                            <select type='text' id='lineStyle' name='lineStyle' value=''>
+                                <option value='solid'>Solid</option>
+                                <option value='dashed'>Dashed</option>
+                            </select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Line style</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the style of the plot line.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>marker style:</label>
+                            <select type='text' id='markerStyle' name='markerStyle' value=''>
+                                <option value='Circle'>Circle</option>
+                                <option value='Cross'>Cross</option>
+                                <option value='Diamond'>Diamond</option>
+                                <option value='Square'>Square</option>
+                                <option value='Triangle'>Triangle</option>
+                                <option value='Star'>Star</option>
+                            </select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Marker style</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the style of the scatter plot markers.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div></li>
-            <li><div class='row'>
-                <div class='left has-tooltip'>
-                    <label>x label:</label>
-                    <input type='text' id='xLabel' class='long_input' name='xLabel' value=''>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>X-axis label</div>
-                            <div class='tooltip-body'>
-                                <p>Add a label below the bottom axis. To write Unicode characters, use <em>HTML character entity references</em> such as
-                                    <b>&amp;pi;</b> which evaluates to
-                                    <b>&pi;</b>. Alternatively, just copy and paste any exotic characters here.</p>
+                <button class='accordion_button'>Title and axis labels</button>
+                <div class='accordion_panel'>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>title:</label>
+                            <input type='text' id='title' class='long_input' name='title' value=''>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Graph Title</div>
+                                    <div class='tooltip-body'>
+                                        <p>Add a title to the top of the graph. To write Unicode characters, use <em>HTML character entity references</em> such as
+                                            <b>&amp;pi;</b> which evaluates to
+                                            <b>&pi;</b>. Alternatively, just copy and paste any exotic characters here.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>font size:</label>
+                            <select type='text' id='titleFontSize' name='titleFontSize' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Title font size</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the title font size as a percentage of the figure diagonal.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>x label:</label>
+                            <input type='text' id='xLabel' class='long_input' name='xLabel' value=''>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>X-axis label</div>
+                                    <div class='tooltip-body'>
+                                        <p>Add a label below the bottom axis. To write Unicode characters, use <em>HTML character entity references</em> such as
+                                            <b>&amp;pi;</b> which evaluates to
+                                            <b>&pi;</b>. Alternatively, just copy and paste any exotic characters here.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>font size:</label>
+                            <select type='text' id='xFontSize' name='xFontSize' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>X-axis label font size</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the x label font size as a percentage of the figure diagonal.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>y label:</label>
+                            <input type='text' id='yLabel' class='long_input' name='yLabel' value=''>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Y-axis label</div>
+                                    <div class='tooltip-body'>
+                                        <p>Add a label next to the left axis. To write Unicode characters, use <em>HTML character entity references</em> such as
+                                            <b>&amp;pi;</b> which evaluates to
+                                            <b>&pi;</b>. Alternatively, just copy and paste any exotic characters here.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>font size:</label>
+                            <select type='text' id='yFontSize' name='yFontSize' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Y-axis label font size</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the y label font size as a percentage of the figure diagonal.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class='right has-tooltip'>
-                    <label>font size:</label>
-                    <select type='text' id='xFontSize' name='xFontSize' value=''></select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>X-axis label font size</div>
-                            <div class='tooltip-body'>
-                                <p>Select the x label font size as a percentage of the figure diagonal.</p>
+                <button class='accordion_button'>Coordinate limits</button>
+                <div class='accordion_panel'>
+                    <div class='row has-tooltip'>
+                        <label>x start:</label>
+                        <input type='text' id='xStart' class='long_input' name='xStart' value=''>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>X start</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the lower limit of the x-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row has-tooltip'>
+                        <label>x end:</label>
+                        <input type='text' id='xEnd' class='long_input' name='xEnd' value=''>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>X end</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the upper limit of the x-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row has-tooltip'>
+                        <label>y start:</label>
+                        <input type='text' id='yStart' class='long_input' name='yStart' value=''>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Y start</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the lower limit of the y-axis. Use either a <b>number</b> or the  keyword <b>auto</b>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row has-tooltip'>
+                        <label>y end:</label>
+                        <input type='text' id='yEnd' class='long_input' name='yEnd' value=''>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Y end</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the upper limit of the y-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div></li>
-            <li><div class='row'>
-                <div class='left has-tooltip'>
-                    <label>y label:</label>
-                    <input type='text' id='yLabel' class='long_input' name='yLabel' value=''>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Y-axis label</div>
-                            <div class='tooltip-body'>
-                                <p>Add a label next to the left axis. To write Unicode characters, use <em>HTML character entity references</em> such as
-                                    <b>&amp;pi;</b> which evaluates to
-                                    <b>&pi;</b>. Alternatively, just copy and paste any exotic characters here.</p>
+                <button class='accordion_button'>Axes settings</button>
+                <div class='accordion_panel'>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label class='checkbox_label'>x axis on: <input type='checkbox' id='xAxisVisibility'></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>X-axis visibility</div>
+                                    <div class='tooltip-body'>
+                                        <p>Toggle x-axis visibility.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label class='checkbox_label'>top axis on: <input type='checkbox' id='topXAxisVisibility'></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Top axis visibility</div>
+                                    <div class='tooltip-body'>
+                                        <p>Toggle top axis visibility.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label class='checkbox_label'>y axis on: <input type='checkbox' id='yAxisVisibility'></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Y-axis visibility</div>
+                                    <div class='tooltip-body'>
+                                        <p>Toggle y-axis visibility.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label class='checkbox_label'>right axis on: <input type='checkbox' id='rightYAxisVisibility'></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Right axis visibility</div>
+                                    <div class='tooltip-body'>
+                                        <p>Toggle right axis visibility.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>axis font size:</label>
+                            <select type='text' id='axisFontSize' name='axisFontSize'></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Axis label font size</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the font size of the axis labels as a percentage of the figure diagonal.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>stroke width:</label>
+                            <select type='text' id='axisStrokeWidth' name='axisStrokeWidth' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Axis stroke width</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the thickness of the coordinate axes.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label>major tick size:</label>
+                            <select type='text' id='majorTickSize' name='majorTickSize' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Major tick size</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the size of the major ticks. Negative tick size means outward ticks.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label>minor tick size:</label>
+                            <select type='text' id='minorTickSize' name='minorTickSize' value=''></select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Minor tick size</div>
+                                    <div class='tooltip-body'>
+                                        <p>Select the size of the minor ticks. Negative tick size means outward ticks./p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row has-tooltip'>
+                        <label>legend location:</label>
+                        <select type='text' id='legendLocation' class='long_input' name='legendLocation' value=''>
+                            <option value='none'>None</option>
+                            <option value='northeast'>Northeast</option>
+                            <option value='southeast'>Southeast</option>
+                            <option value='southwest'>Southwest</option>
+                            <option value='northwest'>Northwest</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Legend</div>
+                                <div class='tooltip-body'>
+                                    <p>Select whether to show a legend and where to show it.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class='right has-tooltip'>
-                    <label>font size:</label>
-                    <select type='text' id='yFontSize' name='yFontSize' value=''></select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Y-axis label font size</div>
-                            <div class='tooltip-body'>
-                                <p>Select the y label font size as a percentage of the figure diagonal.</p>
+                <button class='accordion_button'>Grid</button>
+                <div class='accordion_panel'>
+                    <div class='row'>
+                        <label class='grid_label'>show major grid</label>
+                        <div class='left has-tooltip'>
+                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalGrid'></input></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Horizontal major grid</div>
+                                    <div class='tooltip-body'>
+                                        <p>Show or hide horizontal grid lines at major tick locations.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalGrid'></input></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Vertical major grid</div>
+                                    <div class='tooltip-body'>
+                                        <p>Show or hide vertical grid lines at major tick locations.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div></li>
-            <li><div class='row has-tooltip'>
-                <label>x start:</label>
-                <input type='text' id='xStart' class='long_input' name='xStart' value=''>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>X start</div>
-                        <div class='tooltip-body'>
-                            <p>Set the lower limit of the x-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li><div class='row has-tooltip'>
-                <label>x end:</label>
-                <input type='text' id='xEnd' class='long_input' name='xEnd' value=''>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>X end</div>
-                        <div class='tooltip-body'>
-                            <p>Set the upper limit of the x-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li><div class='row has-tooltip'>
-                <label>y start:</label>
-                <input type='text' id='yStart' class='long_input' name='yStart' value=''>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>Y start</div>
-                        <div class='tooltip-body'>
-                            <p>Set the lower limit of the y-axis. Use either a <b>number</b> or the  keyword <b>auto</b>.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li><div class='row has-tooltip'>
-                <label>y end:</label>
-                <input type='text' id='yEnd' class='long_input' name='yEnd' value=''>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>Y end</div>
-                        <div class='tooltip-body'>
-                            <p>Set the upper limit of the y-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li><div class='row has-tooltip'>
-            </div></li>
-            <li><div class='row has-tooltip'>
-                <label>apply function to x:</label>
-                <input type='text' id='xScaling' class='long_input' name='xScaling' value=''>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>X function</div>
-                        <div class='tooltip-body'>
-                            <p>Transform your <b>x</b> coordinates with a custom function. Supports basic mathematical operators and functions provided
-                                by Math.js, such as <b>*</b>, <b>/</b>, <b>+</b>, <b>-</b>,
-                                <b>sqrt(x)</b>,
-                                <b>pow(x, n)</b> and
-                                <b>log(x)</b>
-                                as well as the following statistical functions:
-                                <b>max(x)</b>,
-                                <b>min(x)</b> and
-                                <b>mean(x)</b>. The argument in the statistical functions must be exactly <b>x</b>. For example, <b>2*max(x)</b> is accepted but <b>max(2*x)</b>
-                                is not.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li><div class='row has-tooltip'>
-                <label>apply function to y:</label>
-                <input type='text' id='yScaling' class='long_input' name='yScaling' value=''>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>Y function</div>
-                        <div class='tooltip-body'>
-                            <p>Transform your <b>y</b> coordinates with a custom function. Supports basic mathematical operators and functions provided
-                                by Math.js, such as <b>*</b>, <b>/</b>, <b>+</b>, <b>-</b>,
-                                <b>sqrt(y)</b>,
-                                <b>pow(y, n)</b> and
-                                <b>log(y)</b>
-                                as well as the following statistical functions:
-                                <b>max(y)</b>,
-                                <b>min(y)</b> and
-                                <b>mean(y)</b>. The argument in the statistical functions must be exactly <b>y</b>. For example, <b>2*max(y)</b> is accepted but <b>max(2*y)</b>
-                                is not.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li class='plotParam'><div class='row has-tooltip'>
-                <label>plot type:</label>
-                <select type='text' id='plotType' class='long_input' name='plotType' value=''>
-                    <option value='line'>Line</option>
-                    <option value='scatter'>Scatter</option>
-                    <option value='line + scatter'>Line + Scatter</option>
-                    <option value='area'>Area</option>
-                    <option value='line + area'>Line + Area</option>
-                </select>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>Plot type</div>
-                        <div class='tooltip-body'>
-                            <p>Select the basic type of the plot.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li class='plotParam'><div class='row'>
-                <div class='left has-tooltip'>
-                    <label>line width:</label>
-                    <select type='text' id='lineStrokeWidth' class='half_item' name='lineStrokeWidth' value=''></select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Line width</div>
-                            <div class='tooltip-body'>
-                                <p>Select the thickness of the line plot.</p>
+                    <div class='row'>
+                        <label class='grid_label'>show minor grid</label>
+                        <div class='left has-tooltip'>
+                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalMinorGrid'></input></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Horizontal minor grid</div>
+                                    <div class='tooltip-body'>
+                                        <p>Show or hide horizontal grid lines at minor tick locations.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class='right has-tooltip'>
-                    <label>marker size:</label>
-                    <select type='text' id='markerSize' class='half_item' name='markerSize' value=''></select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Marker size</div>
-                            <div class='tooltip-body'>
-                                <p>Select the size of the scatter plot markers.</p>
+                        <div class='right has-tooltip'>
+                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalMinorGrid'></input></label>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Vertical minor grid</div>
+                                    <div class='tooltip-body'>
+                                        <p>Show or hide vertical grid lines at minor tick locations.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
                 </div>
-            </div></li>
-            <li class='plotParam'><div class='row'>
-                <div class='left has-tooltip'>
-                    <label>line color:</label>
-                    <input type='color' id='lineColor' name='lineColor' value='black'>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Line color</div>
-                            <div class='tooltip-body'>
-                                <p>Select the color of the plot line.</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-                <div class='right has-tooltip'>
-                    <label>marker color:</label>
-                    <input type='color' id='markerColor' name='markerColor' value='black'>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Marker color</div>
-                            <div class='tooltip-body'>
-                                <p>Select the fill color of the scatter plot markers.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li class='plotParam'><div class='row'>
-                <div class='left has-tooltip'>
-                    <label>line style:</label>
-                    <select type='text' id='lineStyle' name='lineStyle' value=''>
-                        <option value='solid'>Solid</option>
-                        <option value='dashed'>Dashed</option>
-                    </select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Line style</div>
-                            <div class='tooltip-body'>
-                                <p>Select the style of the plot line.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class='right has-tooltip'>
-                    <label>marker style:</label>
-                    <select type='text' id='markerStyle' name='markerStyle' value=''>
-                        <option value='Circle'>Circle</option>
-                        <option value='Cross'>Cross</option>
-                        <option value='Diamond'>Diamond</option>
-                        <option value='Square'>Square</option>
-                        <option value='Triangle'>Triangle</option>
-                        <option value='Star'>Star</option>
-                    </select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Marker style</div>
-                            <div class='tooltip-body'>
-                                <p>Select the style of the scatter plot markers.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li class='plotParam'><div class='row'>
-                <div class='left has-tooltip'>
-                    <label>axis font size:</label>
-                    <select type='text' id='axisFontSize' name='axisFontSize' value=''></select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Axis label font size</div>
-                            <div class='tooltip-body'>
-                                <p>Select the font size of the axis labels as a percentage of the figure diagonal.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class='right has-tooltip'>
-                    <label>stroke width:</label>
-                    <select type='text' id='axisStrokeWidth' name='axisStrokeWidth' value=''></select>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Axis stroke width</div>
-                            <div class='tooltip-body'>
-                                <p>Select the thickness of the coordinate axes.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li class='plotParam'><div class='row has-tooltip'>
-                <label>legend location:</label>
-                <select type='text' id='legendLocation' class='long_input' name='legendLocation' value=''>
-                    <option value='none'>None</option>
-                    <option value='northeast'>Northeast</option>
-                    <option value='southeast'>Southeast</option>
-                    <option value='southwest'>Southwest</option>
-                    <option value='northwest'>Northwest</option>
-                </select>
-                <div class='tooltip-wrapper'>
-                    <div class='tooltip'>
-                        <div class='tooltip-header'>Legend</div>
-                        <div class='tooltip-body'>
-                            <p>Select whether to show a legend and where to show it.</p>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li class='plotParam'><div class='row'>
-                <label class='grid_label'>show major grid</label>
-                <div class='left has-tooltip'>
-                    <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalGrid'></input></label>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Horizontal major grid</div>
-                            <div class='tooltip-body'>
-                                <p>Show or hide horizontal grid lines at major tick locations.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class='right has-tooltip'>
-                    <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalGrid'></input></label>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Vertical major grid</div>
-                            <div class='tooltip-body'>
-                                <p>Show or hide vertical grid lines at major tick locations.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            <li class='plotParam'><div class='row'>
-                <label class='grid_label'>show minor grid</label>
-                <div class='left has-tooltip'>
-                    <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalMinorGrid'></input></label>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Horizontal minor grid</div>
-                            <div class='tooltip-body'>
-                                <p>Show or hide horizontal grid lines at minor tick locations.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class='right has-tooltip'>
-                    <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalMinorGrid'></input></label>
-                    <div class='tooltip-wrapper'>
-                        <div class='tooltip'>
-                            <div class='tooltip-header'>Vertical minor grid</div>
-                            <div class='tooltip-body'>
-                                <p>Show or hide vertical grid lines at minor tick locations.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div></li>
-            </ul>
+            </div>
         </div>
         <div id='side-footer'>
             <div id='fine_print'>

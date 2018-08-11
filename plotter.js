@@ -13,9 +13,9 @@ Their licenses are available at https://quickplotter.com/licenses.txt
 /* global alert */
 
 const defaultPlotStyle = {
-  'majorTickSize': 0.6, // %
-  'minorTickSize': 0.4, // %
-  'axisStrokeWidth': 2.5, // %/10
+  'majorTickSize': 6, // %
+  'minorTickSize': 4, // %
+  'axisStrokeWidth': 2, // %/10
   'axisFontSize': 1.25, // %
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
@@ -37,7 +37,8 @@ const defaultPlotStyle = {
   'horizontalMinorGrid': false,
   'verticalMinorGrid': false,
   'legendLocation': 'none',
-  'marginPercent': { top: 0.05, bottom: 0.08, left: 0.08, right: 0.02 }
+  'marginPercent': { top: 0.05, bottom: 0.08, left: 0.08, right: 0.02 },
+  'axisVisible': { top: true, bottom: true, left: true, right: true }
 };
 
 const defaultTraceStyle = {
@@ -85,6 +86,7 @@ const nTicks = 5;
 const fontSizesInt = d3.range(0.0, 3.6, 0.25);
 const strokeWidthsInt = d3.range(0, 6.1, 0.5);
 const markerSizes = d3.range(0, 21, 1);
+const tickSizes = d3.range(-6, 11, 1);
 
 class ColorGenerator {
   constructor () {
@@ -289,8 +291,10 @@ class Axis {
   }
 
   createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
-    var majorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['majorTickSize']);
-    var minorTickSize = this.parentFig.svgPercentageToPxInt(currentPlotStyle['minorTickSize']);
+    var majorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['majorTickSize']));
+    var minorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['minorTickSize']));
+    console.log(majorTickSize, minorTickSize);
+    console.log(currentPlotStyle);
     var axisFontSize = this.parentFig.svgPercentageToPx(currentPlotStyle['axisFontSize']);
     return new CoordAxis(orientation, translatePosition,
       htmlClass, tickLabelsVisible, labelTranslate,
@@ -470,6 +474,7 @@ class CoordAxis {
     this.scale = undefined;
     this.majorTickValues = undefined;
     this.minorTickValues = undefined;
+    this.isVisible = currentPlotStyle.axisVisible[this.orientation];
   }
 
   update (scale, limits) {
@@ -488,7 +493,7 @@ class CoordAxis {
   draw (axElem) {
     var tickFormat = this.getTickFormat(this.majorTickValues);
     var axis = this.makeAxisFunc(this.scale, this.tickValues, tickFormat);
-
+    const opacity = this.isVisible ? 1 : 0;
     // Add axes to the ax group
     axElem.append('g')
       .attr('transform', 'translate(' + this.translatePosition[0] + ',' + this.translatePosition[1] + ')')
@@ -496,6 +501,7 @@ class CoordAxis {
       .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
       .style('font-family', axisFont)
       .style('font-size', this.axisFontSize)
+      .style('opacity', opacity)
       .call(axis);
 
     this.drawTickLines('.' + this.htmlId, this.majorTickSize, this.minorTickSize);
@@ -929,10 +935,10 @@ class TraceList {
 
   activateTrace (listIdx) {
     if (this.activeTraceIdx >= 0) {
-      this.deactivateRow(this.activeTraceIdx + 1);
+      this.deactivateRow(this.activeTraceIdx);
     }
     this.activeTraceIdx = listIdx;
-    this.activateRow(this.activeTraceIdx + 1);
+    this.activateRow(this.activeTraceIdx);
   }
 
   deactivateRow (idx) {
@@ -945,7 +951,7 @@ class TraceList {
 
   updateTraceLabels () {
     for (var i = 0; i < this.traces.length; i++) {
-      let input = this.htmlTableBody.rows[i + 1].querySelector('input');
+      let input = this.htmlTableBody.rows[i].querySelector('input');
       this.traces[i].traceLabel = input.value;
     }
   }
@@ -976,14 +982,17 @@ class TraceList {
       this.activeTraceIdx = this.traces.length - 2;
     }
     this.traces.splice(listIdx, 1);
-    this.deleteTableRow(listIdx + 1);
+    this.deleteTableRow(listIdx);
   }
 
   addTableRow (label, color) {
     let tableBody = this.htmlTableBody;
     var addedRow = tableBody.insertRow(tableBody.rows.length);
-    var textCell = addedRow.insertCell(0);
-    var buttonCell = addedRow.insertCell(1);
+    var cell = addedRow.insertCell(0);
+    var textCell = document.createElement('div');
+    var buttonCell = document.createElement('div');
+    cell.appendChild(textCell);
+    cell.appendChild(buttonCell);
 
     textCell.classList.add('text_cell');
     buttonCell.classList.add('button_cell');
@@ -992,7 +1001,7 @@ class TraceList {
     addedRow.addEventListener('dblclick', function (e) {
       const rowList = Array.from(tableBody.rows);
       const rowIdx = rowList.findIndex(row => row.contains(e.target));
-      Sidebar.activateTrace(rowIdx - 1);
+      Sidebar.activateTrace(rowIdx);
     });
 
     var colorSquare = document.createElement('div');
@@ -1015,7 +1024,7 @@ class TraceList {
       showHideButton.textContent = showHideButton.textContent === 'Hide' ? 'Show' : 'Hide';
       const rowList = Array.from(tableBody.rows);
       const rowIdx = rowList.findIndex(row => row.contains(e.target));
-      Sidebar.toggleTraceVisibility(rowIdx - 1);
+      Sidebar.toggleTraceVisibility(rowIdx);
     });
     var clearButton = document.createElement('button');
     clearButton.classList.add('trace_button');
@@ -1023,7 +1032,7 @@ class TraceList {
     clearButton.addEventListener('click', function (e) {
       const rowList = Array.from(tableBody.rows);
       const rowIdx = rowList.findIndex(row => row.contains(e.target));
-      Sidebar.deleteTrace(rowIdx - 1);
+      Sidebar.deleteTrace(rowIdx);
     });
 
     textCell.appendChild(colorSquare);
@@ -1152,7 +1161,8 @@ class Sidebar {
     Sidebar.addRedrawListeners();
     Sidebar.addLabelListeners();
     Sidebar.addTooltipListeners();
-    Sidebar.hide();
+    Sidebar.addAccordionListeners();
+    //Sidebar.hide();
     Sidebar.traceList = new TraceList();
   }
 
@@ -1162,6 +1172,17 @@ class Sidebar {
 
   static hide () {
     document.getElementById('sidebar').style.display = 'none';
+  }
+
+  static addAccordionListeners () {
+    let accordionButtons = document.getElementsByClassName('accordion_button');
+    for (let i = 0; i < accordionButtons.length; i++) {
+      accordionButtons[i].addEventListener('click', function () {
+        this.classList.toggle('accordion_active');
+        let content = this.nextElementSibling;
+        content.style.display = content.style.display === 'block' ? 'none' : 'block';
+      });
+    }
   }
 
   static addLabelListeners () {
@@ -1185,6 +1206,8 @@ class Sidebar {
     Util.populateSelectBox('lineStrokeWidth', strokeWidthsInt);
     Util.populateSelectBox('axisStrokeWidth', strokeWidthsInt);
     Util.populateSelectBox('markerSize', markerSizes);
+    Util.populateSelectBox('majorTickSize', tickSizes);
+    Util.populateSelectBox('minorTickSize', tickSizes);
   }
 
   static initDefaultValues () {
@@ -1193,6 +1216,12 @@ class Sidebar {
     document.getElementById('titleFontSize').value = defaultPlotStyle['titleFontSize'] + '%';
     document.getElementById('axisFontSize').value = defaultPlotStyle['axisFontSize'] + '%';
     document.getElementById('axisStrokeWidth').value = defaultPlotStyle['axisStrokeWidth'];
+    document.getElementById('xAxisVisibility').checked = defaultPlotStyle['axisVisible'].bottom;
+    document.getElementById('topXAxisVisibility').checked = defaultPlotStyle['axisVisible'].top;
+    document.getElementById('yAxisVisibility').checked = defaultPlotStyle['axisVisible'].left;
+    document.getElementById('rightYAxisVisibility').checked = defaultPlotStyle['axisVisible'].right;
+    document.getElementById('majorTickSize').value = defaultPlotStyle['majorTickSize'];
+    document.getElementById('minorTickSize').value = defaultPlotStyle['minorTickSize'];
 
     document.getElementById('xScaling').value = defaultTraceStyle['xScaling'];
     document.getElementById('yScaling').value = defaultTraceStyle['yScaling'];
@@ -1223,8 +1252,11 @@ class Sidebar {
       'lineStyle', 'markerStyle',
       'lineStrokeWidth', 'markerSize',
       'axisStrokeWidth', 'axisFontSize',
+      'minorTickSize', 'majorTickSize',
       'horizontalGrid', 'verticalGrid',
       'horizontalMinorGrid', 'verticalMinorGrid',
+      'xAxisVisibility', 'topXAxisVisibility',
+      'yAxisVisibility', 'rightYAxisVisibility',
       'legendLocation'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
@@ -1262,8 +1294,11 @@ class Sidebar {
       'lineStyle', 'markerStyle',
       'lineStrokeWidth', 'markerSize',
       'axisStrokeWidth', 'axisFontSize',
+      'minorTickSize', 'majorTickSize',
       'horizontalGrid', 'verticalGrid',
       'horizontalMinorGrid', 'verticalMinorGrid',
+      'xAxisVisibility', 'topXAxisVisibility',
+      'yAxisVisibility', 'rightYAxisVisibility',
       'legendLocation', 'traceTable'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
@@ -1307,6 +1342,15 @@ class Sidebar {
     currentPlotStyle['verticalGrid'] = Sidebar.verticalGrid;
     currentPlotStyle['horizontalMinorGrid'] = Sidebar.horizontalMinorGrid;
     currentPlotStyle['verticalMinorGrid'] = Sidebar.verticalMinorGrid;
+
+    currentPlotStyle['axisVisible'].top = Sidebar.topXAxisVisibility;
+    currentPlotStyle['axisVisible'].right = Sidebar.rightYAxisVisibility;
+    currentPlotStyle['axisVisible'].bottom = Sidebar.xAxisVisibility;
+    currentPlotStyle['axisVisible'].left = Sidebar.yAxisVisibility;
+
+    currentPlotStyle['minorTickSize'] = Sidebar.minorTickSize;
+    currentPlotStyle['majorTickSize'] = Sidebar.majorTickSize;
+
     currentPlotStyle['activeTrace'] = Sidebar.activeTrace;
     currentPlotStyle['legendLocation'] = Sidebar.legendLocation;
 
@@ -1456,6 +1500,30 @@ class Sidebar {
 
   static get verticalMinorGrid () {
     return document.getElementById('verticalMinorGrid').checked;
+  }
+
+  static get xAxisVisibility () {
+    return document.getElementById('xAxisVisibility').checked;
+  }
+
+  static get topXAxisVisibility () {
+    return document.getElementById('topXAxisVisibility').checked;
+  }
+
+  static get yAxisVisibility () {
+    return document.getElementById('yAxisVisibility').checked;
+  }
+
+  static get rightYAxisVisibility () {
+    return document.getElementById('rightYAxisVisibility').checked;
+  }
+
+  static get majorTickSize () {
+    return document.getElementById('majorTickSize').value;
+  }
+
+  static get minorTickSize () {
+    return document.getElementById('minorTickSize').value;
   }
 
   static get legendLocation () {
