@@ -2,53 +2,53 @@
 
 <html lang='en-US'>
 <head>
-<title>Quickplotter - drag and drop plotting</title>
+    <title>Quickplotter - drag and drop plotting</title>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-38729488-2"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-38729488-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-    gtag('config', 'UA-38729488-2');
-</script>
+      gtag('config', 'UA-38729488-2');
+    </script>
 
-<meta charset='UTF-8'>
-<meta name='author' content='Joona Rissanen'>
-<meta name='description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure.
+    <meta charset='UTF-8'>
+    <meta name='author' content='Joona Rissanen'>
+    <meta name='description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure.
  Export your figure as PNG or SVG.'/>
-<meta name='viewport' content='width=device-width, initial-scale=1'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
 
-<link rel='stylesheet' type='text/css' href='style.css'>
+    <link rel='stylesheet' type='text/css' href='style.css'>
 
-<!-- Favicons -->
-<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="256x256" href="/favicon-256x256.png"/>
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
-<link rel="manifest" href="/site.webmanifest"/>
-<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"/>
-<meta name="msapplication-TileColor" content="#da532c">
-<meta name="theme-color" content="#ffffff">
+    <!-- Favicons -->
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="256x256" href="/favicon-256x256.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+    <link rel="manifest" href="/site.webmanifest"/>
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"/>
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
 
-<meta property='og:title' content='Quickplotter'/>
-<meta property='og:type' content='website'/>
-<meta property='og:image' content='https://quickplotter.com/favicon-og.png'/>
-<meta property='og:url' content='https://quickplotter.com'/>
-<meta property='og:description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure.
+    <meta property='og:title' content='Quickplotter'/>
+    <meta property='og:type' content='website'/>
+    <meta property='og:image' content='https://quickplotter.com/favicon-og.png'/>
+    <meta property='og:url' content='https://quickplotter.com'/>
+    <meta property='og:description' content='Plot your data file or clipboard contents in your own browser in mere seconds. Add labels and customize the look of your figure.
  Export as PNG or SVG.'/>
 
-<!-- <script src='https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js'></script> -->
-<script src='https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js'></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.3/math.min.js"></script>
-<script src='https://d3js.org/d3.v5.min.js'></script>
-<script type='text/javascript' src='plotter.js' defer></script>
+    <!-- <script src='https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js'></script> -->
+    <script src='https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.3/math.min.js"></script>
+    <script src='https://d3js.org/d3.v5.min.js'></script>
+    <script type='text/javascript' src='plotter.js' defer></script>
 </head>
 
 <body>
-    <div id='main-content'>
-        <div id='side'>
+<div id='main-content'>
+    <div id='side'>
         <div id='side-header'>
             <h1>Quickplotter <sup>beta</sup> </h1>
         </div>
@@ -79,7 +79,7 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Current trace</button>
+                <button class='accordion_button'>Edit active trace</button>
                 <div class='accordion_panel'>
                     <div class='row has-tooltip'>
                         <label>apply function to x:</label>
@@ -386,7 +386,7 @@
                 <button class='accordion_button'>Axes settings</button>
                 <div class='accordion_panel'>
                     <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>x axis on: <input class='inline_input' type='checkbox' id='xAxisVisibility'></label>
+                        <label class='inline_label'>x axis on: <input class='inline_input axes_input' type='checkbox' id='xAxisVisibility'></label>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X-axis visibility</div>
@@ -397,7 +397,7 @@
                         </div>
                     </div>
                     <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>top axis on: <input class='inline_input' type='checkbox' id='topXAxisVisibility'></label>
+                        <label class='inline_label'>top axis on: <input class='inline_input axes_input' type='checkbox' id='topXAxisVisibility'></label>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Top axis visibility</div>
@@ -408,7 +408,7 @@
                         </div>
                     </div>
                     <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>y axis on: <input class='inline_input' type='checkbox' id='yAxisVisibility'></label>
+                        <label class='inline_label'>y axis on: <input class='inline_input axes_input' type='checkbox' id='yAxisVisibility'></label>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y-axis visibility</div>
@@ -419,7 +419,7 @@
                         </div>
                     </div>
                     <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>right axis on: <input class='inline_input' type='checkbox' id='rightYAxisVisibility'></label>
+                        <label class='inline_label'>right axis on: <input class='inline_input axes_input' type='checkbox' id='rightYAxisVisibility'></label>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Right axis visibility</div>
@@ -464,8 +464,8 @@
                                     <div class='tooltip-header'>Major tick size</div>
                                     <div class='tooltip-body'>
                                         <p>Select the size of the major ticks.
-                                        Negative tick size generates outward ticks.
-                                        Set tick size to zero to hide them.</p>
+                                            Negative tick size generates outward ticks.
+                                            Set tick size to zero to hide them.</p>
                                     </div>
                                 </div>
                             </div>
@@ -526,56 +526,50 @@
                 </div>
                 <button class='accordion_button'>Grid</button>
                 <div class='accordion_panel'>
-                    <div class='row'>
-                        <label class='grid_label'>show major grid</label>
-                        <div class='left has-tooltip'>
-                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalGrid'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Horizontal major grid</div>
-                                    <div class='tooltip-body'>
-                                        <p>Show or hide horizontal grid lines at major tick locations.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class='right has-tooltip'>
-                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalGrid'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Vertical major grid</div>
-                                    <div class='tooltip-body'>
-                                        <p>Show or hide vertical grid lines at major tick locations.</p>
-                                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>major grid horizontal: <input class='inline_input grid_input' type='checkbox' id='horizontalGrid'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Horizontal major grid</div>
+                                <div class='tooltip-body'>
+                                    <p>Show or hide horizontal grid lines at major tick locations.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class='row'>
-                        <label class='grid_label'>show minor grid</label>
-                        <div class='left has-tooltip'>
-                            <label class='checkbox_label'>horizontal: <input type='checkbox' id='horizontalMinorGrid'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Horizontal minor grid</div>
-                                    <div class='tooltip-body'>
-                                        <p>Show or hide horizontal grid lines at minor tick locations.</p>
-                                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>major grid vertical: <input class='inline_input grid_input' type='checkbox' id='verticalGrid'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Vertical major grid</div>
+                                <div class='tooltip-body'>
+                                    <p>Show or hide vertical grid lines at major tick locations.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class='right has-tooltip'>
-                            <label class='checkbox_label'>vertical: <input type='checkbox' id='verticalMinorGrid'></label>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Vertical minor grid</div>
-                                    <div class='tooltip-body'>
-                                        <p>Show or hide vertical grid lines at minor tick locations.</p>
-                                    </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>minor grid horizontal: <input class='inline_input grid_input' type='checkbox' id='horizontalMinorGrid'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Horizontal minor grid</div>
+                                <div class='tooltip-body'>
+                                    <p>Show or hide horizontal grid lines at minor tick locations.</p>
                                 </div>
                             </div>
                         </div>
-                </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>minor grid vertical: <input class='inline_input grid_input' type='checkbox' id='verticalMinorGrid'></label>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Vertical minor grid</div>
+                                <div class='tooltip-body'>
+                                    <p>Show or hide vertical grid lines at minor tick locations.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -587,16 +581,16 @@
                 <p><small>&copy; 2018, Joona Rissanen</small></p>
             </div>
         </div>
-        </div>
+    </div>
 
-        <div id='figure_container' >
+    <div id='figure_container' >
         <div id='figure_area' contenteditable='true'>
             <div id='instruction_text'>
                 <p id='instruction_header'>Welcome to Quickplotter!</p>
                 <p><span id='instruction_dragdrop'>Drag and drop</span>
-                 or <span id='instruction_copypaste'>copy and paste</span>
-                your <span id='instruction_twocol'>two-column data</span>
-                here <span id='instruction_plot'>to plot</span>.</p>
+                    or <span id='instruction_copypaste'>copy and paste</span>
+                    your <span id='instruction_twocol'>two-column data</span>
+                    here <span id='instruction_plot'>to plot</span>.</p>
                 <p>The plot will be generated entirely in your own browser.</p>
             </div>
         </div>
@@ -615,11 +609,11 @@
                 <p id='y_coord'></p>
             </div>
         </div>
-        </div>
-
-        <canvas id='cvs' width='100' height='100'></canvas>
-
     </div>
+
+    <canvas id='cvs' width='100' height='100'></canvas>
+
+</div>
 
 </body>
 

@@ -1950,10 +1950,6 @@ class Util {
     }
   }
 
-  static scaleArray (arr, multiplier) {
-    arr.map(x => x * 2);
-  }
-
   static regexParse (str) {
     var rowRe = /^\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s*(,|;|\s)\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s?$/mg;
     var arr;

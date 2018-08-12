@@ -119,9 +119,14 @@ body, #main-content {
 }
 
 #sidebar .inline_input[type='checkbox'] {
-    position: absolute;
-    left: 90px;
     transform: scale(1.5);
+}
+#sidebar .axes_input {
+    left: 90px;
+}
+
+#sidebar .grid_input {
+    left: 150px;
 }
 
 #sidebar .active {
@@ -275,6 +280,10 @@ body, #main-content {
 
 #sidebar .accordion_active {
     background-color: #505050;
+}
+
+#sidebar .accordion_active:hover {
+    background-color: #606060;
 }
 
 #sidebar .accordion_panel {
