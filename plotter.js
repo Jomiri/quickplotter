@@ -341,7 +341,7 @@ class Axis {
     }
     var legend = this.dataAxElem.append('g')
       .attr('class', 'legend')
-      .attr('font-family', 'sans-serif')
+      .attr('font-family', currentPlotStyle.labelFont)
       .selectAll('g')
       .data(legendData)
       .enter()
@@ -368,7 +368,7 @@ class Axis {
       });
   }
 
-  addTitle (titleText, fontSize) {
+  addTitle (titleText, fontSize, fontFamily) {
     let center = Math.floor(this.width / 2);
     this.dataAxElem.selectAll('.title').remove();
     this.dataAxElem.append('text')
@@ -376,12 +376,12 @@ class Axis {
       .attr('text-anchor', 'middle')
       .attr('x', center)
       .attr('y', -this.parentFig.svgPercentageToPxInt(1))
-      .attr('font-family', axisFont)
+      .attr('font-family', fontFamily)
       .attr('font-size', fontSize)
       .html(titleText);
   }
 
-  addXLabel (labelText, fontSize) {
+  addXLabel (labelText, fontSize, fontFamily) {
     let center = Math.floor(this.width / 2);
     this.dataAxElem.selectAll('.x_label').remove();
     this.dataAxElem.append('text')
@@ -390,12 +390,12 @@ class Axis {
       .attr('x', center)
       .attr('y', this.height + this.parentFig.svgPercentageToPxInt(4))
       .attr('dy', '0.35em')
-      .attr('font-family', axisFont)
+      .attr('font-family', fontFamily)
       .attr('font-size', fontSize)
       .html(labelText);
   }
 
-  addYLabel (labelText, fontSize) {
+  addYLabel (labelText, fontSize, fontFamily) {
     let center = Math.floor(this.height / 2);
     this.dataAxElem.selectAll('.y_label').remove();
     this.dataAxElem.append('text')
@@ -406,7 +406,7 @@ class Axis {
       .attr('y', -this.parentFig.svgPercentageToPxInt(6))
       .attr('x', -center)
       .attr('dy', '0.35em')
-      .attr('font-family', axisFont)
+      .attr('font-family', fontFamily)
       .attr('font-size', fontSize)
       .html(labelText);
   }
@@ -1160,7 +1160,6 @@ class Sidebar {
     Sidebar.addLabelListeners();
     Sidebar.addTooltipListeners();
     Sidebar.addAccordionListeners();
-    //Sidebar.hide();
     Sidebar.traceList = new TraceList();
   }
 
@@ -1185,13 +1184,13 @@ class Sidebar {
 
   static addLabelListeners () {
     document.getElementById('xLabel').addEventListener('input', function (event) {
-      fig.ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']));
+      fig.ax.addXLabel(document.getElementById('xLabel').value, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']), currentPlotStyle.labelFont);
     });
     document.getElementById('yLabel').addEventListener('input', function (event) {
-      fig.ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']));
+      fig.ax.addYLabel(document.getElementById('yLabel').value, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']), currentPlotStyle.labelFont);
     });
     document.getElementById('title').addEventListener('input', function (event) {
-      fig.ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']));
+      fig.ax.addTitle(document.getElementById('title').value, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']), currentPlotStyle.labelFont);
     });
   }
 
@@ -1242,7 +1241,7 @@ class Sidebar {
   }
 
   static addRedrawListeners () {
-    var params = ['xFontSize', 'yFontSize', 'titleFontSize',
+    var params = ['xFontSize', 'yFontSize', 'titleFontSize', 'labelFont',
       'xStart', 'xEnd',
       'yStart', 'yEnd',
       'plotType',
@@ -1283,7 +1282,8 @@ class Sidebar {
   }
 
   static addTooltipListeners () {
-    var params = ['title', 'xLabel', 'yLabel', 'xFontSize', 'yFontSize', 'titleFontSize',
+    var params = ['title', 'xLabel', 'yLabel',
+      'xFontSize', 'yFontSize', 'titleFontSize', 'labelFont',
       'xStart', 'xEnd',
       'yStart', 'yEnd',
       'xScaling', 'yScaling',
@@ -1330,6 +1330,7 @@ class Sidebar {
     currentPlotStyle['xLabelFontSize'] = Sidebar.xLabelFontSize;
     currentPlotStyle['yLabelFontSize'] = Sidebar.yLabelFontSize;
     currentPlotStyle['titleFontSize'] = Sidebar.titleFontSize;
+    currentPlotStyle['labelFont'] = Sidebar.labelFont;
     currentPlotStyle['xStart'] = Sidebar.xStart;
     currentPlotStyle['xEnd'] = Sidebar.xEnd;
     currentPlotStyle['yStart'] = Sidebar.yStart;
@@ -1376,7 +1377,6 @@ class Sidebar {
       Sidebar.activateTrace(Sidebar.traceList.activeTraceIdx);
     }
     if (Sidebar.traceList.traces.length === 0) {
-      Sidebar.hide();
       Toolbar.hide();
     }
     Sidebar.hideTooltips();
@@ -1422,6 +1422,10 @@ class Sidebar {
 
   static get titleFontSize () {
     return document.getElementById('titleFontSize').value.replace('%', '');
+  }
+
+  static get labelFont () {
+    return document.getElementById('labelFont').value;
   }
 
   static get xScaling () {

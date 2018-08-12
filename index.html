@@ -249,7 +249,7 @@
                         </div>
                         <div class='right has-tooltip'>
                             <label>font size:</label>
-                            <select type='text' id='titleFontSize' name='titleFontSize' value=''></select>
+                            <select type='text' id='titleFontSize' name='titleFontSize'></select>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Title font size</div>
@@ -277,7 +277,7 @@
                         </div>
                         <div class='right has-tooltip'>
                             <label>font size:</label>
-                            <select type='text' id='xFontSize' name='xFontSize' value=''></select>
+                            <select type='text' id='xFontSize' name='xFontSize'></select>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>X-axis label font size</div>
@@ -305,13 +305,28 @@
                         </div>
                         <div class='right has-tooltip'>
                             <label>font size:</label>
-                            <select type='text' id='yFontSize' name='yFontSize' value=''></select>
+                            <select type='text' id='yFontSize' name='yFontSize'></select>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Y-axis label font size</div>
                                     <div class='tooltip-body'>
                                         <p>Select the y label font size as a percentage of the figure diagonal.</p>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row has-tooltip'>
+                        <label>font:</label>
+                        <select type='text' id='labelFont' name='labelFont'>
+                            <option value='sans-serif'>Sans-Serif</option>
+                            <option value='serif'>Serif</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Label font</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the font used for the title and axis labels. Greek letters look much better in serif fonts.</p>
                                 </div>
                             </div>
                         </div>
