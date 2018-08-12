@@ -1988,3 +1988,7 @@ var fig = new Figure('#figure_area');
 Toolbar.initialize();
 Sidebar.initialize();
 FigureArea.initialize();
+
+window.onbeforeunload = function (event) {
+  event.preventDefault();
+};
