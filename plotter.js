@@ -38,7 +38,8 @@ const defaultPlotStyle = {
   'verticalMinorGrid': false,
   'legendLocation': 'none',
   'marginPercent': { top: 0.05, bottom: 0.08, left: 0.08, right: 0.02 },
-  'axisVisible': { top: true, bottom: true, left: true, right: true }
+  'axisVisible': { top: true, bottom: true, left: true, right: true },
+  'aspectRatio': 'none'
 };
 
 const defaultTraceStyle = {
@@ -127,12 +128,30 @@ class Figure {
     return document.querySelector(this.parentSelector);
   }
 
-  get width () {
+  get parentWidth () {
     return this.parentElement.offsetWidth;
   }
 
-  get height () {
+  get parentHeight () {
     return this.parentElement.offsetHeight;
+  }
+
+  get width () {
+    let aspectRatio = currentPlotStyle.aspectRatio;
+    if (aspectRatio === 'none') {
+      return this.parentWidth;
+    } else {
+      return Math.min(this.parentWidth, this.parentHeight / aspectRatio);
+    }
+  }
+
+  get height () {
+    let aspectRatio = currentPlotStyle.aspectRatio;
+    if (aspectRatio === 'none') {
+      return this.parentHeight;
+    } else {
+      return Math.min(this.parentHeight, this.parentWidth * aspectRatio);
+    }
   }
 
   get diagonal () {
@@ -1254,7 +1273,7 @@ class Sidebar {
       'horizontalMinorGrid', 'verticalMinorGrid',
       'xAxisVisibility', 'topXAxisVisibility',
       'yAxisVisibility', 'rightYAxisVisibility',
-      'legendLocation'];
+      'legendLocation', 'aspectRatio'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       let elem = document.getElementById(id);
@@ -1297,7 +1316,7 @@ class Sidebar {
       'horizontalMinorGrid', 'verticalMinorGrid',
       'xAxisVisibility', 'topXAxisVisibility',
       'yAxisVisibility', 'rightYAxisVisibility',
-      'legendLocation', 'traceTable'];
+      'legendLocation', 'aspectRatio', 'traceTable'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       let elem = document.getElementById(id);
@@ -1352,6 +1371,7 @@ class Sidebar {
 
     currentPlotStyle['activeTrace'] = Sidebar.activeTrace;
     currentPlotStyle['legendLocation'] = Sidebar.legendLocation;
+    currentPlotStyle['aspectRatio'] = Sidebar.aspectRatio;
 
     currentTraceStyle['xScaling'] = Sidebar.xScaling;
     currentTraceStyle['yScaling'] = Sidebar.yScaling;
@@ -1530,6 +1550,23 @@ class Sidebar {
 
   static get legendLocation () {
     return document.getElementById('legendLocation').value;
+  }
+
+  static get aspectRatio () {
+    let aspect = document.getElementById('aspectRatio').value;
+    if (aspect === 'none') {
+      return 'none';
+    } else if (aspect === '1:1') {
+      return 1.0;
+    } else if (aspect === '1.1:1') {
+      return 1.1;
+    } else if (aspect === '1:1.1') {
+      return 1 / 1.1;
+    } else if (aspect === '1.2:1') {
+      return 1.2;
+    } else if (aspect === '1:1.2') {
+      return 1 / 1.2;
+    }
   }
 }
 
