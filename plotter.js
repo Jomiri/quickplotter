@@ -17,6 +17,7 @@ const defaultPlotStyle = {
   'minorTickSize': 4, // %
   'axisStrokeWidth': 2, // %/10
   'axisFontSize': 1.25, // %
+  'axisFont': 'Sans-Serif',
   'xLabelFontSize': 1.5,
   'yLabelFontSize': 1.5,
   'titleFontSize': 2, // %
@@ -39,7 +40,9 @@ const defaultPlotStyle = {
   'legendLocation': 'none',
   'marginPercent': { top: 0.05, bottom: 0.08, left: 0.08, right: 0.02 },
   'axisVisible': { top: true, bottom: true, left: true, right: true },
-  'aspectRatio': 'none'
+  'aspectRatio': 'none',
+  'importFormat': 'x_y',
+  'fileName': 'exported_graph'
 };
 
 const defaultTraceStyle = {
@@ -51,7 +54,14 @@ const defaultTraceStyle = {
   'lineColor': 'black',
   'markerColor': '#ff0000',
   'lineStyle': 'solid',
-  'markerStyle': 'Circle'
+  'markerStyle': 'Circle',
+  'errorBar': {
+    'errorBarType': 'off',
+    'errorBarColor': 'black',
+    'errorBarOpacity': '1.0',
+    'errorBarLineStyle': 'solid',
+    'errorBarStrokeWidth': 2,
+    'capWidthMultiplier': 2.5}
 };
 
 const kellyColorsAndBlack = [
@@ -82,18 +92,17 @@ let currentPlotStyle = Object.assign({}, defaultPlotStyle);
 let currentTraceStyle = Object.assign({}, defaultTraceStyle);
 
 const canvasResFactor = 2;
-const axisFont = 'Sans-Serif';
 const nTicks = 5;
 const fontSizesInt = d3.range(0.0, 3.6, 0.25);
 const strokeWidthsInt = d3.range(0, 6.1, 0.5);
 const markerSizes = d3.range(0, 21, 1);
 const tickSizes = d3.range(-6, 11, 1);
+const opacities = d3.range(0.1, 1.01, 0.1).map(e => e.toFixed(1));
 
 class ColorGenerator {
   constructor () {
     this.idx = 0;
   }
-
   nextColor () {
     if (this.idx === kellyColorsAndBlack.length) {
       this.idx = 0;
@@ -103,6 +112,244 @@ class ColorGenerator {
     return color;
   }
 }
+
+class FigureArea {
+  static initialize () {
+    document.getElementById('figure_area').addEventListener('paste', FigureArea.readPasteAndPlot);
+    document.getElementById('figure_area').addEventListener('drop', FigureArea.dropHandler);
+    document.getElementById('figure_area').addEventListener('dragover', FigureArea.dragOverHandler);
+    window.addEventListener('resize', function () {
+      FigureArea.redraw();
+    });
+  }
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
+  static dropHandler (ev) {
+    ev.preventDefault();
+    if (ev.dataTransfer.items) {
+      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+        if (ev.dataTransfer.items[i].kind === 'file') {
+          var file = ev.dataTransfer.items[i].getAsFile();
+          FigureArea.fileHandler(file);
+        }
+      }
+    }
+    FigureArea.removeDragData(ev);
+  }
+
+  static dragOverHandler (ev) {
+    ev.stopPropagation();
+    ev.preventDefault();
+  }
+
+  static removeDragData (ev) {
+    if (ev.dataTransfer.items) {
+      ev.dataTransfer.items.clear();
+    } else {
+      ev.dataTransfer.clearData();
+    }
+  }
+
+  // https://www.html5rocks.com/en/tutorials/file/dndfiles/
+  static fileHandler (file) {
+    var reader = new FileReader();
+    reader.onload = (function () {
+      return function (e) {
+        FigureArea.parseAndPlot(e.target.result, file.name);
+      };
+    })();
+    reader.readAsText(file);
+  }
+
+  // https://stackoverflow.com/questions/2176861/javascript-get-clipboard-data-on-paste-event-cross-browser
+  static readPasteAndPlot (e) {
+    var clipboardData, pastedData;
+    var fileName = 'pasted_data';
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    clipboardData = e.clipboardData || window.clipboardData;
+    pastedData = clipboardData.getData('Text');
+    FigureArea.parseAndPlot(pastedData, fileName);
+  }
+
+  static parseAndPlot (str, fileName) {
+    let parser = new RegexParser(currentPlotStyle.importFormat);
+    let cols = parser.parse(str);
+    let strippedFileName = Util.stripFileExtension(fileName);
+    currentPlotStyle.fileName = strippedFileName;
+    let traceStyle = Object.assign({}, currentTraceStyle);
+    let newTrace = new Trace(cols, traceStyle, strippedFileName);
+    Sidebar.traceList.addTrace(newTrace);
+
+    Sidebar.resetLimits();
+    Sidebar.show();
+    Toolbar.show();
+    FigureArea.redraw();
+    FigureArea.hideInstruction();
+  }
+
+  static hideInstruction () {
+    document.getElementById('instruction_text').style.display = 'none';
+    document.getElementById('figure_area').style.borderStyle = 'hidden';
+  }
+
+  static redraw () {
+    fig.reset();
+    Sidebar.updatePlotStyle();
+    var ax = fig.addAxis();
+    var traces = Sidebar.traceList.visibleTraces;
+    if (traces.length === 0) {
+      return;
+    }
+
+    for (var i = 0; i < traces.length; i++) {
+      let trace = traces[i];
+      let x = trace.xTransformed;
+      let y = trace.yTransformed;
+      let xErr = trace.xErrTransformed;
+      let yErr = trace.yErrTransformed;
+      let style = trace.style;
+      ax.plot(x, y, xErr, yErr, style);
+    }
+
+    fig.draw();
+    ax.addXLabel(Sidebar.xLabel, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']), currentPlotStyle.labelFont);
+    ax.addYLabel(Sidebar.yLabel, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']), currentPlotStyle.labelFont);
+    ax.addTitle(Sidebar.title, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']), currentPlotStyle.labelFont);
+    ax.addLegend(currentPlotStyle.legendLocation, fig.svgPercentageToPx(currentPlotStyle.axisFontSize));
+    Toolbar.applyMargin();
+    Toolbar.reactivateButton();
+  }
+}
+
+class Trace {
+  constructor (cols, style, label) {
+    this.cols = cols;
+    this.hasXError = cols.hasOwnProperty('xErr');
+    this.hasYError = cols.hasOwnProperty('yErr');
+    this.style = style;
+    this.traceLabel = label;
+    this.isVisible = true;
+  }
+
+  get legendColor () {
+    if (this.style.plotType === 'scatter') {
+      return this.style.markerColor;
+    }
+    return this.style.lineColor;
+  }
+
+  transformArray (input, label, scaling) {
+    let output = input;
+    try {
+      output = Util.transformData(input, label, scaling);
+    } catch (exception) {
+      console.error(exception);
+      alert('Function not recognized!');
+    }
+    return output;
+  }
+
+  get xTransformed () {
+    let x = this.cols.x.slice();
+    return this.transformArray(x, 'x', this.style.xScaling);
+  }
+
+  get yTransformed () {
+    let y = this.cols.y.slice();
+    return this.transformArray(y, 'y', this.style.yScaling);
+  }
+
+  get xErrTransformed () {
+    if (!this.hasXError) {
+      return null;
+    }
+    let xErr = this.cols.xErr.slice();
+    return this.transformArray(xErr, 'x', this.style.xScaling);
+  }
+
+  get yErrTransformed () {
+    if (!this.hasYError) {
+      return null;
+    }
+    let yErr = this.cols.yErr.slice();
+    return this.transformArray(yErr, 'y', this.style.yScaling);
+  }
+}
+
+class XYData {
+  constructor (x, y, xErr, yErr) {
+    this.x = x;
+    this.y = y;
+    this.xErr = xErr;
+    this.yErr = yErr;
+
+    // upper and lower limits
+    this.xMinArr = this.x.slice();
+    this.xMaxArr = this.x.slice();
+    this.yMinArr = this.y.slice();
+    this.yMaxArr = this.y.slice();
+    if (this.hasXError) {
+      for (let i = 0; i < this.x.length; i++) {
+        this.xMinArr[i] -= this.xErr[i];
+        this.xMaxArr[i] += this.xErr[i];
+      }
+    }
+    if (this.hasYError) {
+      for (let i = 0; i < this.x.length; i++) {
+        this.yMinArr[i] -= this.yErr[i];
+        this.yMaxArr[i] += this.yErr[i];
+      }
+    }
+
+    this.xMin = d3.min(this.xMinArr);
+    this.xMax = d3.max(this.xMaxArr);
+    this.yMin = d3.min(this.yMinArr);
+    this.yMax = d3.max(this.yMaxArr);
+  }
+
+  get hasXError () {
+    return this.xErr != null;
+  }
+
+  get hasYError () {
+    return this.yErr != null;
+  }
+
+  nearestPoint (x0) {
+    var pos = d3.bisectLeft(this.x, x0, 0, this.x.length);
+    var prev = this.x[pos - 1];
+    var next = this.x[pos];
+    var idx = x0 - prev < next - x0 ? pos - 1 : pos;
+    return {
+      'x': this.x[idx],
+      'y': this.y[idx]
+    };
+  }
+
+  get xRange () {
+    return Math.abs(this.xMax - this.xMin);
+  }
+
+  get yRange () {
+    return Math.abs(this.yMax - this.yMin);
+  }
+
+  makeLineData (labels) {
+    var lineData = [];
+    for (var i = 0; i < this.x.length; i++) {
+      let point = {};
+      for (var j = 0; j < labels.length; j++) {
+        point[labels[j]] = this[labels[j]][i];
+      }
+      lineData.push(point);
+    }
+    return lineData;
+  }
+}
+
 
 class Figure {
   constructor (parentSelector) {
@@ -219,9 +466,8 @@ class Axis {
     this.yScale = undefined;
   }
 
-  plot (x, y, style) {
-    let graph = new Graph(x, y);
-    graph.setStyle(style);
+  plot (x, y, xErr, yErr, style) {
+    let graph = new Graph(x, y, xErr, yErr, style);
     this.graphList.push(graph);
   }
 
@@ -516,7 +762,7 @@ class CoordAxis {
       .attr('transform', 'translate(' + this.translatePosition[0] + ',' + this.translatePosition[1] + ')')
       .attr('class', this.htmlId)
       .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
-      .style('font-family', axisFont)
+      .style('font-family', currentPlotStyle.axisFont)
       .style('font-size', this.axisFontSize)
       .style('opacity', opacity)
       .call(axis);
@@ -677,40 +923,51 @@ class CoordAxis {
 }
 
 class Graph {
-  constructor (x, y) {
-    this.xyData = new XYData(x, y);
-  }
-
-  setStyle (style) {
+  constructor (x, y, xErr, yErr, style) {
     this.style = style;
-  }
-
-  get graphMarginX () {
-    return currentPlotStyle['graphMarginX'];
-  }
-
-  get graphMarginY () {
-    return currentPlotStyle['graphMarginY'];
+    if (!style.errorBar.errorBarType.includes('x')) {
+      xErr = null;
+    }
+    if (!style.errorBar.errorBarType.includes('y')) {
+      yErr = null;
+    }
+    this.xyData = new XYData(x, y, xErr, yErr);
   }
 
   xLim () {
-    return this.dataLim(this.xyData.xMin, this.xyData.xMax, this.xyData.xRange, this.graphMarginX);
+    return this.dataLim(this.xyData.xMin, this.xyData.xMax, this.xyData.xRange, currentPlotStyle.graphMarginX);
   }
 
   yLim () {
-    return this.dataLim(this.xyData.yMin, this.xyData.yMax, this.xyData.yRange, this.graphMarginY);
+    return this.dataLim(this.xyData.yMin, this.xyData.yMax, this.xyData.yRange, currentPlotStyle.graphMarginY);
   }
 
   dataLim (min, max, range, margin) {
     return [min - range * margin, max + range * margin];
   }
 
+  makeDataPoints () {
+    let pointLabels = ['x', 'y'];
+    if (this.xyData.hasXError) {
+      pointLabels.push('xErr');
+    }
+    if (this.xyData.hasYError) {
+      pointLabels.push('yErr');
+    }
+    return this.xyData.makeLineData(pointLabels);
+  }
+
   draw (axElem, xScale, yScale) {
-    var dataPoints = this.xyData.makeLineData();
-    var plotType = this.style.plotType;
+    let dataPoints = this.makeDataPoints();
     this.clipGroup = axElem.append('g')
       .attr('clip-path', 'url(#clip_path)');
     this.plotGroup = this.clipGroup.append('g');
+    this.drawErrors(dataPoints, xScale, yScale);
+    this.drawData(dataPoints, xScale, yScale);
+  }
+
+  drawData (dataPoints, xScale, yScale) {
+    var plotType = this.style.plotType;
     if (plotType === 'line') {
       this.drawLine(dataPoints, xScale, yScale);
     } else if (plotType === 'scatter') {
@@ -723,6 +980,22 @@ class Graph {
     } else if (plotType === 'line + area') {
       this.drawLine(dataPoints, xScale, yScale);
       this.drawArea(dataPoints, xScale, yScale, 0.6);
+    }
+  }
+
+  drawErrors (dataPoints, xScale, yScale) {
+    let errorType = this.style.errorBar.errorBarType;
+    if (errorType.includes('bar')) {
+      if (this.xyData.hasXError) {
+        this.drawXErrorBars(dataPoints, xScale, yScale);
+      }
+      if (this.xyData.hasYError) {
+        this.drawYErrorBars(dataPoints, xScale, yScale);
+      }
+    } else if (errorType.includes('area')) {
+      if (this.xyData.hasYError) {
+        this.drawErrorArea(dataPoints, xScale, yScale);
+      }
     }
   }
 
@@ -783,111 +1056,112 @@ class Graph {
       .attr('d', areaFunc(dataPoints));
   }
 
+  drawXErrorBars (dataPoints, xScale, yScale) {
+    let strokeWidthInt = fig.svgPercentageToPxInt(Util.toPercentWidth(this.style.errorBar.errorBarStrokeWidth));
+    let capHalfWidth = strokeWidthInt * this.style.errorBar.capWidthMultiplier;
+    let strokeWidth = strokeWidthInt + 'px';
+
+    this.plotGroup.append('g').selectAll('line')
+      .data(dataPoints).enter()
+      .append('line')
+      .attr('class', 'error-bar-line')
+      .attr('x1', d => xScale(d.x - d.xErr))
+      .attr('x2', d => xScale(d.x + d.xErr))
+      .attr('y1', d => yScale(d.y))
+      .attr('y2', d => yScale(d.y))
+      .attr('stroke', this.style.errorBar.errorBarColor)
+      .attr('stroke-dasharray', this.errorBarDashArray())
+      .attr('stroke-width', strokeWidth);
+
+    this.plotGroup.append('g').selectAll('line')
+      .data(dataPoints).enter()
+      .append('line')
+      .attr('class', 'error-bar-cap-line')
+      .attr('x1', d => xScale(d.x - d.xErr))
+      .attr('x2', d => xScale(d.x - d.xErr))
+      .attr('y1', d => yScale(d.y) - capHalfWidth)
+      .attr('y2', d => yScale(d.y) + capHalfWidth)
+      .attr('stroke', this.style.errorBar.errorBarColor)
+      .attr('stroke-width', strokeWidth);
+
+    this.plotGroup.append('g').selectAll('line')
+      .data(dataPoints).enter()
+      .append('line')
+      .attr('class', 'error-bar-cap-line')
+      .attr('x1', d => xScale(d.x + d.xErr))
+      .attr('x2', d => xScale(d.x + d.xErr))
+      .attr('y1', d => yScale(d.y) - capHalfWidth)
+      .attr('y2', d => yScale(d.y) + capHalfWidth)
+      .attr('stroke', this.style.errorBar.errorBarColor)
+      .attr('stroke-width', strokeWidth);
+  }
+
+  drawYErrorBars (dataPoints, xScale, yScale) {
+    let strokeWidthInt = fig.svgPercentageToPxInt(Util.toPercentWidth(this.style.errorBar.errorBarStrokeWidth));
+    let capHalfWidth = strokeWidthInt * this.style.errorBar.capWidthMultiplier;
+    let strokeWidth = strokeWidthInt + 'px';
+
+    this.plotGroup.append('g').selectAll('line')
+      .data(dataPoints).enter()
+      .append('line')
+      .attr('class', 'error-bar-line')
+      .attr('x1', d => xScale(d.x))
+      .attr('x2', d => xScale(d.x))
+      .attr('y1', d => yScale(d.y - d.yErr))
+      .attr('y2', d => yScale(d.y + d.yErr))
+      .attr('stroke', this.style.errorBar.errorBarColor)
+      .attr('stroke-dasharray', this.errorBarDashArray())
+      .attr('stroke-width', strokeWidth);
+
+    this.plotGroup.append('g').selectAll('line')
+      .data(dataPoints).enter()
+      .append('line')
+      .attr('class', 'error-bar-cap-line')
+      .attr('x1', d => xScale(d.x) - capHalfWidth)
+      .attr('x2', d => xScale(d.x) + capHalfWidth)
+      .attr('y1', d => yScale(d.y - d.yErr))
+      .attr('y2', d => yScale(d.y - d.yErr))
+      .attr('stroke', this.style.errorBar.errorBarColor)
+      .attr('stroke-width', strokeWidth);
+
+    this.plotGroup.append('g').selectAll('line')
+      .data(dataPoints).enter()
+      .append('line')
+      .attr('class', 'error-bar-cap-line')
+      .attr('x1', d => xScale(d.x) - capHalfWidth)
+      .attr('x2', d => xScale(d.x) + capHalfWidth)
+      .attr('y1', d => yScale(d.y + d.yErr))
+      .attr('y2', d => yScale(d.y + d.yErr))
+      .attr('stroke', this.style.errorBar.errorBarColor)
+      .attr('stroke-width', strokeWidth);
+  }
+
+  drawErrorArea (dataPoints, xScale, yScale) {
+    let errorAreaFunc = d3.area()
+      .x(d => xScale(d.x))
+      .y0(d => yScale(d.y - d.yErr))
+      .y1(d => yScale(d.y + d.yErr));
+    this.plotGroup.append('g').append('path')
+      .attr('class', 'area')
+      .attr('fill', this.style.errorBar.errorBarColor)
+      .style('opacity', this.style.errorBar.errorBarOpacity)
+      .attr('d', errorAreaFunc(dataPoints));
+  }
+
+  errorBarDashArray () {
+    let dashArray = ('1, 0');
+    if (this.style.errorBar.errorBarLineStyle === 'solid') {
+      dashArray = ('1, 0');
+    } else if (this.style.errorBar.errorBarLineStyle === 'dashed') {
+      dashArray = ('6, 6');
+    }
+    return dashArray;
+  }
+
   panTransform (transform) {
     if (this.plotGroup) {
       this.plotGroup.attr('transform', transform);
     }
-  }
-}
-
-class XYData {
-  constructor (x, y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  nearestPoint (x0) {
-    var pos = d3.bisectLeft(this.x, x0, 0, this.x.length);
-    var prev = this.x[pos - 1];
-    var next = this.x[pos];
-    var idx = x0 - prev < next - x0 ? pos - 1 : pos;
-    return {
-      'x': this.x[idx],
-      'y': this.y[idx]
-    };
-  }
-
-  precisionX () {
-    return Util.formatPrecision(this.x[1] - this.x[0]);
-  }
-
-  precisionY () {
-    return Util.formatPrecision(this.y[1] - this.y[0]);
-  }
-
-  get xMin () {
-    return d3.min(this.x);
-  }
-
-  get xMax () {
-    return d3.max(this.x);
-  }
-
-  get xRange () {
-    return Util.getSpan(this.x);
-  }
-
-  get yMin () {
-    return d3.min(this.y);
-  }
-
-  get yMax () {
-    return d3.max(this.y);
-  }
-
-  get yRange () {
-    return Util.getSpan(this.y);
-  }
-
-  makeLineData () {
-    var lineData = [];
-    for (var i = 0; i < this.x.length; i++) {
-      var point = {
-        x: this.x[i],
-        y: this.y[i]
-      };
-      lineData.push(point);
-    }
-    return lineData;
-  }
-}
-
-class Trace {
-  constructor (xy, style, label) {
-    this.x = xy[0];
-    this.y = xy[1];
-    this.style = style;
-    this.traceLabel = label;
-    this.isVisible = true;
-  }
-
-  get legendColor () {
-    if (this.style.plotType === 'scatter') {
-      return this.style.markerColor;
-    }
-    return this.style.lineColor;
-  }
-
-  get xTransformed () {
-    let x = this.x.slice();
-    try {
-      x = Util.transformData(x, 'x', this.style.xScaling);
-    } catch (exception) {
-      console.error(exception);
-      alert('Function not recognized!');
-    }
-    return x;
-  }
-
-  get yTransformed () {
-    let y = this.y.slice();
-    try {
-      y = Util.transformData(y, 'y', this.style.yScaling);
-    } catch (exception) {
-      console.error(exception);
-      alert('Function not recognized!');
-    }
-    return y;
   }
 }
 
@@ -901,14 +1175,6 @@ class TraceList {
 
   get htmlTableBody () {
     return document.getElementById(this.id).getElementsByTagName('tbody')[0];
-  }
-
-  newTraceName (userTraceName) {
-    if (userTraceName === 'pasted_data') {
-      return 'Trace ' + (this.traces.length + 1);
-    } else {
-      return userTraceName;
-    }
   }
 
   get activeTrace () {
@@ -978,18 +1244,14 @@ class TraceList {
     colorSquare.style.backgroundColor = this.activeTrace.legendColor;
   }
 
-  addTrace (xy, traceName) {
-    var style = Object.assign({}, currentTraceStyle);
+  addTrace (trace) {
     this.colorGenerator.idx = this.traces.length;
-    var color = this.colorGenerator.nextColor();
-    style.markerColor = color;
-    style.lineColor = color;
-    var label = this.newTraceName(traceName);
-    var newTrace = new Trace(xy, style, label);
-    newTrace['traceLabel'] = label;
-    this.traces.push(newTrace);
-    currentTraceStyle = Object.assign({}, style);
-    this.addTableRow(newTrace.traceLabel, newTrace.legendColor);
+    let color = this.colorGenerator.nextColor();
+    trace.style.markerColor = color;
+    trace.style.lineColor = color;
+    this.traces.push(trace);
+    currentTraceStyle = Object.assign({}, trace.style);
+    this.addTableRow(trace.traceLabel, trace.legendColor);
     this.activateTrace(this.traces.length - 1);
     Sidebar.showCurrentTraceStyle();
   }
@@ -1064,113 +1326,6 @@ class TraceList {
   }
 }
 
-class FigureArea {
-  static initialize () {
-    document.getElementById('figure_area').addEventListener('paste', FigureArea.readPasteAndPlot);
-    document.getElementById('figure_area').addEventListener('drop', FigureArea.dropHandler);
-    document.getElementById('figure_area').addEventListener('dragover', FigureArea.dragOverHandler);
-    window.addEventListener('resize', function (event) {
-      FigureArea.redraw();
-    });
-  }
-
-  // https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
-  static dropHandler (ev) {
-    ev.preventDefault();
-    if (ev.dataTransfer.items) {
-      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-        if (ev.dataTransfer.items[i].kind === 'file') {
-          var file = ev.dataTransfer.items[i].getAsFile();
-          FigureArea.fileHandler(file);
-        }
-      }
-    }
-    FigureArea.removeDragData(ev);
-  }
-
-  static dragOverHandler (ev) {
-    ev.stopPropagation();
-    ev.preventDefault();
-  }
-
-  static removeDragData (ev) {
-    if (ev.dataTransfer.items) {
-      ev.dataTransfer.items.clear();
-    } else {
-      ev.dataTransfer.clearData();
-    }
-  }
-
-  // https://www.html5rocks.com/en/tutorials/file/dndfiles/
-  static fileHandler (file) {
-    var reader = new FileReader();
-    reader.onload = (function (dataFile) {
-      return function (e) {
-        FigureArea.parseAndPlot(e.target.result, file.name);
-      };
-    })();
-    reader.readAsText(file);
-  }
-
-  // https://stackoverflow.com/questions/2176861/javascript-get-clipboard-data-on-paste-event-cross-browser
-  static readPasteAndPlot (e) {
-    var clipboardData, pastedData;
-    var fileName = 'pasted_data';
-
-    e.stopPropagation();
-    e.preventDefault();
-
-    clipboardData = e.clipboardData || window.clipboardData;
-    pastedData = clipboardData.getData('Text');
-    FigureArea.parseAndPlot(pastedData, fileName);
-  }
-
-  static parseAndPlot (str, fileName) {
-    var xy = Util.regexParse(str);
-    if (xy[0].length < 2) {
-      alert('Input data could not be parsed! Please use two columns separated by tab, comma, semicolon and/or spaces.');
-      return;
-    }
-    FigureArea.fileName = Util.stripFileExtension(fileName);
-    Sidebar.traceList.addTrace(xy, FigureArea.fileName);
-    Sidebar.resetLimits();
-    Sidebar.show();
-    Toolbar.show();
-    FigureArea.redraw();
-    FigureArea.hideInstruction();
-    FigureArea.redraw();
-  }
-
-  static hideInstruction () {
-    document.getElementById('instruction_text').style.display = 'none';
-    document.getElementById('figure_area').style.borderStyle = 'hidden';
-  }
-
-  static redraw () {
-    fig.reset();
-    Sidebar.updatePlotStyle();
-    var ax = fig.addAxis();
-    var traces = Sidebar.traceList.visibleTraces;
-    if (traces.length === 0) { return; }
-
-    for (var i = 0; i < traces.length; i++) {
-      let trace = traces[i];
-      let x = trace.xTransformed;
-      let y = trace.yTransformed;
-      let style = trace.style;
-      ax.plot(x, y, style);
-    }
-
-    fig.draw();
-    ax.addXLabel(Sidebar.xLabel, fig.svgPercentageToPx(currentPlotStyle['xLabelFontSize']), currentPlotStyle.labelFont);
-    ax.addYLabel(Sidebar.yLabel, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']), currentPlotStyle.labelFont);
-    ax.addTitle(Sidebar.title, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']), currentPlotStyle.labelFont);
-    ax.addLegend(currentPlotStyle.legendLocation, fig.svgPercentageToPx(currentPlotStyle.axisFontSize));
-    Toolbar.applyMargin();
-    Toolbar.reactivateButton();
-  }
-}
-
 class Sidebar {
   static initialize () {
     Sidebar.populateSelectionBoxes();
@@ -1184,10 +1339,6 @@ class Sidebar {
 
   static show () {
     document.getElementById('sidebar').style.display = 'block';
-  }
-
-  static hide () {
-    document.getElementById('sidebar').style.display = 'none';
   }
 
   static addAccordionListeners () {
@@ -1214,7 +1365,7 @@ class Sidebar {
   }
 
   static populateSelectionBoxes () {
-    var fontSizesStr = Util.appendStrtoArr(fontSizesInt, '%');
+    let fontSizesStr = Util.appendStrtoArr(fontSizesInt, '%');
     Util.populateSelectBox('xFontSize', fontSizesStr);
     Util.populateSelectBox('yFontSize', fontSizesStr);
     Util.populateSelectBox('titleFontSize', fontSizesStr);
@@ -1224,6 +1375,8 @@ class Sidebar {
     Util.populateSelectBox('markerSize', markerSizes);
     Util.populateSelectBox('majorTickSize', tickSizes);
     Util.populateSelectBox('minorTickSize', tickSizes);
+    Util.populateSelectBox('errorBarOpacity', opacities);
+    Util.populateSelectBox('errorBarStrokeWidth', strokeWidthsInt);
   }
 
   static initDefaultValues () {
@@ -1244,6 +1397,13 @@ class Sidebar {
     document.getElementById('lineStrokeWidth').value = defaultTraceStyle['lineStrokeWidth'];
     document.getElementById('markerSize').value = defaultTraceStyle['markerSize'];
     document.getElementById('plotType').value = defaultTraceStyle['plotType'];
+
+    document.getElementById('errorBarStrokeWidth').value = defaultTraceStyle.errorBar.errorBarStrokeWidth;
+    document.getElementById('errorBarColor').value = defaultTraceStyle.errorBar.errorBarColor;
+    document.getElementById('errorBarOpacity').value = defaultTraceStyle.errorBar.errorBarOpacity;
+    document.getElementById('errorBarType').value = defaultTraceStyle.errorBar.errorBarType;
+
+    document.getElementById('importFormat').value = defaultPlotStyle.importFormat;
     Sidebar.resetLimits();
   }
 
@@ -1273,7 +1433,9 @@ class Sidebar {
       'horizontalMinorGrid', 'verticalMinorGrid',
       'xAxisVisibility', 'topXAxisVisibility',
       'yAxisVisibility', 'rightYAxisVisibility',
-      'legendLocation', 'aspectRatio'];
+      'legendLocation', 'aspectRatio',
+      'errorBarType', 'errorBarStrokeWidth', 'errorBarLineStyle',
+      'errorBarColor', 'errorBarOpacity', 'importFormat'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       let elem = document.getElementById(id);
@@ -1301,36 +1463,19 @@ class Sidebar {
   }
 
   static addTooltipListeners () {
-    var params = ['title', 'xLabel', 'yLabel',
-      'xFontSize', 'yFontSize', 'titleFontSize', 'labelFont',
-      'xStart', 'xEnd',
-      'yStart', 'yEnd',
-      'xScaling', 'yScaling',
-      'plotType',
-      'lineColor', 'markerColor',
-      'lineStyle', 'markerStyle',
-      'lineStrokeWidth', 'markerSize',
-      'axisStrokeWidth', 'axisFontSize',
-      'minorTickSize', 'majorTickSize',
-      'horizontalGrid', 'verticalGrid',
-      'horizontalMinorGrid', 'verticalMinorGrid',
-      'xAxisVisibility', 'topXAxisVisibility',
-      'yAxisVisibility', 'rightYAxisVisibility',
-      'legendLocation', 'aspectRatio', 'traceTable'];
-    for (let i = 0; i < params.length; i++) {
-      let id = params[i];
-      let elem = document.getElementById(id);
-      let parent = elem.closest('.has-tooltip');
-      let input = parent.querySelector('select, input');
-      let tooltip = parent.querySelector('.tooltip-wrapper');
-      parent.addEventListener('mouseover', function (event) {
+    let elementsWithTooltip = document.querySelectorAll('.has-tooltip');
+    for (let i = 0; i < elementsWithTooltip.length; i++) {
+      let tooltipElem = elementsWithTooltip[i];
+      let input = tooltipElem.querySelector('select, input');
+      let tooltip = tooltipElem.querySelector('.tooltip-wrapper');
+      tooltipElem.addEventListener('mouseover', function (event) {
         tooltip.style.display = 'block';
-        tooltip.style.top = Sidebar.getTooltipPositionPx(elem);
+        tooltip.style.top = Sidebar.getTooltipPositionPx(tooltipElem);
         if (input != null) { // null check for traceTable -> consider refactoring
           input.classList.add('active');
         }
       });
-      parent.addEventListener('mouseout', function (event) {
+      tooltipElem.addEventListener('mouseout', function (event) {
         tooltip.style.display = 'none';
         if (input != null) { // null check for traceTable -> consider refactoring
           input.classList.remove('active');
@@ -1382,6 +1527,14 @@ class Sidebar {
     currentTraceStyle['markerStyle'] = Sidebar.markerStyle;
     currentTraceStyle['lineStrokeWidth'] = Sidebar.lineStrokeWidth;
     currentTraceStyle['markerSize'] = Sidebar.markerSize;
+    currentTraceStyle.errorBar.errorBarType = Sidebar.errorBarType;
+    currentTraceStyle.errorBar.errorBarColor = Sidebar.errorBarColor;
+    currentTraceStyle.errorBar.errorBarStrokeWidth = Sidebar.errorBarStrokeWidth;
+    currentTraceStyle.errorBar.errorBarLineStyle = Sidebar.errorBarLineStyle;
+    currentTraceStyle.errorBar.errorBarOpacity = Sidebar.errorBarOpacity;
+
+
+    currentPlotStyle['importFormat'] = Sidebar.importFormat;
     Sidebar.traceList.updateActiveTraceStyle(Object.assign({}, currentTraceStyle));
   }
 
@@ -1418,6 +1571,12 @@ class Sidebar {
     document.getElementById('markerStyle').value = currentTraceStyle.markerStyle;
     document.getElementById('lineStrokeWidth').value = currentTraceStyle.lineStrokeWidth;
     document.getElementById('markerSize').value = currentTraceStyle.markerSize;
+
+    document.getElementById('errorBarType').value = currentTraceStyle.errorBar.errorBarType;
+    document.getElementById('errorBarStrokeWidth').value = currentTraceStyle.errorBar.errorBarStrokeWidth;
+    document.getElementById('errorBarColor').value = currentTraceStyle.errorBar.errorBarColor;
+    document.getElementById('errorBarOpacity').value = currentTraceStyle.errorBar.errorBarOpacity;
+    document.getElementById('errorBarLineStyle').value = currentTraceStyle.errorBar.errorBarLineStyle;
   }
 
   static get title () {
@@ -1552,6 +1711,30 @@ class Sidebar {
     return document.getElementById('legendLocation').value;
   }
 
+  static get importFormat () {
+    return document.getElementById('importFormat').value;
+  }
+
+  static get errorBarType () {
+    return document.getElementById('errorBarType').value;
+  }
+
+  static get errorBarStrokeWidth () {
+    return document.getElementById('errorBarStrokeWidth').value;
+  }
+
+  static get errorBarOpacity () {
+    return document.getElementById('errorBarOpacity').value;
+  }
+
+  static get errorBarColor () {
+    return document.getElementById('errorBarColor').value;
+  }
+
+  static get errorBarLineStyle () {
+    return document.getElementById('errorBarLineStyle').value;
+  }
+
   static get aspectRatio () {
     let aspect = document.getElementById('aspectRatio').value;
     if (aspect === 'none') {
@@ -1611,10 +1794,10 @@ class Toolbar {
 
   static addSaveListeners () {
     document.getElementById('svgButton').addEventListener('click', function () {
-      ImageExport.downloadSVG(fig, FigureArea.fileName);
+      ImageExport.downloadSVG(fig, currentPlotStyle.fileName);
     });
     document.getElementById('pngButton').addEventListener('click', function () {
-      ImageExport.downloadPNG(fig, FigureArea.fileName);
+      ImageExport.downloadPNG(fig, currentPlotStyle.fileName);
     });
   }
 
@@ -1754,7 +1937,7 @@ class Toolbar {
       .attr('clip-path', 'url(#clip_path)')
       .attr('x', cursorX)
       .attr('y', cursorY);
-    let xStr = d3.format('.' + fig.ax.activeGraph.xyData.precisionX() + '~f')(point.x);
+    let xStr = d3.format('.' + Util.formatPrecision(point.x);
     let yStr = d3.format('.' + fig.ax.activeGraph.xyData.precisionY() + '~f')(point.y);
     document.querySelector('#toolbar #x_coord').textContent = 'x = ' + xStr;
     document.querySelector('#toolbar #y_coord').textContent = 'y = ' + yStr;
@@ -1873,6 +2056,39 @@ class ImageExport {
   }
 }
 
+class RegexParser {
+  constructor (importFormat) {
+    this.regexes = {
+      2: /^\s*(?:([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*(?::|,|;|\s)\s*)\s*([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s?$/mg,
+      3: /^\s*(?:([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*(?::|,|;|\s)\s*)\s*(?:([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*(?::|,|;|\s)\s*)\s*([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s?$/mg,
+      4: /^\s*(?:([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*(?::|,|;|\s)\s*)\s*(?:([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*(?::|,|;|\s)\s*)\s*(?:([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*(?::|,|;|\s)\s*)\s*([+-]?[0-9]+[.,]?[0-9]*(?:[eE][-+]?[0-9]+)?)\s?$/mg
+    };
+    this.importFormat = importFormat;
+    this.colLabels = this.importFormat.split('_');
+    this.nCols = this.colLabels.length;
+    this.activeRegex = this.regexes[this.nCols];
+  }
+
+  parse (str) {
+    let cols = {};
+    for (let i = 0; i < this.nCols; i++) {
+      cols[this.colLabels[i]] = [];
+    }
+    let tempArr;
+    while (tempArr = this.activeRegex.exec(str)) {
+      for (let i = 0; i < this.nCols; i++) {
+        cols[this.colLabels[i]].push(Util.toFloat(tempArr[i + 1]));
+      }
+    }
+    if (cols[this.colLabels[0]].length < 2) {
+      alert('Input data could not be parsed! Please use two to four columns matching with your import settings.' +
+        'The columns must be separated by tab, comma, colon, semicolon and/or spaces.');
+      return;
+    }
+    return cols;
+  }
+}
+
 class Util {
   // https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
   static getTextWidth (text, font) {
@@ -1950,17 +2166,6 @@ class Util {
     }
   }
 
-  static regexParse (str) {
-    var rowRe = /^\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s*(,|;|\s)\s*([+-]?[0-9]+(\.|,)?[0-9]*([eE][-+]?[0-9]+)?)\s?$/mg;
-    var arr;
-    var x = [];
-    var y = [];
-    while (arr = rowRe.exec(str)) {
-      x.push(Util.toFloat(arr[1]));
-      y.push(Util.toFloat(arr[5]));
-    }
-    return [x, y];
-  }
 
   static transformData (arr, varStr, transformationStr) {
     let maxRegex = new RegExp('max\\(\\s*' + varStr + '\\s*\\)', 'g');

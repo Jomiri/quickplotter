@@ -113,20 +113,32 @@ body, #main-content {
     text-align: left;
 }
 
+#sidebar input[type='checkbox'] {
+    transform: scale(1.5);
+}
+
 #sidebar .inline_input {
     position: absolute;
+}
+
+#sidebar .limit_input {
     left: 70px;
 }
 
-#sidebar .inline_input[type='checkbox'] {
-    transform: scale(1.5);
-}
 #sidebar .axes_input {
     left: 90px;
 }
 
 #sidebar .grid_input {
     left: 150px;
+}
+
+#sidebar .error-bar-input {
+    left: 75px;
+}
+
+#sidebar .error-bar-cb {
+    left: 165px;
 }
 
 #sidebar .active {

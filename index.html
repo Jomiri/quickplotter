@@ -336,7 +336,7 @@
                 <div class='accordion_panel'>
                     <div class='inline_row has-tooltip'>
                         <label class='inline_label'>x start:</label>
-                        <input type='text' id='xStart' class='inline_input' name='xStart' value=''>
+                        <input type='text' id='xStart' class='inline_input limit_input' name='xStart' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X start</div>
@@ -348,7 +348,7 @@
                     </div>
                     <div class='inline_row has-tooltip'>
                         <label class='inline_label'>x end:</label>
-                        <input type='text' id='xEnd' class='inline_input' name='xEnd' value=''>
+                        <input type='text' id='xEnd' class='inline_input limit_input' name='xEnd' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X end</div>
@@ -360,7 +360,7 @@
                     </div>
                     <div class='inline_row has-tooltip'>
                         <label class='inline_label'>y start:</label>
-                        <input type='text' id='yStart' class='inline_input' name='yStart' value=''>
+                        <input type='text' id='yStart' class='inline_input limit_input' name='yStart' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y start</div>
@@ -372,7 +372,7 @@
                     </div>
                     <div class='inline_row has-tooltip'>
                         <label class='inline_label'>y end:</label>
-                        <input type='text' id='yEnd' class='inline_input' name='yEnd' value=''>
+                        <input type='text' id='yEnd' class='inline_input limit_input' name='yEnd' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y end</div>
@@ -571,6 +571,118 @@
                         </div>
                     </div>
                 </div>
+                <button class='accordion_button'>Advanced - Error bars</button>
+                <div class='accordion_panel'>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>type:</label>
+                        <select class='inline_input error-bar-input' type='text' id='errorBarType' name='errorBarType'>
+                            <option selected value='off'>Off</option>
+                            <option value='x_bar'>Bar (X only)</option>
+                            <option value='y_bar'>Bar (Y only)</option>
+                            <option value='x_bar y_bar'>Bar (X & Y)</option>
+                            <option value='y_area'>Area (Y only)</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>error bar type</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the basic type of the shown error bars.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>line width:</label><select class='error-bar-input inline_input' type='text' id='errorBarStrokeWidth' name='errorBarStrokeWidth'></select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>error bar line width</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the thickness of the error bars.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>line style:</label> <select class='error-bar-input inline_input' type='text' id='errorBarLineStyle' name='errorBarLineStyle'>
+                            <option value='solid'>Solid</option>
+                            <option value='dashed'>Dashed</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>error bar line style</div>
+                                <div class='tooltip-body'>
+                                    <p>Select either solid or dashed line style for the error bars.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>color:</label> <input class='error-bar-input inline_input' type='color' id='errorBarColor' name='errorBarColor' value='black'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>error bar color</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the color of the error bars / confidence area.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>opacity:</label> <select class='error-bar-input inline_input' type='text' id='errorBarOpacity' name='errorBarOpacity'>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Error bar opacity</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the opacity of the error bars / confidence area.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>apply function to x error:</label><input class='inline_input error-bar-cb' type='checkbox' id='errorBarXTransform'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>X error transformation</div>
+                                <div class='tooltip-body'>
+                                    <p>Select whether to apply the x transformation function also to x error values.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline_row has-tooltip'>
+                        <label class='inline_label'>apply function to y error:</label> <input class='inline_input error-bar-cb' type='checkbox' id='errorBarYTransform'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Y error transformation</div>
+                                <div class='tooltip-body'>
+                                    <p>Select whether to apply the y transformation function also to y error values.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class='accordion_button'>Advanced - Import settings</button>
+                <div class='accordion_panel'>
+                    <div class='row has-tooltip'>
+                        <label>import data format:</label>
+                        <select type='text' id='importFormat' class='long_input' name='importFormat'>
+                            <option value='x_y'>x, y</option>
+                            <option value='x_y_yErr'>x, y, yError</option>
+                            <option value='x_y_xErr'>x, y, xError</option>
+                            <option value='x_y_xErr_yErr'>x, y, xError, yError</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>import format</div>
+                                <div class='tooltip-body'>
+                                    <p>Specify the format of the imported data.
+                                        The default is two columns: x and y but you can import error bar data as well.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div id='side-footer'>
@@ -614,7 +726,6 @@
     <canvas id='cvs' width='100' height='100'></canvas>
 
 </div>
-
 </body>
 
 </html>
