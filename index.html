@@ -334,50 +334,74 @@
                 </div>
                 <button class='accordion_button'>Coordinate limits</button>
                 <div class='accordion_panel'>
-                    <div class='inline_row has-tooltip'>
+                    <div class='inline_row inline_row--limit-row has-tooltip'>
                         <label class='inline_label'>x start:</label>
                         <input type='text' id='xStart' class='inline_input limit_input' name='xStart' value=''>
+                        <div class='limit-buttons'>
+                            <button class='limit-button auto-button'>Auto</button>
+                            <button class='limit-button tight-button'>Tight</button>
+                        </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X start</div>
                                 <div class='tooltip-body'>
-                                    <p>Set the lower limit of the x-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
+                                    <p>Set the lower limit of the x-axis. Use either a <b>number</b> or the keywords <b>auto</b>,
+                                        which applies a narrow margin between the data and the coordinate axes
+                                        or <b>tight</b>, which does not apply a margin.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
+                    <div class='inline_row inline_row--limit-row has-tooltip'>
                         <label class='inline_label'>x end:</label>
                         <input type='text' id='xEnd' class='inline_input limit_input' name='xEnd' value=''>
+                        <div class='limit-buttons'>
+                            <button class='limit-button auto-button'>Auto</button>
+                            <button class='limit-button tight-button'>Tight</button>
+                        </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X end</div>
                                 <div class='tooltip-body'>
-                                    <p>Set the upper limit of the x-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
+                                    <p>Set the upper limit of the x-axis. Use either a <b>number</b> or the keywords <b>auto</b>,
+                                        which applies a narrow margin between the data and the coordinate axes
+                                        or <b>tight</b>, which does not apply a margin.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
+                    <div class='inline_row inline_row--limit-row has-tooltip'>
                         <label class='inline_label'>y start:</label>
                         <input type='text' id='yStart' class='inline_input limit_input' name='yStart' value=''>
+                        <div class='limit-buttons'>
+                            <button class='limit-button auto-button'>Auto</button>
+                            <button class='limit-button tight-button'>Tight</button>
+                        </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y start</div>
                                 <div class='tooltip-body'>
-                                    <p>Set the lower limit of the y-axis. Use either a <b>number</b> or the  keyword <b>auto</b>.</p>
+                                    <p>Set the lower limit of the y-axis. Use either a <b>number</b> or the keywords <b>auto</b>,
+                                        which applies a narrow margin between the data and the coordinate axes
+                                        or <b>tight</b>, which does not apply a margin.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
+                    <div class='inline_row inline_row--limit-row has-tooltip'>
                         <label class='inline_label'>y end:</label>
                         <input type='text' id='yEnd' class='inline_input limit_input' name='yEnd' value=''>
+                        <div class='limit-buttons'>
+                            <button class='limit-button auto-button'>Auto</button>
+                            <button class='limit-button tight-button'>Tight</button>
+                        </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y end</div>
                                 <div class='tooltip-body'>
-                                    <p>Set the upper limit of the y-axis. Use either a <b>number</b> or the keyword <b>auto</b>.</p>
+                                    <p>Set the upper limit of the y-axis. Use either a <b>number</b> or the keywords <b>auto</b>,
+                                        which applies a narrow margin between the data and the coordinate axes
+                                        or <b>tight</b>, which does not apply a margin.</p>
                                 </div>
                             </div>
                         </div>
@@ -586,7 +610,11 @@
                             <div class='tooltip'>
                                 <div class='tooltip-header'>error bar type</div>
                                 <div class='tooltip-body'>
-                                    <p>Select the basic type of the shown error bars.</p>
+                                    <p>Select the basic type of the shown error bars.
+                                        <b>Important:</b> To plot error bars, you must first import data,
+                                        which includes the absolute error values in x, y or both directions for each data point.
+                                        Set the correct file format in the import settings first.
+                                        Asymmetric error bars are not supported yet.</p>
                                 </div>
                             </div>
                         </div>
@@ -676,8 +704,9 @@
                             <div class='tooltip'>
                                 <div class='tooltip-header'>import format</div>
                                 <div class='tooltip-body'>
-                                    <p>Specify the format of the imported data.
-                                        The default is two columns: x and y but you can import error bar data as well.</p>
+                                    <p>Specify the column format of the imported data.
+                                        The default is two columns: x and y. You need the change the setting if you
+                                        want to import error bar data in x, y or both directions as well.</p>
                                 </div>
                             </div>
                         </div>

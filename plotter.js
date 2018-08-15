@@ -61,7 +61,10 @@ const defaultTraceStyle = {
     'errorBarOpacity': '1.0',
     'errorBarLineStyle': 'solid',
     'errorBarStrokeWidth': 2,
-    'capWidthMultiplier': 2.5}
+    'capWidthMultiplier': 2.5,
+    'errorBarXTransform': false,
+    'errorBarYTransform': false}
+
 };
 
 const kellyColorsAndBlack = [
@@ -177,6 +180,9 @@ class FigureArea {
   static parseAndPlot (str, fileName) {
     let parser = new RegexParser(currentPlotStyle.importFormat);
     let cols = parser.parse(str);
+    if (!cols) {
+      return;
+    }
     let strippedFileName = Util.stripFileExtension(fileName);
     currentPlotStyle.fileName = strippedFileName;
     let traceStyle = Object.assign({}, currentTraceStyle);
@@ -267,7 +273,10 @@ class Trace {
       return null;
     }
     let xErr = this.cols.xErr.slice();
-    return this.transformArray(xErr, 'x', this.style.xScaling);
+    if (this.style.errorBar.errorBarXTransform) {
+      xErr = this.transformArray(xErr, 'x', this.style.xScaling);
+    }
+    return xErr;
   }
 
   get yErrTransformed () {
@@ -275,28 +284,60 @@ class Trace {
       return null;
     }
     let yErr = this.cols.yErr.slice();
-    return this.transformArray(yErr, 'y', this.style.yScaling);
+    if (this.style.errorBar.errorBarYTransform) {
+      yErr = this.transformArray(yErr, 'y', this.style.yScaling);
+    }
+    return yErr;
   }
 }
 
 class XYData {
   constructor (x, y, xErr, yErr) {
-    this.x = x;
-    this.y = y;
-    this.xErr = xErr;
-    this.yErr = yErr;
+    this.x = [];
+    this.y = [];
+
+    if (xErr === null) {
+      this.xErr = null;
+    } else {
+      this.xErr = [];
+    }
+
+    if (yErr === null) {
+      this.yErr = null;
+    } else {
+      this.yErr = [];
+    }
+
+    // Nan removal
+    for (let i = 0; i < x.length; i++) {
+      if (Number.isFinite(x[i]) &&
+        Number.isFinite(y[i]) &&
+        (xErr === null || Number.isFinite(xErr[i])) &&
+        (yErr === null || Number.isFinite(yErr[i]))) {
+        this.x.push(x[i]);
+        this.y.push(y[i]);
+        if (!(xErr === null)) {
+          this.xErr.push(xErr[i]);
+        }
+        if (!(yErr === null)) {
+          this.yErr.push(yErr[i]);
+        }
+      }
+    }
 
     // upper and lower limits
     this.xMinArr = this.x.slice();
     this.xMaxArr = this.x.slice();
     this.yMinArr = this.y.slice();
     this.yMaxArr = this.y.slice();
+
     if (this.hasXError) {
       for (let i = 0; i < this.x.length; i++) {
         this.xMinArr[i] -= this.xErr[i];
         this.xMaxArr[i] += this.xErr[i];
       }
     }
+
     if (this.hasYError) {
       for (let i = 0; i < this.x.length; i++) {
         this.yMinArr[i] -= this.yErr[i];
@@ -349,7 +390,6 @@ class XYData {
     return lineData;
   }
 }
-
 
 class Figure {
   constructor (parentSelector) {
@@ -678,16 +718,29 @@ class Axis {
 
   xLim () {
     const userLimits = [currentPlotStyle['xStart'], currentPlotStyle['xEnd']];
-    let dataLimitList = this.graphList.map(function (e) { return e.xLim(); });
+    let margin = this.graphMargin(currentPlotStyle.graphMarginX, userLimits);
+    let dataLimitList = this.graphList.map(function (e) { return e.xLim(margin); });
     let dataLimits = this.dataLimitsFromList(dataLimitList);
     return this.getCoordinateLimits(dataLimits, userLimits);
   }
 
   yLim () {
     const userLimits = [currentPlotStyle['yStart'], currentPlotStyle['yEnd']];
-    let dataLimitList = this.graphList.map(function (e) { return e.yLim(); });
+    let margin = this.graphMargin(currentPlotStyle.graphMarginY, userLimits);
+    let dataLimitList = this.graphList.map(function (e) { return e.yLim(margin); });
     let dataLimits = this.dataLimitsFromList(dataLimitList);
     return this.getCoordinateLimits(dataLimits, userLimits);
+  }
+
+  graphMargin (defaultMargin, userLimits) {
+    let margin = [defaultMargin, defaultMargin];
+    if (userLimits[0] === 'tight') {
+      margin[0] = 0;
+    }
+    if (userLimits[1] === 'tight') {
+      margin[1] = 0;
+    }
+    return margin;
   }
 
   dataLimitsFromList (dataLimitList) {
@@ -705,10 +758,10 @@ class Axis {
 
   getCoordinateLimits (dataLimits, userLimits) {
     var lim = dataLimits;
-    if (userLimits[0] !== 'auto') {
+    if (!['auto', 'tight'].includes(userLimits[0])) {
       lim[0] = Util.toFloat(userLimits[0]);
     }
-    if (userLimits[1] !== 'auto') {
+    if (!['auto', 'tight'].includes(userLimits[1])) {
       lim[1] = Util.toFloat(userLimits[1]);
     }
     return lim;
@@ -907,7 +960,7 @@ class CoordAxis {
   }
 
   getTickFormat (ticks) {
-    var orderOfMagn = Util.orderOfMagnitude(ticks);
+    var orderOfMagn = Util.tickOrderOfMagnitude(ticks);
     var formatString = '.1~e';
     if (ticks.every(Util.numIsInteger)) {
       formatString = '.1~f';
@@ -934,16 +987,16 @@ class Graph {
     this.xyData = new XYData(x, y, xErr, yErr);
   }
 
-  xLim () {
-    return this.dataLim(this.xyData.xMin, this.xyData.xMax, this.xyData.xRange, currentPlotStyle.graphMarginX);
+  xLim (margin) {
+    return this.dataLim(this.xyData.xMin, this.xyData.xMax, this.xyData.xRange, margin);
   }
 
-  yLim () {
-    return this.dataLim(this.xyData.yMin, this.xyData.yMax, this.xyData.yRange, currentPlotStyle.graphMarginY);
+  yLim (margin) {
+    return this.dataLim(this.xyData.yMin, this.xyData.yMax, this.xyData.yRange, margin);
   }
 
   dataLim (min, max, range, margin) {
-    return [min - range * margin, max + range * margin];
+    return [min - range * margin[0], max + range * margin[1]];
   }
 
   makeDataPoints () {
@@ -1334,6 +1387,7 @@ class Sidebar {
     Sidebar.addLabelListeners();
     Sidebar.addTooltipListeners();
     Sidebar.addAccordionListeners();
+    Sidebar.addLimitButtonListeners();
     Sidebar.traceList = new TraceList();
   }
 
@@ -1365,7 +1419,7 @@ class Sidebar {
   }
 
   static populateSelectionBoxes () {
-    let fontSizesStr = Util.appendStrtoArr(fontSizesInt, '%');
+    let fontSizesStr = Util.appendStrToArr(fontSizesInt, '%');
     Util.populateSelectBox('xFontSize', fontSizesStr);
     Util.populateSelectBox('yFontSize', fontSizesStr);
     Util.populateSelectBox('titleFontSize', fontSizesStr);
@@ -1435,7 +1489,8 @@ class Sidebar {
       'yAxisVisibility', 'rightYAxisVisibility',
       'legendLocation', 'aspectRatio',
       'errorBarType', 'errorBarStrokeWidth', 'errorBarLineStyle',
-      'errorBarColor', 'errorBarOpacity', 'importFormat'];
+      'errorBarColor', 'errorBarOpacity',
+      'errorBarXTransform', 'errorBarYTransform', 'importFormat'];
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       let elem = document.getElementById(id);
@@ -1490,6 +1545,25 @@ class Sidebar {
     return top - 30 + 'px';
   }
 
+  static addLimitButtonListeners () {
+    let limitRows = document.querySelectorAll('.inline_row--limit-row');
+    for (let i = 0; i < limitRows.length; i++) {
+      let input = limitRows[i].querySelector('.limit_input');
+      let autoButton = limitRows[i].querySelector('.auto-button');
+      let tightButton = limitRows[i].querySelector('.tight-button');
+
+      autoButton.addEventListener('click', function () {
+        input.value = 'auto';
+        FigureArea.redraw();
+      });
+
+      tightButton.addEventListener('click', function () {
+        input.value = 'tight';
+        FigureArea.redraw();
+      });
+    }
+  }
+
   static updatePlotStyle () {
     currentPlotStyle['xLabelFontSize'] = Sidebar.xLabelFontSize;
     currentPlotStyle['yLabelFontSize'] = Sidebar.yLabelFontSize;
@@ -1532,6 +1606,9 @@ class Sidebar {
     currentTraceStyle.errorBar.errorBarStrokeWidth = Sidebar.errorBarStrokeWidth;
     currentTraceStyle.errorBar.errorBarLineStyle = Sidebar.errorBarLineStyle;
     currentTraceStyle.errorBar.errorBarOpacity = Sidebar.errorBarOpacity;
+
+    currentTraceStyle.errorBar.errorBarXTransform = Sidebar.errorBarXTransform;
+    currentTraceStyle.errorBar.errorBarYTransform = Sidebar.errorBarYTransform;
 
 
     currentPlotStyle['importFormat'] = Sidebar.importFormat;
@@ -1577,6 +1654,8 @@ class Sidebar {
     document.getElementById('errorBarColor').value = currentTraceStyle.errorBar.errorBarColor;
     document.getElementById('errorBarOpacity').value = currentTraceStyle.errorBar.errorBarOpacity;
     document.getElementById('errorBarLineStyle').value = currentTraceStyle.errorBar.errorBarLineStyle;
+    document.getElementById('errorBarXTransform').checked = currentTraceStyle.errorBar.errorBarXTransform;
+    document.getElementById('errorBarYTransform').checked = currentTraceStyle.errorBar.errorBarYTransform;
   }
 
   static get title () {
@@ -1733,6 +1812,14 @@ class Sidebar {
 
   static get errorBarLineStyle () {
     return document.getElementById('errorBarLineStyle').value;
+  }
+
+  static get errorBarXTransform () {
+    return document.getElementById('errorBarXTransform').checked;
+  }
+
+  static get errorBarYTransform () {
+    return document.getElementById('errorBarYTransform').checked;
   }
 
   static get aspectRatio () {
@@ -1937,8 +2024,11 @@ class Toolbar {
       .attr('clip-path', 'url(#clip_path)')
       .attr('x', cursorX)
       .attr('y', cursorY);
-    let xStr = d3.format('.' + Util.formatPrecision(point.x);
-    let yStr = d3.format('.' + fig.ax.activeGraph.xyData.precisionY() + '~f')(point.y);
+    const maxPx = 10000;
+    const xPrecision = Util.formatPrecision(fig.ax.activeGraph.xyData.xRange / maxPx);
+    const yPrecision = Util.formatPrecision(fig.ax.activeGraph.xyData.yRange / maxPx);
+    let xStr = d3.format('.' + xPrecision + '~f')(point.x);
+    let yStr = d3.format('.' + yPrecision + '~f')(point.y);
     document.querySelector('#toolbar #x_coord').textContent = 'x = ' + xStr;
     document.querySelector('#toolbar #y_coord').textContent = 'y = ' + yStr;
   }
@@ -2090,6 +2180,14 @@ class RegexParser {
 }
 
 class Util {
+  // https://stackoverflow.com/questions/9553354/how-do-i-get-the-decimal-precision-of-a-floating-point-number-in-javascript
+  static floatPrecision (num)  {
+    if (!isFinite(num)) return 0;
+    let e = 1, p = 0;
+    while (Math.round(num * e) / e !== num) { e *= 10; p++; }
+    return p;
+  }
+
   // https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
   static getTextWidth (text, font) {
     // re-use canvas object for better performance
@@ -2099,6 +2197,7 @@ class Util {
     var metrics = context.measureText(text);
     return metrics.width;
   }
+
   // https://stackoverflow.com/questions/3329566/show-beginning-of-html-input-value-on-blur-with-javascript
   static resetPosition (element) {
     var v = element.value;
@@ -2134,11 +2233,7 @@ class Util {
     return fileName.replace(/\.[^/.]+$/, '');
   }
 
-  static getSpan (arr) {
-    return Math.abs(d3.max(arr) - d3.min(arr));
-  }
-
-  static orderOfMagnitude (arr) {
+  static tickOrderOfMagnitude (arr) {
     let first = arr[0];
     let last = arr[arr.length - 1];
     let span = Math.abs(last - first);
@@ -2146,11 +2241,15 @@ class Util {
     return Math.floor(Math.log10(estTickInterval));
   }
 
+  static orderOfMagnitude (num) {
+    return Math.floor(Math.log10(num));
+  }
+
   static numIsInteger (num) {
     return num % 1 === 0;
   }
 
-  static appendStrtoArr (arr, str) {
+  static appendStrToArr (arr, str) {
     return arr.map(elem => elem + str);
   }
 
@@ -2165,7 +2264,6 @@ class Util {
       box.appendChild(el);
     }
   }
-
 
   static transformData (arr, varStr, transformationStr) {
     let maxRegex = new RegExp('max\\(\\s*' + varStr + '\\s*\\)', 'g');
