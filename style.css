@@ -17,16 +17,14 @@ h1 sup {
 
 body, #main-content {
     margin: 0;
+    height: 100vh;
 }
 
-#side, #side-header, #sidebar, #side-footer {
+#side {
     font-family: sans-serif;
     background-color: #252525;
     color: #ebebeb;
     width: 250px;
-}
-
-#side {
     left: 0;
     height: 100vh;
     position: fixed;
@@ -50,34 +48,32 @@ body, #main-content {
     overflow-x: hidden;
 }
 
-#sidebar .accordion_panel {
-    padding: 6px 2px 6px 12px;
-}
-
-#sidebar #links {
-    padding-left: 12px;
-    padding-right: 12px;
-}
-
-#sidebar div {
-    color: #ebebeb;
-}
-
 .row {
     padding-top: 5px;
     margin-bottom: 5px;
-}
-
-.inline_row {
-    margin: 3px 0;
-    position: relative;
-    height: 25px;
-    vertical-align: center;
-}
-
-.inline_row--limit-row {
-   height: 32px;
     display: flex;
+    align-items: center;
+}
+
+.table-row {
+    padding-top: 0;
+}
+
+.inline-row {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 27px;
+}
+
+.color-row {
+    height: 30px;
+}
+
+.inline-row--limit-row {
+    margin: 3px 0;
+    display: flex;
+   height: 32px;
    align-items: center;
 }
 
@@ -85,27 +81,15 @@ body, #main-content {
     display: inline-block;
 }
 
-#sidebar label {
+.block-label {
     display: block;
     padding-left: 2px;
     padding-bottom: 2px;
 }
 
-#sidebar .inline_label {
-    padding-top: 4px;
-    display: inline-block;
-    padding-bottom: 0;
-    bottom: 50%;
-    top: 50%;
-    position: absolute;
-    transform: translate(0, -50%);
-    height: 25px;
-}
-
 #sidebar input, #sidebar select {
     border: 2px solid darkgrey;
     border-radius: 5px;
-    display: inline-block;
     background-color: #ebebeb;
     text-align: left;
 }
@@ -114,10 +98,24 @@ body, #main-content {
     transform: scale(1.5);
 }
 
-.inline_input {
+.inline-input {
     position: absolute;
     display: inline-block;
-    height: 24px;
+}
+
+.function-input {
+    left: 85px;
+    width: 130px;
+}
+
+.font-input {
+    left: 35px;
+}
+
+.text-input {
+    padding: 0 3px;
+    box-sizing: border-box;
+    height: 22px;
 }
 
 .limit_input {
@@ -125,11 +123,17 @@ body, #main-content {
     width: 100px;
 }
 
-.axes_input {
-    left: 90px;
+.axes-input {
+    margin: 0 auto;
+    left: 110px;
 }
 
-.grid_input {
+.axes-style-input {
+    left: 106px;
+}
+
+.grid-input {
+    margin: 0 auto;
     left: 150px;
 }
 
@@ -141,26 +145,21 @@ body, #main-content {
     left: 165px;
 }
 
-#sidebar .active {
-    border: 2px solid orange;
+.import-input {
+    display: block;
+    width: 140px;
 }
 
-#sidebar #lineColor {
-    margin-right: 9px;
+.label-input {
+    width: 125px;
+    margin-right: 5px;
 }
 
-#sidebar .long_input {
-    width: 130px;
-}
-
-#sidebar #traceTable {
+#traceTable {
    width: 100%;
    table-layout: fixed;
 }
 
-#sidebar #table_row {
-    padding-top: 0;
-}
 
 #traceTable tr:not(:first-child) {
     color: black;
@@ -200,7 +199,7 @@ body, #main-content {
     transform: translate(0, -50%);
 }
 
-#sidebar #traceTable .text_cell input {
+ #traceTable .text_cell input {
     display: inline-block;
     border: 0;
     width: 123px;
@@ -213,12 +212,12 @@ body, #main-content {
     background-color: #c4c4c4;
 }
 
-#sidebar #traceTable .active .text_cell input {
+#traceTable .active .text_cell input {
     font-weight: bold;
     background-color: white;
 }
 
-#sidebar #traceTable .active .text_cell{
+#traceTable .active .text_cell{
     background-color: white;
     border-color: white;
 }
@@ -287,7 +286,7 @@ body, #main-content {
     background-color: #ffc063;
 }
 
-#sidebar .accordion_button {
+.accordion-button {
     width: 100%;
     font-size: 16px;
     background-color: #252525;
@@ -299,7 +298,7 @@ body, #main-content {
     padding-top: 2px;
 }
 
-#sidebar .accordion_button:after {
+.accordion-button:after {
     content: '+';
     float: right;
     font-size: 14px;
@@ -309,58 +308,38 @@ body, #main-content {
     text-align: center;
 }
 
-#sidebar .accordion_active:after {
+.accordion-active:after {
     content: '-';
     font-size: 14px;
     padding-right: 2px;
 }
 
-#sidebar .accordion_button:hover {
+.accordion-button:hover {
     background-color: #505050;
 }
 
-#sidebar .accordion_active {
+.accordion-active {
     background-color: #505050;
 }
 
-#sidebar .accordion_active:hover {
+.accordion-active:hover {
     background-color: #606060;
 }
 
-#sidebar .accordion_panel {
+.accordion-panel {
    display: none;
+    padding: 6px 2px 6px 12px;
 }
 
-#sidebar .half_item {
-    width: 50px;
-    margin-right: 10px;
-}
 
-#sidebar .grid_label {
-    margin-bottom: 5px;
-}
-
-#sidebar .checkbox_label {
-    vertical-align: bottom;
-    margin-right: 10px
-}
-
-#sidebar .checkbox_label input {
-    transform: scale(1.5);
-    margin: 0 0 2px 5px;
-    vertical-align: bottom;
-    min-width: 0;
+#sidebar .active {
+    border: 2px solid orange;
 }
 
 .tooltip-wrapper {
     display: none;
     position: fixed;
     left: 280px;
-}
-
-.tooltip-wrapper .tooltip-inner {
-    position: relative;
-    height: 100%;
 }
 
 .tooltip {
@@ -372,7 +351,7 @@ body, #main-content {
     border-radius: 5px;
 }
 
-#sidebar .tooltip .tooltip-header {
+.tooltip-header {
     margin: 0 auto;
     padding: 5px;
     background-color: #252525;
@@ -386,7 +365,7 @@ body, #main-content {
     font-weight: bold;
 }
 
-.tooltip .tooltip-body {
+.tooltip-body {
     padding: 8px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -394,29 +373,29 @@ body, #main-content {
     font-size: 1rem;
 }
 
-.tooltip .tooltip-body p {
+.tooltip-body p {
     margin: 0;
     color: black;
 }
 
-#side-footer {
+.side-footer {
     position: absolute;
     bottom: 0;
-    height: 100px;
+    height: 85px;
     width: 240px;
     font-size: 0.8em;
 }
 
-#side-footer p {
+.side-footer p {
     padding-left: 15px;
     line-height: 0.5;
 }
 
-#side-footer small a {
+.side-footer small a {
     display: inline;
 }
 
-#fine_print {
+.fine-print {
     position: absolute;
     bottom: 0;
 }
@@ -474,7 +453,6 @@ body, #main-content {
     border: 2px solid white;
     color: black;
 }
-
 
 #toolbar_buttons .active {
     color: black;
@@ -546,6 +524,8 @@ a {
 /* Privacy statement rules below (see also text_container above) */
 #sidebar #links {
     height: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
 }
 
 #sidebar #links a {

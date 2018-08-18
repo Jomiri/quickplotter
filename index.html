@@ -54,9 +54,9 @@
         </div>
         <div id='sidebar'>
             <div class='accordion'>
-                <button class='accordion_button'>Trace list</button>
-                <div class='accordion_panel'>
-                    <div class='row has-tooltip' id='table_row'>
+                <button class='accordion-button'>Trace list</button>
+                <div class='accordion-panel'>
+                    <div class='row table-row has-tooltip'>
                         <table id='traceTable'>
                             <thead><tr><td rowspan='1'></td></tr></thead>
                             <tbody></tbody>
@@ -79,11 +79,11 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Edit active trace</button>
-                <div class='accordion_panel'>
+                <button class='accordion-button'>Edit active trace</button>
+                <div class='accordion-panel'>
                     <div class='row has-tooltip'>
-                        <label>apply function to x:</label>
-                        <input type='text' id='xScaling' class='long_input' name='xScaling' value=''>
+                        <label>x function:</label>
+                        <input type='text' id='xScaling' class='inline-input function-input text-input' name='xScaling' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X function</div>
@@ -103,8 +103,8 @@
                         </div>
                     </div>
                     <div class='row has-tooltip'>
-                        <label>apply function to y:</label>
-                        <input type='text' id='yScaling' class='long_input' name='yScaling' value=''>
+                        <label>y function:</label>
+                        <input type='text' id='yScaling' class='inline-input function-input text-input' name='yScaling' value=''>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y function</div>
@@ -125,7 +125,7 @@
                     </div>
                     <div class='row has-tooltip'>
                         <label>plot type:</label>
-                        <select type='text' id='plotType' class='long_input' name='plotType' value=''>
+                        <select type='text' id='plotType' class='inline-input function-input' name='plotType' value=''>
                             <option value='line'>Line</option>
                             <option value='scatter'>Scatter</option>
                             <option value='line + scatter'>Line + Scatter</option>
@@ -230,12 +230,12 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Title and axis labels</button>
-                <div class='accordion_panel'>
+                <button class='accordion-button'>Title and axis labels</button>
+                <div class='accordion-panel'>
                     <div class='row'>
                         <div class='left has-tooltip'>
-                            <label>title:</label>
-                            <input type='text' id='title' class='long_input' name='title' value=''>
+                            <label class='block-label'>title:</label>
+                            <input type='text' id='title' class='label-input text-input' name='title' value=''>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Graph Title</div>
@@ -248,7 +248,7 @@
                             </div>
                         </div>
                         <div class='right has-tooltip'>
-                            <label>font size:</label>
+                            <label class='block-label'>font size:</label>
                             <select type='text' id='titleFontSize' name='titleFontSize'></select>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
@@ -262,8 +262,8 @@
                     </div>
                     <div class='row'>
                         <div class='left has-tooltip'>
-                            <label>x-label:</label>
-                            <input type='text' id='xLabel' class='long_input' name='xLabel' value=''>
+                            <label class='block-label'>x-label:</label>
+                            <input type='text' id='xLabel' class='label-input text-input' name='xLabel' value=''>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>X-axis label</div>
@@ -276,7 +276,7 @@
                             </div>
                         </div>
                         <div class='right has-tooltip'>
-                            <label>font size:</label>
+                            <label class='block-label'>font size:</label>
                             <select type='text' id='xFontSize' name='xFontSize'></select>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
@@ -290,8 +290,8 @@
                     </div>
                     <div class='row'>
                         <div class='left has-tooltip'>
-                            <label>y-label:</label>
-                            <input type='text' id='yLabel' class='long_input' name='yLabel' value=''>
+                            <label class='block-label'>y-label:</label>
+                            <input type='text' id='yLabel' class='label-input text-input' name='yLabel' value=''>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
                                     <div class='tooltip-header'>Y-axis label</div>
@@ -304,7 +304,7 @@
                             </div>
                         </div>
                         <div class='right has-tooltip'>
-                            <label>font size:</label>
+                            <label class='block-label'>font size:</label>
                             <select type='text' id='yFontSize' name='yFontSize'></select>
                             <div class='tooltip-wrapper'>
                                 <div class='tooltip'>
@@ -316,9 +316,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='row has-tooltip'>
+                    <div class='inline-row has-tooltip'>
                         <label>font:</label>
-                        <select type='text' id='labelFont' name='labelFont'>
+                        <select type='text' id='labelFont' class='inline-input font-input' name='labelFont'>
                             <option value='sans-serif'>Sans-Serif</option>
                             <option value='serif'>Serif</option>
                         </select>
@@ -332,11 +332,11 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Coordinate limits</button>
-                <div class='accordion_panel'>
-                    <div class='inline_row inline_row--limit-row has-tooltip'>
-                        <label class='inline_label'>x start:</label>
-                        <input type='text' id='xStart' class='inline_input limit_input' name='xStart' value=''>
+                <button class='accordion-button'>Coordinate limits</button>
+                <div class='accordion-panel'>
+                    <div class='inline-row inline-row--limit-row has-tooltip'>
+                        <label class='inline-label'>x start:</label>
+                        <input type='text' id='xStart' class='inline-input limit_input text-input' name='xStart' value=''>
                         <div class='limit-buttons'>
                             <button class='limit-button auto-button'>Auto</button>
                             <button class='limit-button tight-button'>Tight</button>
@@ -352,9 +352,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row inline_row--limit-row has-tooltip'>
-                        <label class='inline_label'>x end:</label>
-                        <input type='text' id='xEnd' class='inline_input limit_input' name='xEnd' value=''>
+                    <div class='inline-row inline-row--limit-row has-tooltip'>
+                        <label class='inline-label'>x end:</label>
+                        <input type='text' id='xEnd' class='inline-input limit_input text-input' name='xEnd' value=''>
                         <div class='limit-buttons'>
                             <button class='limit-button auto-button'>Auto</button>
                             <button class='limit-button tight-button'>Tight</button>
@@ -370,9 +370,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row inline_row--limit-row has-tooltip'>
-                        <label class='inline_label'>y start:</label>
-                        <input type='text' id='yStart' class='inline_input limit_input' name='yStart' value=''>
+                    <div class='inline-row inline-row--limit-row has-tooltip'>
+                        <label class='inline-label'>y start:</label>
+                        <input type='text' id='yStart' class='inline-input limit_input text-input' name='yStart' value=''>
                         <div class='limit-buttons'>
                             <button class='limit-button auto-button'>Auto</button>
                             <button class='limit-button tight-button'>Tight</button>
@@ -388,9 +388,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row inline_row--limit-row has-tooltip'>
-                        <label class='inline_label'>y end:</label>
-                        <input type='text' id='yEnd' class='inline_input limit_input' name='yEnd' value=''>
+                    <div class='inline-row inline-row--limit-row has-tooltip'>
+                        <label class='inline-label'>y end:</label>
+                        <input type='text' id='yEnd' class='inline-input limit_input text-input' name='yEnd' value=''>
                         <div class='limit-buttons'>
                             <button class='limit-button auto-button'>Auto</button>
                             <button class='limit-button tight-button'>Tight</button>
@@ -407,10 +407,11 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Axes settings</button>
-                <div class='accordion_panel'>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>x-axis on: <input class='inline_input axes_input' type='checkbox' id='xAxisVisibility'></label>
+                <button class='accordion-button'>Axes settings</button>
+                <div class='accordion-panel'>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>x-axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='xAxisVisibility'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X-axis visibility</div>
@@ -420,8 +421,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>top axis on: <input class='inline_input axes_input' type='checkbox' id='topXAxisVisibility'></label>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>top axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='topXAxisVisibility'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Top axis visibility</div>
@@ -431,8 +433,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>y-axis on: <input class='inline_input axes_input' type='checkbox' id='yAxisVisibility'></label>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>y-axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='yAxisVisibility'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y-axis visibility</div>
@@ -442,8 +445,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>right axis on: <input class='inline_input axes_input' type='checkbox' id='rightYAxisVisibility'></label>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>right axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='rightYAxisVisibility'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Right axis visibility</div>
@@ -453,65 +457,61 @@
                             </div>
                         </div>
                     </div>
-                    <div class='row'>
-                        <div class='left has-tooltip'>
-                            <label>axis font size:</label>
-                            <select type='text' id='axisFontSize' name='axisFontSize'></select>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Axis label font size</div>
-                                    <div class='tooltip-body'>
-                                        <p>Select the font size of the axis labels as a percentage of the figure diagonal.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class='right has-tooltip'>
-                            <label>stroke width:</label>
-                            <select type='text' id='axisStrokeWidth' name='axisStrokeWidth' value=''></select>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Axis stroke width</div>
-                                    <div class='tooltip-body'>
-                                        <p>Select the thickness of the coordinate axes.</p>
-                                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label>axis font size:</label>
+                        <select type='text' id='axisFontSize' class='inline-input axes-style-input' name='axisFontSize'></select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Axis label font size</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the font size of the axis labels as a percentage of the figure diagonal.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class='row'>
-                        <div class='left has-tooltip'>
-                            <label>major tick size:</label>
-                            <select type='text' id='majorTickSize' name='majorTickSize' value=''></select>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Major tick size</div>
-                                    <div class='tooltip-body'>
-                                        <p>Select the size of the major ticks.
-                                            Negative tick size generates outward ticks.
-                                            Set tick size to zero to hide them.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class='right has-tooltip'>
-                            <label>minor tick size:</label>
-                            <select type='text' id='minorTickSize' name='minorTickSize' value=''></select>
-                            <div class='tooltip-wrapper'>
-                                <div class='tooltip'>
-                                    <div class='tooltip-header'>Minor tick size</div>
-                                    <div class='tooltip-body'>
-                                        <p>Select the size of the minor ticks.
-                                            Negative tick size generates outward ticks.
-                                            Set tick size to zero to hide them.</p>
-                                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label>stroke width:</label>
+                        <select type='text' id='axisStrokeWidth' class='inline-input axes-style-input' name='axisStrokeWidth' value=''></select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Axis stroke width</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the thickness of the coordinate axes.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class='row has-tooltip'>
+                    <div class='inline-row has-tooltip'>
+                        <label>major tick size:</label>
+                        <select type='text' id='majorTickSize' class='inline-input axes-style-input' name='majorTickSize' value=''></select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Major tick size</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the size of the major ticks.
+                                        Negative tick size generates outward ticks.
+                                        Set tick size to zero to hide them.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label>minor tick size:</label>
+                        <select type='text' id='minorTickSize' class='inline-input axes-style-input' name='minorTickSize' value=''></select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Minor tick size</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the size of the minor ticks.
+                                        Negative tick size generates outward ticks.
+                                        Set tick size to zero to hide them.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
                         <label>legend location:</label>
-                        <select type='text' id='legendLocation' class='long_input' name='legendLocation' value=''>
+                        <select type='text' id='legendLocation' class='inline-input axes-style-input' name='legendLocation' value=''>
                             <option value='none'>None</option>
                             <option value='northeast'>Northeast</option>
                             <option value='southeast'>Southeast</option>
@@ -527,9 +527,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='row has-tooltip'>
+                    <div class='inline-row has-tooltip'>
                         <label>fix aspect ratio:</label>
-                        <select type='text' id='aspectRatio' class='long_input' name='aspectRatio'>
+                        <select type='text' id='aspectRatio' class='inline-input axes-style-input' name='aspectRatio'>
                             <option value='none'>Off</option>
                             <option value='1:1'>1:1</option>
                             <option value='1.1:1'>1.1:1</option>
@@ -548,10 +548,11 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Grid</button>
-                <div class='accordion_panel'>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>major grid horizontal: <input class='inline_input grid_input' type='checkbox' id='horizontalGrid'></label>
+                <button class='accordion-button'>Grid</button>
+                <div class='accordion-panel'>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>major grid horizontal:</label>
+                        <input class='inline-input grid-input' type='checkbox' id='horizontalGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Horizontal major grid</div>
@@ -561,8 +562,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>major grid vertical: <input class='inline_input grid_input' type='checkbox' id='verticalGrid'></label>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>major grid vertical:</label>
+                        <input class='inline-input grid-input' type='checkbox' id='verticalGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Vertical major grid</div>
@@ -572,8 +574,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>minor grid horizontal: <input class='inline_input grid_input' type='checkbox' id='horizontalMinorGrid'></label>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>minor grid horizontal:</label>
+                        <input class='inline-input grid-input' type='checkbox' id='horizontalMinorGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Horizontal minor grid</div>
@@ -583,8 +586,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>minor grid vertical: <input class='inline_input grid_input' type='checkbox' id='verticalMinorGrid'></label>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>minor grid vertical:</label>
+                        <input class='inline-input grid-input' type='checkbox' id='verticalMinorGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Vertical minor grid</div>
@@ -595,11 +599,11 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Advanced - Error bars</button>
-                <div class='accordion_panel'>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>type:</label>
-                        <select class='inline_input error-bar-input' type='text' id='errorBarType' name='errorBarType'>
+                <button class='accordion-button'>Advanced - Error bars</button>
+                <div class='accordion-panel'>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>type:</label>
+                        <select class='inline-input error-bar-input' type='text' id='errorBarType' name='errorBarType'>
                             <option selected value='off'>Off</option>
                             <option value='x_bar'>Bar (X only)</option>
                             <option value='y_bar'>Bar (Y only)</option>
@@ -619,8 +623,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>line width:</label><select class='error-bar-input inline_input' type='text' id='errorBarStrokeWidth' name='errorBarStrokeWidth'></select>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>line width:</label><select class='error-bar-input inline-input' type='text' id='errorBarStrokeWidth' name='errorBarStrokeWidth'></select>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>error bar line width</div>
@@ -630,8 +634,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>line style:</label> <select class='error-bar-input inline_input' type='text' id='errorBarLineStyle' name='errorBarLineStyle'>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>line style:</label> <select class='error-bar-input inline-input' type='text' id='errorBarLineStyle' name='errorBarLineStyle'>
                             <option value='solid'>Solid</option>
                             <option value='dashed'>Dashed</option>
                         </select>
@@ -644,8 +648,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>color:</label> <input class='error-bar-input inline_input' type='color' id='errorBarColor' name='errorBarColor' value='black'>
+                    <div class='inline-row color-row has-tooltip'>
+                        <label class='inline-label'>color:</label> <input class='error-bar-input inline-input' type='color' id='errorBarColor' name='errorBarColor' value='black'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>error bar color</div>
@@ -655,8 +659,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>opacity:</label> <select class='error-bar-input inline_input' type='text' id='errorBarOpacity' name='errorBarOpacity'>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>opacity:</label> <select class='error-bar-input inline-input' type='text' id='errorBarOpacity' name='errorBarOpacity'>
                         </select>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -667,8 +671,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>apply function to x error:</label><input class='inline_input error-bar-cb' type='checkbox' id='errorBarXTransform'>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>apply function to x error:</label><input class='inline-input error-bar-cb' type='checkbox' id='errorBarXTransform'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>X error transformation</div>
@@ -678,8 +682,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class='inline_row has-tooltip'>
-                        <label class='inline_label'>apply function to y error:</label> <input class='inline_input error-bar-cb' type='checkbox' id='errorBarYTransform'>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>apply function to y error:</label> <input class='inline-input error-bar-cb' type='checkbox' id='errorBarYTransform'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
                                 <div class='tooltip-header'>Y error transformation</div>
@@ -690,23 +694,25 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion_button'>Advanced - Import settings</button>
-                <div class='accordion_panel'>
-                    <div class='row has-tooltip'>
-                        <label>import data format:</label>
-                        <select type='text' id='importFormat' class='long_input' name='importFormat'>
-                            <option value='x_y'>x, y</option>
-                            <option value='x_y_yErr'>x, y, yError</option>
-                            <option value='x_y_xErr'>x, y, xError</option>
-                            <option value='x_y_xErr_yErr'>x, y, xError, yError</option>
-                        </select>
-                        <div class='tooltip-wrapper'>
-                            <div class='tooltip'>
-                                <div class='tooltip-header'>import format</div>
-                                <div class='tooltip-body'>
-                                    <p>Specify the column format of the imported data.
-                                        The default is two columns: x and y. You need the change the setting if you
-                                        want to import error bar data in x, y or both directions as well.</p>
+                <button class='accordion-button'>Advanced - Import settings</button>
+                <div class='accordion-panel'>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label class='block-label'>import data format:</label>
+                            <select type='text' id='importFormat' class='import-input' name='importFormat'>
+                                <option value='x_y'>x, y</option>
+                                <option value='x_y_yErr'>x, y, y-error</option>
+                                <option value='x_y_xErr'>x, y, x-error</option>
+                                <option value='x_y_xErr_yErr'>x, y, x-error, y-error</option>
+                            </select>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>import format</div>
+                                    <div class='tooltip-body'>
+                                        <p>Specify the column format of the imported data.
+                                            The default is two columns: x and y. You need the change the setting if you
+                                            want to import error bar data in x, y or both directions as well.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -714,10 +720,10 @@
                 </div>
             </div>
         </div>
-        <div id='side-footer'>
-            <div id='fine_print'>
+        <div class='side-footer'>
+            <div class='fine-print'>
                 <p><a href='privacy.html'>Privacy statement</a></p>
-                <p><small>See the source code on <a href='https://github.com/Jomiri/quickplotter'>GitHub</a></small></p>
+                <p><small>See the source code on <a href='https://github.com/Jomiri/quickplotter'>GitHub</a>.</small></p>
                 <p><small>Contact: <a href='mailto:joona.m.rissanen@gmail.com'> joona.m.rissanen@gmail.com</a></small></p>
                 <p><small>&copy; 2018, Joona Rissanen</small></p>
             </div>

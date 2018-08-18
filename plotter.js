@@ -1,5 +1,5 @@
 /* Source code for the Quickplotter.com website.
-Copyright © 2016 Joona Rissanen.
+Copyright © 2018 Joona Rissanen.
 Quickplotter.com uses several open source libraries and tools.
 Their licenses are available at https://quickplotter.com/licenses.txt
 */
@@ -349,6 +349,10 @@ class XYData {
     this.xMax = d3.max(this.xMaxArr);
     this.yMin = d3.min(this.yMinArr);
     this.yMax = d3.max(this.yMaxArr);
+
+
+    this.xIsSorted = Util.isSorted(this.x);
+    this.xIsReverseSorted = Util.isSorted(this.x.slice().reverse());
   }
 
   get hasXError () {
@@ -360,14 +364,19 @@ class XYData {
   }
 
   nearestPoint (x0) {
-    var pos = d3.bisectLeft(this.x, x0, 0, this.x.length);
-    var prev = this.x[pos - 1];
-    var next = this.x[pos];
-    var idx = x0 - prev < next - x0 ? pos - 1 : pos;
-    return {
-      'x': this.x[idx],
-      'y': this.y[idx]
-    };
+    let pos;
+    if (this.xIsSorted) {
+      pos = d3.bisectLeft(this.x, x0, 0, this.x.length);
+      var prev = this.x[pos];
+      var next = this.x[pos];
+      var idx = x0 - prev < next - x0 ? pos - 1 : pos;
+      return {
+        'x': this.x[idx],
+        'y': this.y[idx]
+      };
+    } else {
+      return null;
+    }
   }
 
   get xRange () {
@@ -1396,10 +1405,10 @@ class Sidebar {
   }
 
   static addAccordionListeners () {
-    let accordionButtons = document.getElementsByClassName('accordion_button');
+    let accordionButtons = document.getElementsByClassName('accordion-button');
     for (let i = 0; i < accordionButtons.length; i++) {
       accordionButtons[i].addEventListener('click', function () {
-        this.classList.toggle('accordion_active');
+        this.classList.toggle('accordion-active');
         let content = this.nextElementSibling;
         content.style.display = content.style.display === 'block' ? 'none' : 'block';
       });
@@ -1546,7 +1555,7 @@ class Sidebar {
   }
 
   static addLimitButtonListeners () {
-    let limitRows = document.querySelectorAll('.inline_row--limit-row');
+    let limitRows = document.querySelectorAll('.inline-row--limit-row');
     for (let i = 0; i < limitRows.length; i++) {
       let input = limitRows[i].querySelector('.limit_input');
       let autoButton = limitRows[i].querySelector('.auto-button');
@@ -1606,10 +1615,8 @@ class Sidebar {
     currentTraceStyle.errorBar.errorBarStrokeWidth = Sidebar.errorBarStrokeWidth;
     currentTraceStyle.errorBar.errorBarLineStyle = Sidebar.errorBarLineStyle;
     currentTraceStyle.errorBar.errorBarOpacity = Sidebar.errorBarOpacity;
-
     currentTraceStyle.errorBar.errorBarXTransform = Sidebar.errorBarXTransform;
     currentTraceStyle.errorBar.errorBarYTransform = Sidebar.errorBarYTransform;
-
 
     currentPlotStyle['importFormat'] = Sidebar.importFormat;
     Sidebar.traceList.updateActiveTraceStyle(Object.assign({}, currentTraceStyle));
@@ -1627,6 +1634,7 @@ class Sidebar {
       Sidebar.activateTrace(Sidebar.traceList.activeTraceIdx);
     }
     if (Sidebar.traceList.traces.length === 0) {
+      Toolbar.clean();
       Toolbar.hide();
     }
     Sidebar.hideTooltips();
@@ -2005,6 +2013,11 @@ class Toolbar {
     }
     var xExact = fig.ax.xScale.invert(coordinates[0]);
     var point = fig.ax.activeGraph.xyData.nearestPoint(xExact);
+    if (point === null) {
+      Toolbar.clean();
+      alert('Data cursor does not work with unsorted or reverse sorted data.');
+      return;
+    }
     if (!point.x) {
       return;
     }
@@ -2180,6 +2193,15 @@ class RegexParser {
 }
 
 class Util {
+  static isSorted (arr) {
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i] < arr[i - 1]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // https://stackoverflow.com/questions/9553354/how-do-i-get-the-decimal-precision-of-a-floating-point-number-in-javascript
   static floatPrecision (num)  {
     if (!isFinite(num)) return 0;
