@@ -64,7 +64,27 @@ const defaultTraceStyle = {
     'capWidthMultiplier': 2.5,
     'errorBarXTransform': false,
     'errorBarYTransform': false}
+};
 
+const defaultFitStyle = {
+  'xScaling': 'x',
+  'yScaling': 'y',
+  'plotType': 'line',
+  'markerSize': 10,
+  'lineStrokeWidth': '2',
+  'lineColor': 'red',
+  'markerColor': '#ff0000',
+  'lineStyle': 'solid',
+  'markerStyle': 'Circle',
+  'errorBar': {
+    'errorBarType': 'off',
+    'errorBarColor': 'black',
+    'errorBarOpacity': '1.0',
+    'errorBarLineStyle': 'solid',
+    'errorBarStrokeWidth': 2,
+    'capWidthMultiplier': 2.5,
+    'errorBarXTransform': false,
+    'errorBarYTransform': false}
 };
 
 const kellyColorsAndBlack = [
@@ -536,6 +556,7 @@ class Axis {
 
     this.gridElem = this.dataAxElem.append('g');
     this.graphElem = this.dataAxElem.append('g');
+    this.fitElem = this.dataAxElem.append('g');
     this.axisElem = this.dataAxElem.append('g');
 
     this.xScale = d3.scaleLinear()
@@ -554,6 +575,10 @@ class Axis {
     var yScale = this.yScale;
     var dataAxElem = this.graphElem;
     this.graphList.map(function (graph) { graph.draw(dataAxElem, xScale, yScale); });
+  }
+
+  resetFitGroup () {
+    this.fitElem.selectAll('*').remove();
   }
 
   remove () {
@@ -1306,9 +1331,11 @@ class TraceList {
     colorSquare.style.backgroundColor = this.activeTrace.legendColor;
   }
 
-  addTrace (trace) {
+  addTrace (trace, color) {
     this.colorGenerator.idx = this.traces.length;
-    let color = this.colorGenerator.nextColor();
+    if (!color) {
+      color = this.colorGenerator.nextColor();
+    }
     trace.style.markerColor = color;
     trace.style.lineColor = color;
     this.traces.push(trace);
@@ -2277,10 +2304,10 @@ class Util {
 
   // https://stackoverflow.com/questions/9895082/javascript-populate-drop-down-list-with-array
   static populateSelectBox (idSelector, optionArray) {
-    var box = document.getElementById(idSelector);
-    for (var i = 0; i < optionArray.length; i++) {
-      var option = optionArray[i];
-      var el = document.createElement('option');
+    let box = document.getElementById(idSelector);
+    for (let i = 0; i < optionArray.length; i++) {
+      let option = optionArray[i];
+      let el = document.createElement('option');
       el.textContent = option;
       el.value = option;
       box.appendChild(el);
@@ -2305,10 +2332,424 @@ class Util {
   }
 }
 
+class CurveFitter {
+  static initialize () {
+    CurveFitter.defaultOptions = {
+      damping: 1.5,
+      gradientDifference: 10e-2,
+      maxIterations: 100,
+      errorTolerance: 10e-3
+    };
+
+    CurveFitter.xDefaults = {
+      'nPoints': 1000,
+      'xMargin': 0
+    };
+
+    CurveFitter.possibleParams = ['A', 'B', 'C', 'D', 'E', 'F'];
+    CurveFitter.renderedParams = [];
+    CurveFitter.functionInput = document.getElementById('fitFunction');
+    CurveFitter.paramTable = document.getElementById('fitParameterTable');
+    CurveFitter.tableBody = CurveFitter.paramTable.getElementsByTagName('tbody')[0];
+    CurveFitter.parser = math.parser();
+    CurveFitter.renderParameterTable();
+    CurveFitter.initFitButton();
+    CurveFitter.initFinalizeButton();
+    CurveFitter.initXDefaults();
+    CurveFitter.initOptions();
+  }
+
+  static initXDefaults () {
+    document.getElementById('fitNPoints').value = CurveFitter.xDefaults.nPoints;
+    document.getElementById('fitXMargin').value = CurveFitter.xDefaults.xMargin;
+  }
+
+  static initOptions () {
+    document.getElementById('fitDampingParameter').value = CurveFitter.defaultOptions.damping;
+    document.getElementById('fitGradientDecrease').value = CurveFitter.defaultOptions.gradientDifference;
+    document.getElementById('fitNumIterations').value = CurveFitter.defaultOptions.maxIterations;
+    document.getElementById('fitErrorTolerance').value = CurveFitter.defaultOptions.errorTolerance;
+  }
+
+  static makeFitX () {
+    let trace = CurveFitter.targetTrace;
+    if (!trace) {
+      return;
+    }
+    let traceX = trace.xTransformed;
+
+    let xStart = d3.min(traceX);
+    let xEnd = d3.max(traceX);
+    let xSpan = Math.abs(xEnd - xStart);
+    let xMarginFraction = CurveFitter.getFitMargin();
+    if (xMarginFraction === null) {
+      return null;
+    }
+    let xMargin = xMarginFraction * xSpan;
+
+    let xPoints = CurveFitter.getFitPoints();
+    if (xPoints === null) {
+      return null;
+    }
+    let xStartMargin = xStart - xMargin;
+    let xEndMargin = xEnd + xMargin;
+    let delta = (xEndMargin - xStartMargin) / (xPoints - 1);
+    return d3.range(xPoints).map(function (i) { return xStartMargin + i * delta; });
+  }
+
+  static getNumIterations () {
+    let numIterationsStr = document.getElementById('fitNumIterations').value;
+    let numIterationsInt;
+    try {
+      numIterationsInt = parseInt(numIterationsStr);
+    } catch (err) {
+      alert(err.toString());
+      return null;
+    }
+    if (numIterationsInt < 1) {
+      alert('Number of iterations per step must be >= 1.');
+      return null;
+    }
+    return numIterationsInt;
+  }
+
+  static getGradientDecrease () {
+    let gradientDecreaseStr = document.getElementById('fitGradientDecrease').value;
+    let gradientDecreaseFloat;
+    try {
+      gradientDecreaseFloat = Util.toFloat(gradientDecreaseStr);
+    } catch (err) {
+      alert(err.toString());
+      return null;
+    }
+    if (gradientDecreaseFloat < 0) {
+      alert('Gradient decrease parameter cannot be negative.');
+      return null;
+    }
+    return gradientDecreaseFloat;
+  }
+
+  static getDampingParameter () {
+    let dampingStr = document.getElementById('fitDampingParameter').value;
+    let dampingFloat;
+    try {
+      dampingFloat = Util.toFloat(dampingStr);
+    } catch (err) {
+      alert(err.toString());
+      return null;
+    }
+    if (dampingFloat < 0) {
+      alert('Damping parameter cannot be negative.');
+      return null;
+    }
+    return dampingFloat;
+  }
+
+  static getErrorTolerance () {
+    let errorTolStr = document.getElementById('fitErrorTolerance').value;
+    let errorTolFloat;
+    try {
+      errorTolFloat = Util.toFloat(errorTolStr);
+    } catch (err) {
+      alert(err.toString());
+      return null;
+    }
+    if (errorTolFloat < 0) {
+      alert('Error tolerance cannot be negative.');
+      return null;
+    }
+    return errorTolFloat;
+  }
+
+  static getFitMargin () {
+    let marginStr = document.getElementById('fitXMargin').value;
+    let marginAbsolute;
+    try {
+      marginAbsolute = Util.toFloat(marginStr) / 100;
+    } catch (err) {
+      alert(err.toString());
+      return null;
+    }
+    if (marginAbsolute < 0) {
+      alert('Fit margin cannot be negative.');
+      return null;
+    }
+    return marginAbsolute;
+  }
+
+  static getFitPoints () {
+    let pointsStr = document.getElementById('fitNPoints').value;
+    let pointsInt;
+    try {
+      pointsInt = parseInt(pointsStr);
+    } catch (err) {
+      alert(err.toString());
+      return null;
+    }
+    if (pointsInt < 2) {
+      alert('At least 2 fit points required.');
+      return null;
+    }
+    return pointsInt;
+  }
+
+  static paramToIndex (param) {
+    return CurveFitter.possibleParams.indexOf(param);
+  }
+
+  static get targetTrace () {
+    return Sidebar.traceList.activeTrace;
+  }
+
+  static initFitButton () {
+    document.getElementById('fitButton').addEventListener('click', function () {
+      CurveFitter.fit();
+    });
+  }
+
+  static initFinalizeButton () {
+    document.getElementById('finalizeButton').addEventListener('click', function () {
+      CurveFitter.exportFittedCurve();
+    });
+  }
+
+  static exportFittedCurve () {
+    if (!CurveFitter.targetTrace) {
+      return;
+    }
+    let params = CurveFitter.getCurrentParameterValues();
+    if (params === null) {
+      return;
+    }
+    CurveFitter.parser.clear();
+    fig.ax.resetFitGroup();
+    let functionStr = CurveFitter.functionInput.value;
+    let funcDef = 'f(x) = ' + functionStr;
+    for (let i = 0; i < params.length; i++) {
+      CurveFitter.parser.set(params[i][0], params[i][1]);
+    }
+    CurveFitter.parser.eval(funcDef);
+
+    const f = CurveFitter.parser.get('f');
+    const x = CurveFitter.makeFitX();
+    if (x === null) {
+      return;
+    }
+    const y = x.map(e => f(e));
+    let style = Object.assign({}, defaultFitStyle);
+    let traceCols = {'x': x, 'y': y};
+    let traceLabel = CurveFitter.makeTraceLabel(params, functionStr);
+    let newTrace = new Trace(traceCols, style, traceLabel);
+    Sidebar.traceList.addTrace(newTrace, '#00ff00');
+    Sidebar.resetLimits();
+    Sidebar.show();
+    Toolbar.show();
+    FigureArea.redraw();
+  }
+
+  static makeTraceLabel (params, functionStr) {
+    let usedParams = CurveFitter.findUsedParameters(functionStr);
+    let usedParamsAndValues = [];
+    for (let i = 0; i < params.length; i++) {
+      if (usedParams.includes(params[i][0])) {
+        usedParamsAndValues.push(params[i]);
+      }
+    }
+    let paramsStr = usedParamsAndValues.map(e => e[0] + ': ' + e[1]).join(', ');
+    return 'Fit to "' + CurveFitter.targetTrace.traceLabel + '", y=' + functionStr + ', ' + paramsStr;
+  }
+
+  static fit () {
+    let targetTrace = CurveFitter.targetTrace;
+    if (!targetTrace) {
+      return;
+    }
+
+    let functionStr = CurveFitter.functionInput.value;
+
+    let usedParams = CurveFitter.findUsedParameters(functionStr);
+    if (usedParams.length === 0) {
+      alert('The fit function contains no free parameters.');
+      return;
+    }
+
+    let initialGuess = CurveFitter.makeInitialGuess(usedParams);
+    if (initialGuess === null) {
+      alert('Please give initial values to all parameters.');
+      return;
+    }
+
+    let errorTolerance = CurveFitter.getErrorTolerance();
+    if (errorTolerance === null) {
+      return;
+    }
+
+    let damping = CurveFitter.getDampingParameter();
+    if (damping === null) {
+      return;
+    }
+
+    let gradientDecrease = CurveFitter.getGradientDecrease();
+    if (gradientDecrease === null) {
+      return;
+    }
+
+    let numIterations = CurveFitter.getNumIterations();
+    if (numIterations === null) {
+      return;
+    }
+
+    let targetX = targetTrace.xTransformed;
+    let targetY = targetTrace.yTransformed;
+
+    let targetData = {
+      x: targetX,
+      y: targetY
+    };
+
+    let funcDef = 'f(x) = ' + functionStr;
+    CurveFitter.parser.clear();
+    CurveFitter.parser.eval(funcDef);
+
+    let fitFunc = function () {
+      for (let i = 0; i < usedParams.length; i++) {
+        CurveFitter.parser.set(usedParams[i], arguments[0][i]);
+      }
+      return CurveFitter.parser.get('f');
+    };
+
+    let options = Object.assign({}, CurveFitter.defaultOptions);
+    options.initialValues = initialGuess;
+    options.maxIterations = numIterations;
+    options.errorTolerance = errorTolerance;
+    options.gradientDifference = gradientDecrease;
+    options.damping = damping;
+
+    try {
+      let fitResult = curveFit.levenbergMarquardt(targetData, fitFunc, options);
+      console.log(fitResult);
+      CurveFitter.updateParams(usedParams, fitResult.parameterValues);
+      CurveFitter.drawFittedGraph();
+    } catch (err) {
+      alert(err.toString());
+    }
+  }
+
+  static updateParams (paramNames, fittedValues) {
+    for (let i = 0; i < paramNames.length; i++) {
+      CurveFitter.setParamValue(paramNames[i], fittedValues[i]);
+    }
+  }
+
+  static makeInitialGuess (usedParams) {
+    let values = [];
+    for (let i = 0; i < usedParams.length; i++) {
+      let param = usedParams[i];
+      let value = CurveFitter.paramValue(param);
+      if (value === null) {
+        return null;
+      }
+      values.push(value);
+    }
+    return values;
+  }
+
+  static findUsedParameters (funcStr) {
+    let usedParams = [];
+    for (let i = 0; i < CurveFitter.possibleParams.length; i++) {
+      if (funcStr.includes(CurveFitter.possibleParams[i])) {
+        usedParams.push(CurveFitter.possibleParams[i]);
+      }
+    }
+    return usedParams;
+  }
+
+  static renderParameterTable () {
+    for (let i = 0; i < CurveFitter.possibleParams.length; i++) {
+      let addedRow = CurveFitter.tableBody.insertRow(i);
+      let labelCell = addedRow.insertCell(0);
+      let inputCell = addedRow.insertCell(1);
+      let paramInput = document.createElement('input');
+      paramInput.classList.add('fit-parameter-input');
+      paramInput.classList.add('text-input');
+      paramInput.value = '1';
+      paramInput.addEventListener('change', function (event) {
+        try {
+          CurveFitter.drawFittedGraph();
+        } catch (err) {
+          alert(err.toString());
+        }
+      });
+      inputCell.appendChild(paramInput);
+      labelCell.textContent = CurveFitter.possibleParams[i] + ':';
+    }
+  }
+
+  static drawFittedGraph () {
+    if (!CurveFitter.targetTrace) {
+      return;
+    }
+    let params = CurveFitter.getCurrentParameterValues();
+    if (params === null) {
+      return;
+    }
+    CurveFitter.parser.clear();
+    fig.ax.resetFitGroup();
+    let functionStr = CurveFitter.functionInput.value;
+    let funcDef = 'f(x) = ' + functionStr;
+    for (let i = 0; i < params.length; i++) {
+      CurveFitter.parser.set(params[i][0], params[i][1]);
+    }
+    CurveFitter.parser.eval(funcDef);
+
+    const f = CurveFitter.parser.get('f');
+    const x = CurveFitter.makeFitX();
+    if (x === null) {
+      return;
+    }
+    const y = x.map(e => f(e));
+    let style = Object.assign({}, defaultFitStyle);
+    let fittedGraph = new Graph(x, y, null, null, style);
+    fittedGraph.draw(fig.ax.fitElem, fig.ax.xScale, fig.ax.yScale);
+  }
+
+  static paramValue (param) {
+    let index = CurveFitter.paramToIndex(param);
+    let valueStr = CurveFitter.tableBody.rows[index].cells[1].getElementsByTagName('input')[0].value;
+    console.log(valueStr);
+    let valueFloat = 0;
+    try {
+      valueFloat = Util.toFloat(valueStr);
+    } catch (err) {
+      return null;
+    }
+    return valueFloat;
+  }
+
+  static setParamValue (param, value) {
+    let index = CurveFitter.paramToIndex(param);
+    CurveFitter.tableBody.rows[index].cells[1].getElementsByTagName('input')[0].value = value;
+  }
+
+  static getCurrentParameterValues () {
+    let params = [];
+    for (let i = 0; i < CurveFitter.possibleParams.length; i++) {
+      let param = CurveFitter.possibleParams[i];
+      let valueFloat = CurveFitter.paramValue(param);
+      if (valueFloat === null) {
+        return null;
+      }
+      params[i] = [param, valueFloat];
+    }
+    return params;
+  }
+}
+
 var fig = new Figure('#figure_area');
 Toolbar.initialize();
 Sidebar.initialize();
 FigureArea.initialize();
+CurveFitter.initialize();
 
 window.onbeforeunload = function (event) {
   event.preventDefault();

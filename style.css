@@ -155,6 +155,19 @@ body, #main-content {
     margin-right: 5px;
 }
 
+.fit-function-input {
+    width: 195px;
+}
+
+.fit-input {
+    left: 145px;
+    width: 50px;
+}
+
+.fit-parameter-input {
+    width: 100px;
+}
+
 #traceTable {
    width: 100%;
    table-layout: fixed;
@@ -378,6 +391,10 @@ body, #main-content {
     color: black;
 }
 
+.fit-button {
+
+}
+
 .side-footer {
     position: absolute;
     bottom: 0;
@@ -519,6 +536,10 @@ canvas {
 
 a {
     color: rgb(0, 102, 204);
+}
+
+#fitParameterTable {
+    display: block;
 }
 
 /* Privacy statement rules below (see also text_container above) */

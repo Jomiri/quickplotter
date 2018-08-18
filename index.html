@@ -43,6 +43,7 @@
     <script src='https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js'></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.3/math.min.js"></script>
     <script src='https://d3js.org/d3.v5.min.js'></script>
+    <script type='text/javascript' src='curve_fitter.js' defer></script>
     <script type='text/javascript' src='plotter.js' defer></script>
 </head>
 
@@ -407,7 +408,7 @@
                         </div>
                     </div>
                 </div>
-                <button class='accordion-button'>Axes settings</button>
+                <button class='accordion-button'>Axes properties</button>
                 <div class='accordion-panel'>
                     <div class='inline-row has-tooltip'>
                         <label class='inline-label'>x-axis on:</label>
@@ -594,6 +595,166 @@
                                 <div class='tooltip-header'>Vertical minor grid</div>
                                 <div class='tooltip-body'>
                                     <p>Show or hide vertical grid lines at minor tick locations.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class='accordion-button'>Advanced - Curve fitting</button>
+                <div class='accordion-panel'>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label class='block-label'>fit function:</label>
+                            <input type='text' id='fitFunction' class='fit-function-input' name='fitFunction' value='A*x + B' >
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Curve fitting</div>
+                                    <div class='tooltip-body'>
+                                        <p>Write a function that will be fitted to the the <strong>active trace's</strong> data points.
+                                            The same mathematical operations are supported as in the x and y transformation functions.
+                                            Use uppercase letters <strong>A-F</strong> as the fitting parameters
+                                            and <strong>x</strong> as the variable.</p>
+                                        <p><strong>Examples:</strong></p>
+                                        <p>Linear fit through origin: <strong>A*x</strong></p>
+                                        <p>General linear fit: <strong>A*x + B</strong></p>
+                                        <p>Parabolic fit: <strong>A*x^2 + B*x + C</strong></p>
+                                        <p>Gaussian fit: <strong>A*exp(-(x-B)^2/C)</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>error tolerance:</label>
+                        <input type='text' id='fitErrorTolerance' class='inline-input fit-input' name='fitErrorTolerance'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>error tolerance</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the error tolerance parameter used in the Levenberg-Marquardt algorithm.
+                                        You can decrease the tolerance to obtain a slightly better fit if needed.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>gradient decrease:</label>
+                        <input type='text' id='fitGradientDecrease' class='inline-input fit-input' name='fitGradientDecrease'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>gradient decrease</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the gradient decrease parameter used in the Levenberg-Marquardt algorithm.
+                                        You can experiment with this value if the convergence seems slow.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>damping parameter:</label>
+                        <input type='text' id='fitDampingParameter' class='inline-input fit-input' name='fitDampingParameter'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Damping parameter</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the damping parameter used in the Levenberg-Marquardt algorithm.
+                                        You can experiment with this value if the convergence seems slow.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>iterations per step:</label>
+                        <input type='text' id='fitNumIterations' class='inline-input fit-input' name='fitNumIterations'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>iterations per step</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the maximum number of iterations performed each time you click the "iterate" button.
+                                        You can increase or decrease this value depending on how computationally intensive the calculation is.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>extrapolation margin:</label>
+                        <input type='text' id='fitXMargin' class='inline-input fit-input' name='fitXMargin'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>extrapolation margin</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the margin of extrapolation in the finalized curve as a percentage of the range of x coordinates.</p>
+                                    <p><strong>Examples:</strong></p>
+                                    <p>If your original data is from x=0 to x=1, a 10 % margin means that
+                                        the fitted curve will start at x=-0.1 and end at x=1.1.
+                                        Zero margin means no extrapolation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>number of points:</label>
+                        <input type='text' id='fitNPoints' class='inline-input fit-input' name='fitNPoints'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>fitted points</div>
+                                <div class='tooltip-body'>
+                                    <p>Set the (integer) number of points in the finalized curve.
+                                        The more points you use, the smoother the curve looks.
+                                        This parameter does not affect the curve fitting itself only the finalized curve.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <label class='block-label'>fit parameters:</label>
+                            <table id='fitParameterTable'>
+                                <thead><tr><td rowspan='2'></td></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Fit parameters</div>
+                                    <div class='tooltip-body'>
+                                        <p>These are the current values of the fit function's parameters.
+                                            They act as the initial guess values for the fitting algorithm
+                                            and the algorithm updates them after each sequence of iterations.
+                                            The fitted function (a red line) is shown in the figure each time you change the parameters.
+                                            The line may be invisible if the parameters are very far off.
+                                        </p>
+                                        <p><strong>Note: </strong> Choose the initial guess as well as possible.
+                                            It is the single most important condition for convergence. Use the red line in the figure
+                                            to guide you.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='left has-tooltip'>
+                            <button id='fitButton' class='fit-button'>Iterate</button>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Iterate</div>
+                                    <div class='tooltip-body'>
+                                        <p>Run a number of curve fitting iterations
+                                            as defined by the "iterations per step" parameter above.
+                                            The fit has converged when the parameters
+                                            above no longer change and the red curve in the figure visually matches the data points.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='right has-tooltip'>
+                            <button id='finalizeButton' class='fit-button'>Finalize</button>
+                            <div class='tooltip-wrapper'>
+                                <div class='tooltip'>
+                                    <div class='tooltip-header'>Finalize fit</div>
+                                    <div class='tooltip-body'>
+                                        <p>Add the fitted curve as a permanent trace.
+                                            The new trace is generated based on the current fit function and parameter values. </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
