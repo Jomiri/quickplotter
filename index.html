@@ -824,11 +824,11 @@
                             <div class='tooltip'>
                                 <div class='tooltip-header'>error bar type</div>
                                 <div class='tooltip-body'>
-                                    <p>Select the basic type of the shown error bars.
-                                        <b>Important:</b> To plot error bars, you must first import data,
-                                        which includes the absolute error values in x, y or both directions for each data point.
-                                        Set the correct file format in the import settings first.
-                                        Asymmetric error bars are not supported yet.</p>
+                                    <p>Select the basic type of the shown error bars.</p>
+                                        <p><b>Important:</b> To plot error bars, you must first import data
+                                        with the absolute error values in x and/or y directions for each data point.
+                                        To do so, set the correct file format in the import settings.
+                                        Quickplotter supports only symmetric error bars at the moment.</p>
                                 </div>
                             </div>
                         </div>
@@ -920,8 +920,8 @@
                                     <div class='tooltip-header'>import format</div>
                                     <div class='tooltip-body'>
                                         <p>Specify the column format of the imported data.
-                                            The default is two columns: x and y. You need the change the setting if you
-                                            want to import error bar data.</p>
+                                            Incorrect file format leads to undefined behavior.
+                                            Change this setting to import error bar data.</p>
                                     </div>
                                 </div>
                             </div>

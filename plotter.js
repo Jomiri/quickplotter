@@ -711,7 +711,6 @@ class Axis {
         return 'translate(0,' + i * deltaY + ')';
       });
 
-
     legend.append('rect')
       .attr('x', startX)
       .attr('y', startY)
