@@ -1524,6 +1524,7 @@ class Sidebar {
       'lineStyle', 'markerStyle',
       'lineStrokeWidth', 'markerSize',
       'axisStrokeWidth', 'axisFontSize',
+      'axisFont',
       'minorTickSize', 'majorTickSize',
       'horizontalGrid', 'verticalGrid',
       'horizontalMinorGrid', 'verticalMinorGrid',
@@ -1617,6 +1618,7 @@ class Sidebar {
     currentPlotStyle['yEnd'] = Sidebar.yEnd;
     currentPlotStyle['axisStrokeWidth'] = Sidebar.axisStrokeWidth;
     currentPlotStyle['axisFontSize'] = Sidebar.axisFontSize;
+    currentPlotStyle['axisFont'] = Sidebar.axisFont;
     currentPlotStyle['horizontalGrid'] = Sidebar.horizontalGrid;
     currentPlotStyle['verticalGrid'] = Sidebar.verticalGrid;
     currentPlotStyle['horizontalMinorGrid'] = Sidebar.horizontalMinorGrid;
@@ -1785,6 +1787,10 @@ class Sidebar {
 
   static get axisFontSize () {
     return document.getElementById('axisFontSize').value.replace('%', '');
+  }
+
+  static get axisFont () {
+    return document.getElementById('axisFont').value;
   }
 
   static get horizontalGrid () {

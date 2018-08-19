@@ -43,7 +43,7 @@
     <script src='https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js'></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.3/math.min.js"></script>
     <script src='https://d3js.org/d3.v5.min.js'></script>
-    <script type='text/javascript' src='curve_fitter.js' defer></script>
+    <script type='text/javascript' src='curve_fitter.min.js' defer></script>
     <script type='text/javascript' src='plotter.js' defer></script>
 </head>
 
@@ -449,7 +449,22 @@
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label>axis font size:</label>
+                        <label>tick font:</label>
+                        <select type='text' id='axisFont' class='inline-input axes-style-input' name='axisFont'>
+                            <option value='sans-serif' selected>Sans-Serif</option>
+                            <option value='serif'>Serif</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Axis label font</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the font of the tick labels.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label>tick font size:</label>
                         <select type='text' id='axisFontSize' class='inline-input axes-style-input' name='axisFontSize'></select>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
