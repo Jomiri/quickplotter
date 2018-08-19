@@ -1,3 +1,4 @@
 # Quickplotter
 
-This repo contains the source code of the drag-and-drop plotting utility [quickplotter.com](https://quickplotter.com).
+This repository contains the source code of my online graph maker app [quickplotter.com](https://quickplotter.com), which
+generates high-quality xy graphs with [D3.js](https://d3js.org/).
