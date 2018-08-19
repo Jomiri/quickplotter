@@ -449,6 +449,10 @@ body, #main-content {
     bottom: 0;
 }
 
+.fine-print a {
+    margin-right: 10px;
+}
+
 #figure_container {
     position: absolute;
     top: 10px;
@@ -587,13 +591,26 @@ a {
     margin: 0 auto;
     font-size: 1.2em;
     position: absolute;
-    text-align: center;
+    text-align: left;
 }
 
-#text_column {
-    position: relative;
+.text_container {
     margin: 0 auto;
     padding-top: 25px;
     font-family: sans-serif;
     max-width: 500px;
+}
+
+@media screen and ( max-width: 1000px ) {
+    .text_container {
+        margin: 0 0 0 260px;
+    }
+}
+
+.text-block {
+    border-top: 3px dashed grey;
+}
+
+.text-block h4, .text-block p {
+    padding-left: 20px;
 }

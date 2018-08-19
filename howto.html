@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html lang='en-US'>
+<head>
+    <title>Quickplotter | How-to guide</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-38729488-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-38729488-2');
+    </script>
+
+    <meta charset='UTF-8'>
+    <meta name='author' content='Joona Rissanen'>
+    <meta name='description' content='Quickplotter how-to guide contains helpful tips and tricks for effective plotting that are too long for the
+tooltips.'/>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <link rel='stylesheet' type='text/css' href='style.css'>
+
+    <!-- Favicons -->
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="256x256" href="/favicon-256x256.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+    <link rel="manifest" href="/site.webmanifest"/>
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"/>
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta property='og:title' content='Quickplotter'/>
+    <meta property='og:type' content='website'/>
+    <meta property='og:image' content='https://quickplotter.com/favicon-og.png'/>
+    <meta property='og:url' content='https://quickplotter.com'/>
+    <meta property='og:description' content='Quickplotter how-to guide contains helpful tips and tricks for effective plotting
+that are too long for the tooltips.'/>
+</head>
+
+<body>
+<div id='main-content'>
+    <div id='side'>
+        <div id='side-header'>
+            <h1>Quickplotter <sup>beta</sup> </h1>
+        </div>
+
+        <div id='sidebar'>
+            <div id='links'>
+                <a href='index.html'>Back to plotting</a>
+            </div>
+        </div>
+        <div class='side-footer'>
+            <div class='fine-print'>
+                <p><small>See the source code on <a href='https://github.com/Jomiri/quickplotter'>GitHub.</a></small></p>
+                <p><small>Contact: <a href='mailto:joona.m.rissanen@gmail.com'> joona.m.rissanen@gmail.com</a></small></p>
+                <p><small>&copy; 2018, Joona Rissanen</small></p>
+            </div>
+        </div>
+    </div>
+
+    <div class='text_container'>
+        <div id='text_column'>
+            <h2>How to plot effectively with Quickplotter?</h2>
+            <p>This guide includes several tips and tricks that go beyond the simple tooltips on the main page
+                and help you to make the most of Quickplotter. </p>
+
+            <div class='text-block'><h3>Function transformations</h3>
+                <p>The custom functions allow flexibility in mutating the x- and y-values before plotting while keeping the
+                    original imported data unchanged. Here are some common questions and
+                    use cases related to function transformations:</p>
+
+                <h4>Which mathematical expressions are recognized?</h4>
+                <p>Quickplotter uses math.js for parsing the mathematical expressions in data transformations and
+                    curve fitting. Check the <a href='http://mathjs.org/docs/reference/functions.html'>reference</a>
+                    for the supported functions and operators.</p>
+
+                <h4>How to normalize y-values between 0 and 1?</h4>
+                <p>Use the following transformation <b>(y - min(y)) / (max(y) - min(y))</b>.</p>
+
+                <h4>How to shift the center of x-values to zero?</h4>
+                <p>If the x-coordinates are evenly spaced, the simple transformation <b>x - mean(x)</b>
+                    works. In the general case, use <b>x - (max(x) - min(x))/2</b>.</p>
+
+                <h4>How to plot linear scale y-values in dB-scale?</h4>
+                <p>Quickplotter does not yet support plotting the axes in logarithmic scale but you can use a function
+                    transformation to make the data logarithmic. The following function works: <b>10*log10(y)</b>.
+                    Negative or zero y-values are illegal arguments to logarithm and result in NaN:s which are dropped
+                    out before plotting.</p>
+
+                <h4>How to use logarithm to explore power laws in you data?</h4>
+                <p>Suppose you have dataset that you believe obeys a power law <b>y = ax^k</b> and you want to find
+                    the parameters <b>a</b> and <b>k</b>. Instead of turning straight into curve fitting, it makes
+                    sense to first transform your data into log-scale with <b>log(x)</b> and <b>log(y)</b>. Now your function
+                    has to form <b>log(y) = k*log(x) + log(a)</b> and you can use a linear fit to find the slope =
+                    <b>k</b> and intercept = <b>log(a)</b> easily. </p>
+
+                <h4>How to draw mathematical functions?</h4>
+                <p>Quickplotter is not a graphing calculator but you can use the custom function transformation to plot
+                    pure mathematical functions, such as <b>f(x) = exp(x)</b>, if you import linearly spaced data. For example,
+                    you can generate two columns with x=y=1,2,...,100 in Excel and then transform the y-value in Quickplotter
+                    to exp(y).</p>
+            </div>
+
+            <div class='text-block'>
+                <h3>Unicode characters</h3>
+                <h4>How to write Unicode characters?</h4>
+                <p>The graph title, axis labels and legend entries can render Unicode characters given as HTML entities
+                    or decimal or hexadecimal references. At the moment, the legend position is not correctly calculated
+                    if the legend contains special Unicode characters.
+                    See this <a href='https://www.w3schools.com/charsets/ref_html_utf8.asp'>link</a> or google for
+                    a reference of possible character codes.</p>
+
+                <h4>Greek letters</h4>
+                <p>Greek letters have their own HTML entities so they are easy to remember. For example, a lowercase
+                    alpha (&alpha;) is <b>&amp;alpha;</b> and an uppercase sigma (&Sigma;) is <b>&amp;Sigma;</b>.
+                    Greek letters look much nicer in serif-fonts, such as Times New Roman.</p>
+
+                <h4>Characters without an HTML entity</h4>
+                <p>If a character does not have an HTML entity, you can use its numeric reference. For example,
+                    <b>&amp;#8723;</b> draws the minus-plus sign (&#8723;).
+                    In principle, you can use any character, even the Snowman (&#9924; = <b>&amp;#9924;</b>), though
+                    I doubt you will need it.</p>
+
+            </div>
+            <div class='text-block'>
+                <h3>Importing and exporting</h3>
+
+                <h4>How to import data?</h4>
+                <p>You can import data either by copy-pasting or drag-and-dropping into the figure area.
+                    The drag-and-drop method allows importing multiple files simultaneously. If you want to import error
+                    values, select the correct import format first.</p>
+                <h4>How to export data?</h4>
+                <p>Quickplotter provides three export options: PNG figure for instant use, SVG figure for further modification
+                    and CSV data file, which can be used export transformed data or fitted curves. </p>
+
+                <h4>How to edit the figure generated by Quickplotter?</h4>
+                <p>Quickplotter aims to provide the most commonly used styling options but f you want full-control over the
+                    look of you graph, you can export it in SVG-format for post-processing in a vector graphics editor.
+                    The free, open source, cross-platform editor <a href='https://inkscape.org/en/'>Inkscape.</a> is a
+                    great option. Please use the newest version of Inkscape, 0.92.
+                    In addition to styling, you can use Inkscape to
+                    add annotations to your graphs or combine several graphs into a single file.
+                </p>
+
+                <h4>How to export a figure with a certain aspect ratio?</h4>
+                <p>By default, the figure fills the entire available area in the browser window and the exported figure
+                    will inherit these dimensions. You can use the "fix aspect ratio" option to uncouple the aspect ratio
+                    from the browser window. If you need a figure with exact pixel dimensions, you can export as SVG
+                    and scale the figure in Inkscape.</p>
+            </div>
+            <div class='text-block'>
+                <h3>How to give feedback or suggest new features?</h3>
+                <p>If you find Quickplotter useful, or if you feel that some essential feature is missing, I'd like to
+                    hear about it. You can email me (the address is in the side bar) or open a new issue on GitHub.
+                    Your suggestion has a good change of being heard.
+                    For example, the error bar plotting was added based on user feedback.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

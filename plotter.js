@@ -724,7 +724,7 @@ class Axis {
       .attr('x', startX + labelOffsetX)
       .attr('y', startY + labelOffsetY)
       /* .attr('dy', '0.25em') */
-      .text(function (d) {
+      .html(function (d) {
         return d.traceLabel;
       });
   }
