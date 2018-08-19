@@ -130,6 +130,7 @@ body, #main-content {
 
 .axes-style-input {
     left: 106px;
+    width: 87px;
 }
 
 .grid-input {
@@ -139,6 +140,7 @@ body, #main-content {
 
 .error-bar-input {
     left: 75px;
+    width: 110px;
 }
 
 .error-bar-cb {
@@ -215,7 +217,7 @@ body, #main-content {
  #traceTable .text_cell input {
     display: inline-block;
     border: 0;
-    width: 123px;
+    width: 115px;
     height: 20px;
     bottom: 50%;
     top: 50%;
@@ -225,28 +227,12 @@ body, #main-content {
     background-color: #c4c4c4;
 }
 
-#traceTable .active .text_cell input {
-    font-weight: bold;
-    background-color: white;
-}
-
-#traceTable .active .text_cell{
-    background-color: white;
-    border-color: white;
-}
-
 #traceTable .button_cell {
     width: 60px;
     margin: 0 auto;
     padding: 0;
-    vertical-align: top;
     top: 0;
     position: relative;
-}
-
-#traceTable .active .button_cell button {
-    background-color: white;
-    border-color: white;
 }
 
 #traceTable .button_cell .trace_button {
@@ -256,10 +242,46 @@ body, #main-content {
     font-size: 10px;
     font-weight: bold;
     display: block;
-    background-color: #c4c4c4;
     color: black;
     border: 1px solid grey;
     border-radius: 5px;
+    vertical-align: middle;
+}
+
+#traceTable .text_cell input {
+    background-color: white;
+}
+
+#traceTable .text_cell{
+    background-color: white;
+    border-color: white;
+}
+
+#traceTable .button_cell button {
+    background-color: white;
+    border-color: white;
+}
+
+#traceTable .trace-hidden .text_cell input {
+    background-color: #c4c4c4;
+}
+
+#traceTable .trace-hidden .text_cell{
+    background-color: #c4c4c4;
+    border-color: #c4c4c4;
+}
+
+#traceTable .trace-hidden .button_cell button {
+    background-color: #c4c4c4;
+    border-color: #c4c4c4;
+}
+
+#traceTable .active .text_cell input {
+    font-weight: bold;
+}
+
+#traceTable .active .text_cell{
+    border: 2px solid firebrick;
 }
 
 #traceTable .button_cell .trace_button:nth-child(2) {
@@ -392,7 +414,17 @@ body, #main-content {
 }
 
 .fit-button {
+    height: 25px;
+    width: 100px;
+    background-color: navy;
+    color: #ebebeb;
+    border-radius: 5px;
+    margin-right: 3px;
+}
 
+.fit-button:hover {
+    background-color: dodgerblue;
+    color: black;
 }
 
 .side-footer {
@@ -544,7 +576,7 @@ a {
 
 /* Privacy statement rules below (see also text_container above) */
 #sidebar #links {
-    height: 100%;
+    width: 227px;
     padding-left: 12px;
     padding-right: 12px;
 }

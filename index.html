@@ -411,49 +411,39 @@
                 <button class='accordion-button'>Axes properties</button>
                 <div class='accordion-panel'>
                     <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>x-axis on:</label>
-                        <input class='inline-input axes-input' type='checkbox' id='xAxisVisibility'>
+                        <label>fix aspect ratio:</label>
+                        <select type='text' id='aspectRatio' class='inline-input axes-style-input' name='aspectRatio'>
+                            <option value='none'>Off</option>
+                            <option value='1:1'>1:1</option>
+                            <option value='1.1:1'>1.1:1</option>
+                            <option value='1:1.1'>1:1.1</option>
+                            <option value='1.2:1'>1.2:1</option>
+                            <option value='1:1.2'>1:1.2</option>
+                        </select>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
-                                <div class='tooltip-header'>X-axis visibility</div>
+                                <div class='tooltip-header'>Aspect ratio</div>
                                 <div class='tooltip-body'>
-                                    <p>Toggle x-axis visibility.</p>
+                                    <p>Fix the aspect ratio (height:width) of the graph.
+                                        Useful for generating multiple graphs of equal size.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>top axis on:</label>
-                        <input class='inline-input axes-input' type='checkbox' id='topXAxisVisibility'>
+                        <label>legend location:</label>
+                        <select type='text' id='legendLocation' class='inline-input axes-style-input' name='legendLocation' value=''>
+                            <option value='none'>None</option>
+                            <option value='northeast'>Northeast</option>
+                            <option value='southeast'>Southeast</option>
+                            <option value='southwest'>Southwest</option>
+                            <option value='northwest'>Northwest</option>
+                        </select>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
-                                <div class='tooltip-header'>Top axis visibility</div>
+                                <div class='tooltip-header'>Legend</div>
                                 <div class='tooltip-body'>
-                                    <p>Toggle top axis visibility.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>y-axis on:</label>
-                        <input class='inline-input axes-input' type='checkbox' id='yAxisVisibility'>
-                        <div class='tooltip-wrapper'>
-                            <div class='tooltip'>
-                                <div class='tooltip-header'>Y-axis visibility</div>
-                                <div class='tooltip-body'>
-                                    <p>Toggle y-axis visibility.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>right axis on:</label>
-                        <input class='inline-input axes-input' type='checkbox' id='rightYAxisVisibility'>
-                        <div class='tooltip-wrapper'>
-                            <div class='tooltip'>
-                                <div class='tooltip-header'>Right axis visibility</div>
-                                <div class='tooltip-body'>
-                                    <p>Toggle right axis visibility.</p>
+                                    <p>Select whether to show a legend and where to show it.</p>
                                 </div>
                             </div>
                         </div>
@@ -511,44 +501,54 @@
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label>legend location:</label>
-                        <select type='text' id='legendLocation' class='inline-input axes-style-input' name='legendLocation' value=''>
-                            <option value='none'>None</option>
-                            <option value='northeast'>Northeast</option>
-                            <option value='southeast'>Southeast</option>
-                            <option value='southwest'>Southwest</option>
-                            <option value='northwest'>Northwest</option>
-                        </select>
+                        <label class='inline-label'>x-axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='xAxisVisibility'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
-                                <div class='tooltip-header'>Legend</div>
+                                <div class='tooltip-header'>X-axis visibility</div>
                                 <div class='tooltip-body'>
-                                    <p>Select whether to show a legend and where to show it.</p>
+                                    <p>Toggle x-axis visibility.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label>fix aspect ratio:</label>
-                        <select type='text' id='aspectRatio' class='inline-input axes-style-input' name='aspectRatio'>
-                            <option value='none'>Off</option>
-                            <option value='1:1'>1:1</option>
-                            <option value='1.1:1'>1.1:1</option>
-                            <option value='1:1.1'>1:1.1</option>
-                            <option value='1.2:1'>1.2:1</option>
-                            <option value='1:1.2'>1:1.2</option>
-                        </select>
+                        <label class='inline-label'>top axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='topXAxisVisibility'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
-                                <div class='tooltip-header'>Aspect ratio</div>
+                                <div class='tooltip-header'>Top axis visibility</div>
                                 <div class='tooltip-body'>
-                                    <p>Fix the aspect ratio (height:width) of the graph.
-                                        Useful for generating multiple graphs of equal size.</p>
+                                    <p>Toggle top axis visibility.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>y-axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='yAxisVisibility'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Y-axis visibility</div>
+                                <div class='tooltip-body'>
+                                    <p>Toggle y-axis visibility.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label class='inline-label'>right axis on:</label>
+                        <input class='inline-input axes-input' type='checkbox' id='rightYAxisVisibility'>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Right axis visibility</div>
+                                <div class='tooltip-body'>
+                                    <p>Toggle right axis visibility.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+               </div>
                 <button class='accordion-button'>Grid</button>
                 <div class='accordion-panel'>
                     <div class='inline-row has-tooltip'>
@@ -731,7 +731,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class='row'>
+                    <div class='inline-row'>
                         <div class='left has-tooltip'>
                             <button id='fitButton' class='fit-button'>Iterate</button>
                             <div class='tooltip-wrapper'>
@@ -872,7 +872,7 @@
                                     <div class='tooltip-body'>
                                         <p>Specify the column format of the imported data.
                                             The default is two columns: x and y. You need the change the setting if you
-                                            want to import error bar data in x, y or both directions as well.</p>
+                                            want to import error bar data.</p>
                                     </div>
                                 </div>
                             </div>
@@ -883,7 +883,7 @@
         </div>
         <div class='side-footer'>
             <div class='fine-print'>
-                <p><a href='privacy.html'>Privacy statement</a></p>
+                <p><a href='privacy.html'>Privacy</a></p>
                 <p><small>See the source code on <a href='https://github.com/Jomiri/quickplotter'>GitHub</a>.</small></p>
                 <p><small>Contact: <a href='mailto:joona.m.rissanen@gmail.com'> joona.m.rissanen@gmail.com</a></small></p>
                 <p><small>&copy; 2018, Joona Rissanen</small></p>
@@ -911,6 +911,7 @@
                 <button id='data_cursor_button'>Data cursor</button>
                 <button id='pngButton' type='button'>Save as PNG</button>
                 <button id='svgButton' type='button'>Save as SVG</button>
+                <button id='csvButton' type='button'>Export CSV</button>
             </div>
             <div id='coordinates'>
                 <p id='x_coord'></p>

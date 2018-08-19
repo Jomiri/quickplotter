@@ -11,6 +11,8 @@ Their licenses are available at https://quickplotter.com/licenses.txt
 /* global d3 */
 /* global math */
 /* global alert */
+/* global curveFit */
+/* global Blob */
 
 const defaultPlotStyle = {
   'majorTickSize': 6, // %
@@ -114,7 +116,7 @@ const kellyColorsAndBlack = [
 let currentPlotStyle = Object.assign({}, defaultPlotStyle);
 let currentTraceStyle = Object.assign({}, defaultTraceStyle);
 
-const canvasResFactor = 2;
+const canvasResFactor = 3;
 const nTicks = 5;
 const fontSizesInt = d3.range(0.0, 3.6, 0.25);
 const strokeWidthsInt = d3.range(0, 6.1, 0.5);
@@ -370,9 +372,8 @@ class XYData {
     this.yMin = d3.min(this.yMinArr);
     this.yMax = d3.max(this.yMaxArr);
 
-
     this.xIsSorted = Util.isSorted(this.x);
-    this.xIsReverseSorted = Util.isSorted(this.x.slice().reverse());
+    // this.xIsReverseSorted = Util.isSorted(this.x.slice().reverse());
   }
 
   get hasXError () {
@@ -630,9 +631,9 @@ class Axis {
   }
 
   createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
-    var majorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['majorTickSize']));
-    var minorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['minorTickSize']));
-    var axisFontSize = this.parentFig.svgPercentageToPx(currentPlotStyle['axisFontSize']);
+    let majorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['majorTickSize']));
+    let minorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['minorTickSize']));
+    let axisFontSize = this.parentFig.svgPercentageToPx(currentPlotStyle['axisFontSize']);
     return new CoordAxis(orientation, translatePosition,
       htmlClass, tickLabelsVisible, labelTranslate,
       majorTickSize, minorTickSize, axisFontSize);
@@ -791,7 +792,7 @@ class Axis {
   }
 
   getCoordinateLimits (dataLimits, userLimits) {
-    var lim = dataLimits;
+    let lim = dataLimits;
     if (!['auto', 'tight'].includes(userLimits[0])) {
       lim[0] = Util.toFloat(userLimits[0]);
     }
@@ -802,7 +803,7 @@ class Axis {
   }
 
   panTransform (transform) {
-    for (var i = 0; i < this.graphList.length; i++) {
+    for (let i = 0; i < this.graphList.length; i++) {
       this.graphList[i].panTransform(transform);
     }
   }
@@ -1396,6 +1397,7 @@ class TraceList {
       showHideButton.textContent = showHideButton.textContent === 'Hide' ? 'Show' : 'Hide';
       const rowList = Array.from(tableBody.rows);
       const rowIdx = rowList.findIndex(row => row.contains(e.target));
+      tableBody.rows[rowIdx].classList.toggle('trace-hidden');
       Sidebar.toggleTraceVisibility(rowIdx);
     });
     var clearButton = document.createElement('button');
@@ -1925,6 +1927,11 @@ class Toolbar {
     document.getElementById('pngButton').addEventListener('click', function () {
       ImageExport.downloadPNG(fig, currentPlotStyle.fileName);
     });
+    document.getElementById('csvButton').addEventListener('click', function () {
+      if (Sidebar.traceList.activeTrace) {
+        ImageExport.downloadCSV(Sidebar.traceList.activeTrace);
+      }
+    });
   }
 
   static initResetButton () {
@@ -2174,6 +2181,25 @@ class ImageExport {
     img.src = svgUrl;
   }
 
+  static downloadCSV (trace) {
+    let csvFileName = trace.traceLabel + '.csv';
+    let x = trace.xTransformed;
+    let y = trace.yTransformed;
+    let outputRows = [];
+    for (let i = 0; i < x.length; i++) {
+      if (Number.isFinite(x[i]) && Number.isFinite(y[i])) {
+        outputRows.push(x[i].toString() + ', ' + y[i].toString() + '\r\n');
+      }
+    }
+
+    let csvStr = '';
+    for (let i = 0; i < outputRows.length; i++) {
+      csvStr += outputRows[i];
+    }
+    let csvBlob = new Blob([csvStr], {type: 'data:text/csv;charset=utf-8;'});
+    saveAs(csvBlob, csvFileName);
+  }
+
   static getSvgUrl (svg) {
     var serializer = new XMLSerializer();
     var source = serializer.serializeToString(svg);
@@ -2233,14 +2259,6 @@ class Util {
     return true;
   }
 
-  // https://stackoverflow.com/questions/9553354/how-do-i-get-the-decimal-precision-of-a-floating-point-number-in-javascript
-  static floatPrecision (num)  {
-    if (!isFinite(num)) return 0;
-    let e = 1, p = 0;
-    while (Math.round(num * e) / e !== num) { e *= 10; p++; }
-    return p;
-  }
-
   // https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
   static getTextWidth (text, font) {
     // re-use canvas object for better performance
@@ -2292,10 +2310,6 @@ class Util {
     let span = Math.abs(last - first);
     let estTickInterval = span / (2 * nTicks);
     return Math.floor(Math.log10(estTickInterval));
-  }
-
-  static orderOfMagnitude (num) {
-    return Math.floor(Math.log10(num));
   }
 
   static numIsInteger (num) {
