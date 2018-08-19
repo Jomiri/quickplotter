@@ -832,11 +832,13 @@ class CoordAxis {
     this.limits = limits;
     var suggestedTickValues = this.scale.ticks(nTicks);
     this.tickValues = this.addMinorTicks(suggestedTickValues, this.limits);
+    this.firstTickIsMajor = (suggestedTickValues[0] === this.tickValues[0]) ? 0 : 1;
+    let firstTickIsMajor = this.firstTickIsMajor;
     this.majorTickValues = this.tickValues.filter(function (item, idx) {
-      return idx % 2 === 0;
+      return (idx + firstTickIsMajor) % 2 === 0;
     });
     this.minorTickValues = this.tickValues.filter(function (item, idx) {
-      return idx % 2 !== 0;
+      return (idx + firstTickIsMajor) % 2 !== 0;
     });
   }
 
@@ -913,11 +915,12 @@ class CoordAxis {
   drawTickLabels (htmlClass, isVisible, translatePosition) {
     // Tick label formatting
     var tickLabels = d3.selectAll(htmlClass + ' .tick text');
+    let firstTickIsMajor = this.firstTickIsMajor;
 
     // Main X and Y axes: remove minor tick labels
     if (isVisible) {
       tickLabels.attr('class', function (d, i) {
-        if (i % 2 !== 0) d3.select(this).remove();
+        if ((i + firstTickIsMajor) % 2 !== 0) d3.select(this).remove();
       });
     } else {
       // Secondary axes: remove all tick labels
@@ -932,9 +935,10 @@ class CoordAxis {
   drawTickLines (htmlClass, majorTickSize, minorTickSize) {
     var tickLines = d3.selectAll(htmlClass + ' .tick line');
     var tickCoordinate = this.getTickCoordinate();
+    let firstTickIsMajor = this.firstTickIsMajor;
 
     tickLines.attr(tickCoordinate, function (d, i) {
-      return (i % 2 === 0) ? majorTickSize : minorTickSize;
+      return ((i + firstTickIsMajor) % 2 === 0) ? majorTickSize : minorTickSize;
     });
   }
 
@@ -2627,7 +2631,6 @@ class CurveFitter {
 
     try {
       let fitResult = curveFit.levenbergMarquardt(targetData, fitFunc, options);
-      console.log(fitResult);
       CurveFitter.updateParams(usedParams, fitResult.parameterValues);
       CurveFitter.drawFittedGraph();
     } catch (err) {
@@ -2716,7 +2719,6 @@ class CurveFitter {
   static paramValue (param) {
     let index = CurveFitter.paramToIndex(param);
     let valueStr = CurveFitter.tableBody.rows[index].cells[1].getElementsByTagName('input')[0].value;
-    console.log(valueStr);
     let valueFloat = 0;
     try {
       valueFloat = Util.toFloat(valueStr);
