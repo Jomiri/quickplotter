@@ -431,24 +431,6 @@
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label>legend location:</label>
-                        <select type='text' id='legendLocation' class='inline-input axes-style-input' name='legendLocation' value=''>
-                            <option value='none'>None</option>
-                            <option value='northeast'>Northeast</option>
-                            <option value='southeast'>Southeast</option>
-                            <option value='southwest'>Southwest</option>
-                            <option value='northwest'>Northwest</option>
-                        </select>
-                        <div class='tooltip-wrapper'>
-                            <div class='tooltip'>
-                                <div class='tooltip-header'>Legend</div>
-                                <div class='tooltip-body'>
-                                    <p>Select whether to show a legend and where to show it.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class='inline-row has-tooltip'>
                         <label>tick font:</label>
                         <select type='text' id='axisFont' class='inline-input axes-style-input' name='axisFont'>
                             <option value='sans-serif' selected>Sans-Serif</option>
@@ -564,10 +546,62 @@
                         </div>
                     </div>
                </div>
+                <button class='accordion-button'>Legend</button>
+                <div class='accordion-panel'>
+                    <div class='inline-row has-tooltip'>
+                        <label>legend location:</label>
+                        <select type='text' id='legendLocation' class='inline-input axes-style-input' name='legendLocation' value=''>
+                            <option value='none'>None</option>
+                            <option value='northeast'>Northeast</option>
+                            <option value='southeast'>Southeast</option>
+                            <option value='southwest'>Southwest</option>
+                            <option value='northwest'>Northwest</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Legend location</div>
+                                <div class='tooltip-body'>
+                                    <p>Select whether to show a legend and where to show it.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label>legend box:</label>
+                        <select type='text' id='legendBox' class='inline-input axes-style-input' name='legendBox' value=''>
+                            <option value='none'>None</option>
+                            <option value='solid'>Solid</option>
+                            <option value='dashed'>Dashed</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>Legend box</div>
+                                <div class='tooltip-body'>
+                                    <p>Select whether to draw a box around the legend entries.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='inline-row has-tooltip'>
+                        <label>legend font:</label>
+                        <select type='text' id='legendFont' class='inline-input axes-style-input' name='legendFont'>
+                            <option value='sans-serif' selected>Sans-Serif</option>
+                            <option value='serif'>Serif</option>
+                        </select>
+                        <div class='tooltip-wrapper'>
+                            <div class='tooltip'>
+                                <div class='tooltip-header'>legend font</div>
+                                <div class='tooltip-body'>
+                                    <p>Select the font family of the legend entries.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <button class='accordion-button'>Grid</button>
                 <div class='accordion-panel'>
                     <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>major grid horizontal:</label>
+                        <label class='inline-label'>horizontal major grid:</label>
                         <input class='inline-input grid-input' type='checkbox' id='horizontalGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -579,7 +613,7 @@
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>major grid vertical:</label>
+                        <label class='inline-label'>vertical major grid:</label>
                         <input class='inline-input grid-input' type='checkbox' id='verticalGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -591,7 +625,7 @@
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>minor grid horizontal:</label>
+                        <label class='inline-label'>horizontal minor grid:</label>
                         <input class='inline-input grid-input' type='checkbox' id='horizontalMinorGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -603,7 +637,7 @@
                         </div>
                     </div>
                     <div class='inline-row has-tooltip'>
-                        <label class='inline-label'>minor grid vertical:</label>
+                        <label class='inline-label'>vertical minor grid:</label>
                         <input class='inline-input grid-input' type='checkbox' id='verticalMinorGrid'>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
