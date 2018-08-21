@@ -697,7 +697,7 @@ class Axis {
         .attr('stroke-width', 2)
         .attr('stroke', 'black')
         .attr('stroke-dasharray', dashArray)
-        .attr('shape-rendering', 'crisp-edges');
+        .attr('shape-rendering', 'crispEdges');
     }
 
     let legend = this.dataAxElem.append('g')
@@ -865,17 +865,20 @@ class CoordAxis {
   }
 
   draw (axElem) {
+    if (!this.isVisible) {
+      return;
+    }
     var tickFormat = this.getTickFormat(this.majorTickValues);
     var axis = this.makeAxisFunc(this.scale, this.tickValues, tickFormat);
-    const opacity = this.isVisible ? 1 : 0;
     // Add axes to the ax group
     axElem.append('g')
       .attr('transform', 'translate(' + this.translatePosition[0] + ',' + this.translatePosition[1] + ')')
       .attr('class', this.htmlId)
       .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
+      .attr('shape-rendering', 'crispEdges')
+      .attr('stroke-linecap', 'square')
       .style('font-family', currentPlotStyle.axisFont)
       .style('font-size', this.axisFontSize)
-      .style('opacity', opacity)
       .call(axis);
 
     this.drawTickLines('.' + this.htmlId, this.majorTickSize, this.minorTickSize);
@@ -987,7 +990,13 @@ class CoordAxis {
         .tickValues(tickValues)
         .tickFormat(tickFormat);
     }
-    return axis;
+    // fix edges
+    return function (g) {
+      g.call(axis);
+      let path = g.select('.domain').attr('d');
+      path = path.replace(/\.5/g, '');
+      g.select('.domain').attr('d', path);
+    };
   }
 
   getTickCoordinate () {
