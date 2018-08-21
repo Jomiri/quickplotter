@@ -874,9 +874,8 @@ class CoordAxis {
     axElem.append('g')
       .attr('transform', 'translate(' + this.translatePosition[0] + ',' + this.translatePosition[1] + ')')
       .attr('class', this.htmlId)
-      .attr('stroke-width', fig.svgPercentageToPx(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
+      .attr('stroke-width', fig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['axisStrokeWidth'])))
       .attr('shape-rendering', 'crispEdges')
-      .attr('stroke-linecap', 'square')
       .style('font-family', currentPlotStyle.axisFont)
       .style('font-size', this.axisFontSize)
       .call(axis);
@@ -993,7 +992,9 @@ class CoordAxis {
     // fix edges
     return function (g) {
       g.call(axis);
-      let path = g.select('.domain').attr('d');
+      let domain = g.select('.domain');
+      domain.attr('stroke-linecap', 'square');
+      let path = domain.attr('d');
       path = path.replace(/\.5/g, '');
       g.select('.domain').attr('d', path);
     };
