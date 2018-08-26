@@ -1030,16 +1030,13 @@ class CoordAxis {
   }
 
   getTickFormat (ticks) {
-    var orderOfMagn = Util.tickOrderOfMagnitude(ticks);
-    var formatString = '.1~e';
-    if (ticks.every(Util.numIsInteger)) {
+    let orderOfMagn = Util.tickOrderOfMagnitude(ticks);
+    let precision = Util.tickPrecision(ticks);
+    let formatString = '.' + precision + '~e';
+    if (ticks.every(Util.numIsInteger) && Math.abs(orderOfMagn) < 7) {
       formatString = '.1~f';
-    } else if (orderOfMagn < -2) {
-      formatString = '.1~e';
-    } else if (orderOfMagn <= 0) {
-      formatString = '.' + (Math.abs(orderOfMagn) + 2) + '~f';
-    } else if (orderOfMagn < 4) {
-      formatString = '.1~f';
+    } else if (Math.abs(orderOfMagn) < 4) {
+      formatString = '.' + precision + '~f';
     }
     return d3.format(formatString);
   }
@@ -1534,7 +1531,18 @@ class Sidebar {
     Sidebar.resetLimits();
   }
 
-  static updateLimits (xStart, xEnd, yStart, yEnd) {
+  static updateLimits (xStart, xEnd, yStart, yEnd, roundFirst) {
+    if (roundFirst) {
+      let pixelPrecision = 3;
+      let xPrecision = Util.arrayFormatPrecision(xStart, xEnd, pixelPrecision);
+      let yPrecision = Util.arrayFormatPrecision(yStart, yEnd, pixelPrecision);
+
+      xStart = xStart.toPrecision(xPrecision);
+      xEnd = xEnd.toPrecision(xPrecision);
+      yStart = yStart.toPrecision(yPrecision);
+      yEnd = yEnd.toPrecision(yPrecision);
+    }
+
     document.getElementById('xStart').value = xStart;
     document.getElementById('xEnd').value = xEnd;
     document.getElementById('yStart').value = yStart;
@@ -1543,7 +1551,7 @@ class Sidebar {
 
   static resetLimits () {
     Sidebar.updateLimits(defaultPlotStyle['xStart'], defaultPlotStyle['xEnd'],
-      defaultPlotStyle['yStart'], defaultPlotStyle['yEnd']);
+      defaultPlotStyle['yStart'], defaultPlotStyle['yEnd'], false);
   }
 
   static addRedrawListeners () {
@@ -2151,11 +2159,7 @@ class Toolbar {
         var yMin = fig.ax.yScale.invert(Math.max(y[0], y[1])); // Image coords start at top.
         var yMax = fig.ax.yScale.invert(Math.min(y[0], y[1]));
 
-        document.getElementById('xStart').value = xMin;
-        document.getElementById('xEnd').value = xMax;
-
-        document.getElementById('yStart').value = yMin;
-        document.getElementById('yEnd').value = yMax;
+        Sidebar.updateLimits(xMin, xMax, yMin, yMax, true);
         FigureArea.redraw();
         fig.svgElement.select('.brush').call(brush.move, null);
       });
@@ -2173,7 +2177,8 @@ class Toolbar {
       Sidebar.updateLimits(panDraw.startXLim[0] - xPan * xDelta,
         panDraw.startXLim[1] - xPan * xDelta,
         panDraw.startYLim[0] - yPan * yDelta,
-        panDraw.startYLim[1] - yPan * yDelta);
+        panDraw.startYLim[1] - yPan * yDelta,
+        true);
       Sidebar.updatePlotStyle();
       fig.ax.panTransform(d3.event.transform);
       fig.ax.removeAxesDrawings();
@@ -2346,17 +2351,35 @@ class Util {
     return precision;
   }
 
+  static arrayFormatPrecision (start, end, pixelPrecision) {
+    let absSpan = Math.abs(end - start);
+    let absMax = Math.max(Math.abs(end), Math.abs(start));
+    let absSpanOM = Util.orderOfMagnitude(absSpan);
+    let absMaxOM = Util.orderOfMagnitude(absMax);
+    let diffOM = absMaxOM - absSpanOM;
+    let precision = Math.abs(absSpanOM) + pixelPrecision;
+    if (diffOM > 0) {
+      precision += diffOM;
+    }
+    return precision;
+  }
+
   static stripFileExtension (fileName) {
     // https://stackoverflow.com/questions/4250364/how-to-trim-a-file-extension-from-a-string-in-javascript
     return fileName.replace(/\.[^/.]+$/, '');
   }
 
+  static tickPrecision (arr) {
+    let pixelPrecision = 1;
+    return Util.arrayFormatPrecision(arr[0], arr[arr.length - 1], pixelPrecision);
+  }
+
   static tickOrderOfMagnitude (arr) {
-    let first = arr[0];
-    let last = arr[arr.length - 1];
-    let span = Math.abs(last - first);
-    let estTickInterval = span / (2 * nTicks);
-    return Math.floor(Math.log10(estTickInterval));
+    return Util.orderOfMagnitude(Math.max(Math.abs(arr[0]), Math.abs(arr[arr.length - 1])));
+  }
+
+  static orderOfMagnitude (num) {
+    return Math.floor(Math.log10(num));
   }
 
   static numIsInteger (num) {
