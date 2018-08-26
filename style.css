@@ -88,10 +88,14 @@ body, #main-content {
 }
 
 #sidebar input, #sidebar select {
-    border: 2px solid darkgrey;
-    border-radius: 5px;
-    background-color: #ebebeb;
+    /*border: 2px solid #ebebeb;
+    background-color: #ebebeb;*/
+    border: 2px solid #323232;
+    background-color: #323232;
+    color: #ebebeb;
+    border-radius: 2px;
     text-align: left;
+    height: 22px;
 }
 
 #sidebar input[type='checkbox'] {
@@ -194,8 +198,8 @@ body, #main-content {
 
 #traceTable .text_cell {
     width: 148px;
-    background-color: #c4c4c4;
-    border-radius: 5px;
+    background-color: #232323;
+    border-radius: 2px;
     border: 1px solid darkgrey;
     padding: 0 0;
     margin: 0 4px 0 0;
@@ -224,7 +228,7 @@ body, #main-content {
     left: 22px;
     transform: translate(0, -50%);
     position: absolute;
-    background-color: #c4c4c4;
+    background-color: #232323;
 }
 
 #traceTable .button_cell {
@@ -248,27 +252,14 @@ body, #main-content {
     vertical-align: middle;
 }
 
-#traceTable .text_cell input {
-    background-color: white;
-}
-
-#traceTable .text_cell{
-    background-color: white;
-    border-color: white;
-}
-
 #traceTable .button_cell button {
     background-color: white;
     border-color: white;
 }
 
 #traceTable .trace-hidden .text_cell input {
-    background-color: #c4c4c4;
-}
-
-#traceTable .trace-hidden .text_cell{
-    background-color: #c4c4c4;
-    border-color: #c4c4c4;
+    text-decoration: line-through;
+    color: #c4c4c4;
 }
 
 #traceTable .trace-hidden .button_cell button {
