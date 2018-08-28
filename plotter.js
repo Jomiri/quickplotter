@@ -15,6 +15,8 @@ Their licenses are available at https://quickplotter.com/licenses.txt
 /* global Blob */
 
 const defaultPlotStyle = {
+  'xTicks': 5,
+  'yTicks': 5,
   'majorTickSize': 6, // %
   'minorTickSize': 4, // %
   'axisStrokeWidth': 2, // %/10
@@ -119,10 +121,10 @@ let currentPlotStyle = Object.assign({}, defaultPlotStyle);
 let currentTraceStyle = Object.assign({}, defaultTraceStyle);
 
 const canvasResFactor = 3;
-const nTicks = 5;
 const fontSizesInt = d3.range(0.0, 3.6, 0.25);
 const strokeWidthsInt = d3.range(0, 6.1, 0.5);
 const markerSizes = d3.range(0, 21, 1);
+const tickCounts = d3.range(2, 21, 1);
 const tickSizes = d3.range(-6, 11, 1);
 const opacities = d3.range(0.1, 1.01, 0.1).map(e => e.toFixed(1));
 
@@ -591,10 +593,10 @@ class Axis {
   }
 
   createAxes () {
-    this.xAxis = this.createCoordAxis('bottom', [0, this.height], 'x_axis', true, [0, 5]);
-    this.xAxisTop = this.createCoordAxis('top', [0, 0], 'x_axis_top', false, [0, 0]);
-    this.yAxis = this.createCoordAxis('left', [0, 0], 'y_axis', true, [-5, 0]);
-    this.yAxisRight = this.createCoordAxis('right', [this.width, 0], 'y_axis_right', false, [0, 0]);
+    this.xAxis = this.createCoordAxis('bottom', [0, this.height], 'x_axis', true, [0, 5], currentPlotStyle.xTicks);
+    this.xAxisTop = this.createCoordAxis('top', [0, 0], 'x_axis_top', false, [0, 0], currentPlotStyle.xTicks);
+    this.yAxis = this.createCoordAxis('left', [0, 0], 'y_axis', true, [-5, 0], currentPlotStyle.yTicks);
+    this.yAxisRight = this.createCoordAxis('right', [this.width, 0], 'y_axis_right', false, [0, 0], currentPlotStyle.yTicks);
     this.updateAxes();
   }
 
@@ -632,13 +634,13 @@ class Axis {
     this.yAxis.drawMinorGrid(this.gridElem, currentPlotStyle['horizontalMinorGrid']);
   }
 
-  createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate) {
+  createCoordAxis (orientation, translatePosition, htmlClass, tickLabelsVisible, labelTranslate, nTicks) {
     let majorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['majorTickSize']));
     let minorTickSize = this.parentFig.svgPercentageToPxInt(Util.toPercentWidth(currentPlotStyle['minorTickSize']));
     let axisFontSize = this.parentFig.svgPercentageToPx(currentPlotStyle['axisFontSize']);
     return new CoordAxis(orientation, translatePosition,
       htmlClass, tickLabelsVisible, labelTranslate,
-      majorTickSize, minorTickSize, axisFontSize);
+      majorTickSize, minorTickSize, axisFontSize, nTicks);
   }
 
   drawClipPath () {
@@ -833,7 +835,7 @@ class Axis {
 class CoordAxis {
   constructor (orientation, translatePosition,
     htmlClass, tickLabelsVisible, labelTranslate,
-    majorTickSize, minorTickSize, axisFontSize) {
+    majorTickSize, minorTickSize, axisFontSize, nTicks) {
     this.orientation = orientation;
     this.translatePosition = translatePosition;
     this.htmlId = htmlClass;
@@ -842,6 +844,7 @@ class CoordAxis {
     this.majorTickSize = majorTickSize * this.getTickDirection();
     this.minorTickSize = minorTickSize * this.getTickDirection();
     this.axisFontSize = axisFontSize;
+    this.nTicks = nTicks;
     this.limits = undefined;
     this.scale = undefined;
     this.majorTickValues = undefined;
@@ -852,7 +855,7 @@ class CoordAxis {
   update (scale, limits) {
     this.scale = scale;
     this.limits = limits;
-    var suggestedTickValues = this.scale.ticks(nTicks);
+    var suggestedTickValues = this.scale.ticks(this.nTicks);
     this.tickValues = this.addMinorTicks(suggestedTickValues, this.limits);
     this.firstTickIsMajor = (suggestedTickValues[0] === this.tickValues[0]) ? 0 : 1;
     let firstTickIsMajor = this.firstTickIsMajor;
@@ -1499,6 +1502,8 @@ class Sidebar {
     Util.populateSelectBox('markerSize', markerSizes);
     Util.populateSelectBox('majorTickSize', tickSizes);
     Util.populateSelectBox('minorTickSize', tickSizes);
+    Util.populateSelectBox('xTicks', tickCounts);
+    Util.populateSelectBox('yTicks', tickCounts);
     Util.populateSelectBox('errorBarOpacity', opacities);
     Util.populateSelectBox('errorBarStrokeWidth', strokeWidthsInt);
   }
@@ -1515,6 +1520,8 @@ class Sidebar {
     document.getElementById('rightYAxisVisibility').checked = defaultPlotStyle['axisVisible'].right;
     document.getElementById('majorTickSize').value = defaultPlotStyle['majorTickSize'];
     document.getElementById('minorTickSize').value = defaultPlotStyle['minorTickSize'];
+    document.getElementById('xTicks').value = defaultPlotStyle.xTicks;
+    document.getElementById('yTicks').value = defaultPlotStyle.yTicks;
 
     document.getElementById('xScaling').value = defaultTraceStyle['xScaling'];
     document.getElementById('yScaling').value = defaultTraceStyle['yScaling'];
@@ -1565,6 +1572,7 @@ class Sidebar {
       'axisStrokeWidth', 'axisFontSize',
       'axisFont',
       'minorTickSize', 'majorTickSize',
+      'xTicks', 'yTicks',
       'horizontalGrid', 'verticalGrid',
       'horizontalMinorGrid', 'verticalMinorGrid',
       'xAxisVisibility', 'topXAxisVisibility',
@@ -1670,6 +1678,8 @@ class Sidebar {
 
     currentPlotStyle['minorTickSize'] = Sidebar.minorTickSize;
     currentPlotStyle['majorTickSize'] = Sidebar.majorTickSize;
+    currentPlotStyle['xTicks'] = Sidebar.xTicks;
+    currentPlotStyle['yTicks'] = Sidebar.yTicks;
 
     currentPlotStyle['activeTrace'] = Sidebar.activeTrace;
     currentPlotStyle['legendLocation'] = Sidebar.legendLocation;
@@ -1872,6 +1882,14 @@ class Sidebar {
 
   static get minorTickSize () {
     return document.getElementById('minorTickSize').value;
+  }
+
+  static get xTicks () {
+    return document.getElementById('xTicks').value;
+  }
+
+  static get yTicks () {
+    return document.getElementById('yTicks').value;
   }
 
   static get legendLocation () {
