@@ -46,7 +46,7 @@ const defaultPlotStyle = {
   'legendFont': 'Sans-Serif',
   'marginPercent': { top: 0.05, bottom: 0.08, left: 0.08, right: 0.02 },
   'axisVisible': { top: true, bottom: true, left: true, right: true },
-  'aspectRatio': 'none',
+  'aspectRatio': 1.0 / 1.1,
   'importFormat': 'x_y',
   'fileName': 'exported_graph'
 };
