@@ -462,7 +462,7 @@ class Figure {
     if (aspectRatio === 'none') {
       return this.parentWidth;
     } else {
-      return Math.min(this.parentWidth, this.parentHeight / aspectRatio);
+      return Math.floor(Math.min(this.parentWidth, this.parentHeight / aspectRatio));
     }
   }
 
@@ -471,7 +471,7 @@ class Figure {
     if (aspectRatio === 'none') {
       return this.parentHeight;
     } else {
-      return Math.min(this.parentHeight, this.parentWidth * aspectRatio);
+      return Math.floor(Math.min(this.parentHeight, this.parentWidth * aspectRatio));
     }
   }
 
@@ -480,7 +480,7 @@ class Figure {
   }
 
   svgPercentageToPxInt (percentage) {
-    return Math.floor(0.01 * percentage * this.diagonal);
+    return Math.ceil(0.01 * percentage * this.diagonal);
   }
 
   svgPercentageToPx (percentage) {
@@ -512,7 +512,7 @@ class Figure {
 
   draw () {
     var svg = this.svgElement;
-    svg.attr('version', '1.1')
+    svg.attr('version', '1.2')
       .attr('xmlns', 'http://www.w3.org/2000/svg')
       .attr('width', this.width)
       .attr('height', this.height)
@@ -572,6 +572,14 @@ class Axis {
       .domain(this.yLim())
       .range([this.height, 0]);
 
+    if (currentPlotStyle.xStart === 'auto' && currentPlotStyle.xEnd === 'auto') {
+      this.xScale.nice();
+    }
+
+    if (currentPlotStyle.yStart === 'auto' && currentPlotStyle.yEnd === 'auto') {
+      this.yScale.nice();
+    }
+
     this.drawClipPath(this.dataAxElem);
     this.createAxes();
     this.drawGrids();
@@ -603,6 +611,13 @@ class Axis {
   updateAxes () {
     this.xScale.domain(this.xLim());
     this.yScale.domain(this.yLim());
+    if (currentPlotStyle.xStart === 'auto' && currentPlotStyle.xEnd === 'auto') {
+      this.xScale.nice();
+    }
+
+    if (currentPlotStyle.yStart === 'auto' && currentPlotStyle.yEnd === 'auto') {
+      this.yScale.nice();
+    }
     this.xAxis.update(this.xScale, this.xLim());
     this.xAxisTop.update(this.xScale, this.xLim());
     this.yAxis.update(this.yScale, this.yLim());
@@ -775,7 +790,7 @@ class Axis {
   }
 
   xLim () {
-    const userLimits = [currentPlotStyle['xStart'], currentPlotStyle['xEnd']];
+    const userLimits = [currentPlotStyle.xStart, currentPlotStyle.xEnd];
     let margin = this.graphMargin(currentPlotStyle.graphMarginX, userLimits);
     let dataLimitList = this.graphList.map(function (e) { return e.xLim(margin); });
     let dataLimits = this.dataLimitsFromList(dataLimitList);
@@ -783,7 +798,7 @@ class Axis {
   }
 
   yLim () {
-    const userLimits = [currentPlotStyle['yStart'], currentPlotStyle['yEnd']];
+    const userLimits = [currentPlotStyle.yStart, currentPlotStyle.yEnd];
     let margin = this.graphMargin(currentPlotStyle.graphMarginY, userLimits);
     let dataLimitList = this.graphList.map(function (e) { return e.yLim(margin); });
     let dataLimits = this.dataLimitsFromList(dataLimitList);
@@ -797,6 +812,9 @@ class Axis {
     }
     if (userLimits[1] === 'tight') {
       margin[1] = 0;
+    }
+    if (userLimits[0] === 'auto' && userLimits[1] === 'auto') {
+      margin = [0.001, 0.001];
     }
     return margin;
   }
@@ -855,7 +873,7 @@ class CoordAxis {
   update (scale, limits) {
     this.scale = scale;
     this.limits = limits;
-    var suggestedTickValues = this.scale.ticks(this.nTicks);
+    let suggestedTickValues = this.scale.ticks(this.nTicks);
     this.tickValues = this.addMinorTicks(suggestedTickValues, this.limits);
     this.firstTickIsMajor = (suggestedTickValues[0] === this.tickValues[0]) ? 0 : 1;
     let firstTickIsMajor = this.firstTickIsMajor;
@@ -941,7 +959,7 @@ class CoordAxis {
 
   drawTickLabels (htmlClass, isVisible, translatePosition) {
     // Tick label formatting
-    var tickLabels = d3.selectAll(htmlClass + ' .tick text');
+    let tickLabels = d3.selectAll(htmlClass + ' .tick text');
     let firstTickIsMajor = this.firstTickIsMajor;
 
     // Main X and Y axes: remove minor tick labels
@@ -960,8 +978,8 @@ class CoordAxis {
   }
 
   drawTickLines (htmlClass, majorTickSize, minorTickSize) {
-    var tickLines = d3.selectAll(htmlClass + ' .tick line');
-    var tickCoordinate = this.getTickCoordinate();
+    let tickLines = d3.selectAll(htmlClass + ' .tick line');
+    let tickCoordinate = this.getTickCoordinate();
     let firstTickIsMajor = this.firstTickIsMajor;
 
     tickLines.attr(tickCoordinate, function (d, i) {
@@ -970,7 +988,7 @@ class CoordAxis {
   }
 
   makeAxisFunc (scale, tickValues, tickFormat) {
-    var axis;
+    let axis;
     if (this.orientation === 'bottom') {
       axis = d3.axisBottom(scale)
         .tickSize(0, 0)
@@ -997,9 +1015,6 @@ class CoordAxis {
       g.call(axis);
       let domain = g.select('.domain');
       domain.attr('stroke-linecap', 'square');
-      let path = domain.attr('d');
-      path = path.replace(/\.5/g, '');
-      g.select('.domain').attr('d', path);
     };
   }
 
@@ -1024,11 +1039,11 @@ class CoordAxis {
   }
 
   addMinorTicks (majorTicks, limits) {
-    var tickSize = (majorTicks[1] - majorTicks[0]) / 2;
-    var potentialFirstTick = majorTicks[0] - tickSize;
-    var potentialLastTick = majorTicks[majorTicks.length - 1] + tickSize;
-    var firstTick = (potentialFirstTick >= limits[0]) ? potentialFirstTick : majorTicks[0];
-    var lastTick = (potentialLastTick <= limits[1]) ? potentialLastTick : majorTicks[majorTicks.length - 1];
+    let tickSize = (majorTicks[1] - majorTicks[0]) / 2;
+    let potentialFirstTick = majorTicks[0] - tickSize;
+    let potentialLastTick = majorTicks[majorTicks.length - 1] + tickSize;
+    let firstTick = (potentialFirstTick >= limits[0]) ? potentialFirstTick : majorTicks[0];
+    let lastTick = (potentialLastTick <= limits[1]) ? potentialLastTick : majorTicks[majorTicks.length - 1];
     return d3.range(firstTick, lastTick + tickSize / 10, tickSize);
   }
 
@@ -1090,7 +1105,7 @@ class Graph {
   }
 
   drawData (dataPoints, xScale, yScale) {
-    var plotType = this.style.plotType;
+    let plotType = this.style.plotType;
     if (plotType === 'line') {
       this.drawLine(dataPoints, xScale, yScale);
     } else if (plotType === 'scatter') {
@@ -1123,7 +1138,7 @@ class Graph {
   }
 
   drawLine (dataPoints, xScale, yScale) {
-    var drawFunc = d3.line()
+    let drawFunc = d3.line()
       .x(function (d) {
         return xScale(d.x);
       })
@@ -1131,7 +1146,7 @@ class Graph {
         return yScale(d.y);
       });
 
-    var dashArray = ('1, 0');
+    let dashArray = ('1, 0');
     if (this.style.lineStyle === 'solid') {
       dashArray = ('1, 0');
     } else if (this.style.lineStyle === 'dashed') {
@@ -1147,7 +1162,7 @@ class Graph {
   }
 
   drawScatter (dataPoints, xScale, yScale) {
-    var scatterPlot = this.plotGroup.append('g')
+    let scatterPlot = this.plotGroup.append('g')
       .attr('class', 'curve')
       .attr('id', 'scatterPlot');
 
@@ -1305,8 +1320,8 @@ class TraceList {
   }
 
   activeGraphIdx () {
-    var graphIdx = this.activeTraceIdx;
-    for (var i = 0; i < this.activeTraceIdx; i++) {
+    let graphIdx = this.activeTraceIdx;
+    for (let i = 0; i < this.activeTraceIdx; i++) {
       if (!Sidebar.traceList.traces[i].isVisible) {
         graphIdx--;
       }
@@ -1320,8 +1335,8 @@ class TraceList {
 
   getLegendData () {
     let legendData = [];
-    for (var i = 0; i < this.traces.length; i++) {
-      var trace = this.traces[i];
+    for (let i = 0; i < this.traces.length; i++) {
+      let trace = this.traces[i];
       if (trace.isVisible) {
         legendData.push({
           'traceLabel': trace.traceLabel,
@@ -1356,7 +1371,7 @@ class TraceList {
   }
 
   updateTraceLabels () {
-    for (var i = 0; i < this.traces.length; i++) {
+    for (let i = 0; i < this.traces.length; i++) {
       let input = this.htmlTableBody.rows[i].querySelector('input');
       this.traces[i].traceLabel = input.value;
     }
@@ -1391,10 +1406,10 @@ class TraceList {
 
   addTableRow (label, color) {
     let tableBody = this.htmlTableBody;
-    var addedRow = tableBody.insertRow(tableBody.rows.length);
-    var cell = addedRow.insertCell(0);
-    var textCell = document.createElement('div');
-    var buttonCell = document.createElement('div');
+    let addedRow = tableBody.insertRow(tableBody.rows.length);
+    let cell = addedRow.insertCell(0);
+    let textCell = document.createElement('div');
+    let buttonCell = document.createElement('div');
     cell.appendChild(textCell);
     cell.appendChild(buttonCell);
 
@@ -1408,11 +1423,11 @@ class TraceList {
       Sidebar.activateTrace(rowIdx);
     });
 
-    var colorSquare = document.createElement('div');
+    let colorSquare = document.createElement('div');
     colorSquare.classList.add('color_square');
     colorSquare.style.backgroundColor = color;
 
-    var txt = document.createElement('input');
+    let txt = document.createElement('input');
     txt.type = 'text';
     txt.value = label;
     txt.contentEditable = true;
@@ -1421,7 +1436,7 @@ class TraceList {
       FigureArea.redraw();
     });
 
-    var showHideButton = document.createElement('button');
+    let showHideButton = document.createElement('button');
     showHideButton.classList.add('trace_button');
     showHideButton.textContent = 'Hide';
     showHideButton.addEventListener('click', function (e) {
@@ -1431,7 +1446,7 @@ class TraceList {
       tableBody.rows[rowIdx].classList.toggle('trace-hidden');
       Sidebar.toggleTraceVisibility(rowIdx);
     });
-    var clearButton = document.createElement('button');
+    let clearButton = document.createElement('button');
     clearButton.classList.add('trace_button');
     clearButton.textContent = 'Clear';
     clearButton.addEventListener('click', function (e) {
@@ -1562,7 +1577,7 @@ class Sidebar {
   }
 
   static addRedrawListeners () {
-    var params = ['xFontSize', 'yFontSize', 'titleFontSize', 'labelFont',
+    let params = ['xFontSize', 'yFontSize', 'titleFontSize', 'labelFont',
       'xStart', 'xEnd',
       'yStart', 'yEnd',
       'plotType',
@@ -1584,16 +1599,16 @@ class Sidebar {
     for (let i = 0; i < params.length; i++) {
       let id = params[i];
       let elem = document.getElementById(id);
-      elem.addEventListener('change', function (event) {
+      elem.addEventListener('change', function () {
         FigureArea.redraw();
       });
     }
 
-    var rescaleParams = ['xScaling', 'yScaling'];
+    let rescaleParams = ['xScaling', 'yScaling'];
     for (let i = 0; i < rescaleParams.length; i++) {
       let id = rescaleParams[i];
       let elem = document.getElementById(id);
-      elem.addEventListener('change', function (event) {
+      elem.addEventListener('change', function () {
         Sidebar.resetLimits();
         FigureArea.redraw();
       });
@@ -1601,8 +1616,8 @@ class Sidebar {
   }
 
   static hideTooltips () {
-    var tooltips = document.querySelectorAll('.tooltip-wrapper');
-    for (var i = 0; i < tooltips.length; i++) {
+    let tooltips = document.querySelectorAll('.tooltip-wrapper');
+    for (let i = 0; i < tooltips.length; i++) {
       tooltips[i].style.display = 'none';
     }
   }
@@ -1613,14 +1628,14 @@ class Sidebar {
       let tooltipElem = elementsWithTooltip[i];
       let input = tooltipElem.querySelector('select, input');
       let tooltip = tooltipElem.querySelector('.tooltip-wrapper');
-      tooltipElem.addEventListener('mouseover', function (event) {
+      tooltipElem.addEventListener('mouseover', function () {
         tooltip.style.display = 'block';
         tooltip.style.top = Sidebar.getTooltipPositionPx(tooltipElem);
         if (input != null) { // null check for traceTable -> consider refactoring
           input.classList.add('active');
         }
       });
-      tooltipElem.addEventListener('mouseout', function (event) {
+      tooltipElem.addEventListener('mouseout', function () {
         tooltip.style.display = 'none';
         if (input != null) { // null check for traceTable -> consider refactoring
           input.classList.remove('active');
@@ -2008,7 +2023,7 @@ class Toolbar {
   }
 
   static initResetButton () {
-    Toolbar.resetButton.addEventListener('click', function (event) {
+    Toolbar.resetButton.addEventListener('click', function () {
       Sidebar.resetLimits();
       FigureArea.redraw();
     });
@@ -2061,13 +2076,13 @@ class Toolbar {
   }
 
   static deactivateButtons () {
-    for (var i = 0; i < Toolbar.buttonList.length; i++) {
+    for (let i = 0; i < Toolbar.buttonList.length; i++) {
       document.querySelector('#' + Toolbar.buttonList[i]).classList.remove('active');
     }
   }
 
   static reactivateButton () {
-    var activeButton = document.querySelector('#toolbar .active');
+    let activeButton = document.querySelector('#toolbar .active');
     if (!activeButton) {
       return;
     }
@@ -2122,8 +2137,8 @@ class Toolbar {
       alert('Active trace is hidden. Please select a visible active trace.');
       return;
     }
-    var xExact = fig.ax.xScale.invert(coordinates[0]);
-    var point = fig.ax.activeGraph.xyData.nearestPoint(xExact);
+    let xExact = fig.ax.xScale.invert(coordinates[0]);
+    let point = fig.ax.activeGraph.xyData.nearestPoint(xExact);
     if (point === null) {
       Toolbar.clean();
       alert('Data cursor does not work with unsorted or reverse sorted data.');
@@ -2133,12 +2148,12 @@ class Toolbar {
       return;
     }
 
-    var cursor = fig.ax.dataAxElem.append('g')
+    let cursor = fig.ax.dataAxElem.append('g')
       .attr('class', 'data_cursor toolbar_addon');
 
     const cursorSize = 8;
-    var cursorX = fig.ax.xScale(point.x) - cursorSize / 2;
-    var cursorY = fig.ax.yScale(point.y) - cursorSize / 2;
+    let cursorX = fig.ax.xScale(point.x) - cursorSize / 2;
+    let cursorY = fig.ax.yScale(point.y) - cursorSize / 2;
     cursor.append('rect')
       .attr('width', cursorSize + 'px')
       .attr('height', cursorSize + 'px')
@@ -2161,21 +2176,21 @@ class Toolbar {
     Toolbar.clean();
     Toolbar.addZoomArea();
     Toolbar.zoomButton.classList.add('active');
-    var brush = d3.brush()
+    let brush = d3.brush()
       .extent([[0, 0], [fig.ax.width, fig.ax.height]])
       .on('end', function () {
         const coord = d3.event.selection;
         if (!coord) {
           return;
         }
-        var x = [coord[0][0], coord[1][0]];
-        var y = [coord[0][1], coord[1][1]];
+        let x = [coord[0][0], coord[1][0]];
+        let y = [coord[0][1], coord[1][1]];
 
-        var xMin = fig.ax.xScale.invert(Math.min(x[0], x[1]));
-        var xMax = fig.ax.xScale.invert(Math.max(x[0], x[1]));
+        let xMin = fig.ax.xScale.invert(Math.min(x[0], x[1]));
+        let xMax = fig.ax.xScale.invert(Math.max(x[0], x[1]));
 
-        var yMin = fig.ax.yScale.invert(Math.max(y[0], y[1])); // Image coords start at top.
-        var yMax = fig.ax.yScale.invert(Math.min(y[0], y[1]));
+        let yMin = fig.ax.yScale.invert(Math.max(y[0], y[1])); // Image coords start at top.
+        let yMax = fig.ax.yScale.invert(Math.min(y[0], y[1]));
 
         Sidebar.updateLimits(xMin, xMax, yMin, yMax, true);
         FigureArea.redraw();
@@ -2187,11 +2202,11 @@ class Toolbar {
 
   static panFunc () {
     function panDraw () {
-      var xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
-      var yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
-      var transform = d3.event.transform;
-      var xPan = transform.x;
-      var yPan = transform.y;
+      let xDelta = fig.ax.xScale.invert(1) - fig.ax.xScale.invert(0);
+      let yDelta = fig.ax.yScale.invert(1) - fig.ax.yScale.invert(0);
+      let transform = d3.event.transform;
+      let xPan = transform.x;
+      let yPan = transform.y;
       Sidebar.updateLimits(panDraw.startXLim[0] - xPan * xDelta,
         panDraw.startXLim[1] - xPan * xDelta,
         panDraw.startYLim[0] - yPan * yDelta,
@@ -2218,10 +2233,10 @@ class Toolbar {
 
 class ImageExport {
   static downloadSVG (fig, fileName) {
-    var svgFileName = fileName + '.svg';
-    var svg = fig.svgElementHtml;
-    var svgUrl = ImageExport.getSvgUrl(svg);
-    var downloadLink = document.createElement('a');
+    let svgFileName = fileName + '.svg';
+    let svg = fig.svgElementHtml;
+    let svgUrl = ImageExport.getSvgUrl(svg);
+    let downloadLink = document.createElement('a');
     downloadLink.href = svgUrl;
     downloadLink.download = svgFileName;
     document.body.appendChild(downloadLink);
@@ -2230,14 +2245,14 @@ class ImageExport {
   }
 
   static downloadPNG (fig, fileName) {
-    var pngFileName = fileName + '.png';
-    var svg = fig.svgElementHtml;
-    var svgUrl = ImageExport.getSvgUrl(svg);
-    var canvas = document.getElementById('cvs');
+    let pngFileName = fileName + '.png';
+    let svg = fig.svgElementHtml;
+    let svgUrl = ImageExport.getSvgUrl(svg);
+    let canvas = document.getElementById('cvs');
     canvas.width = svg.width.animVal.value * canvasResFactor;
     canvas.height = svg.height.animVal.value * canvasResFactor;
-    var ctx = canvas.getContext('2d');
-    var img = new Image();
+    let ctx = canvas.getContext('2d');
+    let img = new Image();
 
     img.onload = function () {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -2271,8 +2286,8 @@ class ImageExport {
   }
 
   static getSvgUrl (svg) {
-    var serializer = new XMLSerializer();
-    var source = serializer.serializeToString(svg);
+    let serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svg);
 
     if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
       source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -2332,16 +2347,16 @@ class Util {
   // https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript
   static getTextWidth (text, font) {
     // re-use canvas object for better performance
-    var canvas = Util.canvas || (Util.canvas = document.createElement('canvas'));
-    var context = canvas.getContext('2d');
+    let canvas = Util.canvas || (Util.canvas = document.createElement('canvas'));
+    let context = canvas.getContext('2d');
     context.font = font;
-    var metrics = context.measureText(text);
+    let metrics = context.measureText(text);
     return metrics.width;
   }
 
   // https://stackoverflow.com/questions/3329566/show-beginning-of-html-input-value-on-blur-with-javascript
   static resetPosition (element) {
-    var v = element.value;
+    let v = element.value;
     element.value = '';
     setTimeout(function () { element.value = v; }, 1);
   }
@@ -2355,8 +2370,8 @@ class Util {
   }
 
   static formatPrecision (num) {
-    var precision = 1;
-    var orderOfMagn = Math.floor(Math.log10(Math.abs(num)));
+    let precision = 1;
+    let orderOfMagn = Math.floor(Math.log10(Math.abs(num)));
     if (orderOfMagn < 0) {
       precision = -orderOfMagn + 1;
     } else if (orderOfMagn === 0) {
