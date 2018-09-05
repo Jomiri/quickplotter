@@ -1050,7 +1050,8 @@ class CoordAxis {
   getTickFormat (ticks) {
     let orderOfMagn = Util.tickOrderOfMagnitude(ticks);
     let precision = Util.tickPrecision(ticks);
-    let formatString = '.' + precision + '~e';
+    let scientificPrecision = Math.min(precision, 5);
+    let formatString = '.' + scientificPrecision + '~e';
     if (ticks.every(Util.numIsInteger) && Math.abs(orderOfMagn) < 7) {
       formatString = '.1~f';
     } else if (Math.abs(orderOfMagn) < 4) {
@@ -1363,11 +1364,11 @@ class TraceList {
   }
 
   deactivateRow (idx) {
-    this.htmlTableBody.rows[idx].classList.remove('active');
+    this.htmlTableBody.rows[idx].classList.remove('trace-active');
   }
 
   activateRow (idx) {
-    this.htmlTableBody.rows[idx].classList.add('active');
+    this.htmlTableBody.rows[idx].classList.add('trace-active');
   }
 
   updateTraceLabels () {
@@ -1378,7 +1379,7 @@ class TraceList {
   }
 
   updateActiveTraceColorSquare () {
-    let colorSquare = this.htmlTableBody.querySelector('.active .color_square');
+    let colorSquare = this.htmlTableBody.querySelector('.trace-active .color_square');
     colorSquare.style.backgroundColor = this.activeTrace.legendColor;
   }
 
@@ -1438,6 +1439,7 @@ class TraceList {
 
     let showHideButton = document.createElement('button');
     showHideButton.classList.add('trace_button');
+    showHideButton.classList.add('mini-button');
     showHideButton.textContent = 'Hide';
     showHideButton.addEventListener('click', function (e) {
       showHideButton.textContent = showHideButton.textContent === 'Hide' ? 'Show' : 'Hide';
@@ -1448,6 +1450,7 @@ class TraceList {
     });
     let clearButton = document.createElement('button');
     clearButton.classList.add('trace_button');
+    clearButton.classList.add('mini-button');
     clearButton.textContent = 'Clear';
     clearButton.addEventListener('click', function (e) {
       const rowList = Array.from(tableBody.rows);
@@ -1989,7 +1992,8 @@ class Toolbar {
   }
 
   static applyMargin () {
-    document.querySelector('#toolbar').style.margin = '0  ' + currentPlotStyle.marginPercent.right * 100 + '% 0 ' + currentPlotStyle.marginPercent.left * 100 + '%';
+    return;
+    //document.querySelector('#toolbar').style.margin = '0  ' + currentPlotStyle.marginPercent.right * 100 + '% 0 ' + currentPlotStyle.marginPercent.left * 100 + '%';
   }
 
   static get resetButton () {

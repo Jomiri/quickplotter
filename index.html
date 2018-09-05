@@ -21,6 +21,8 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
 
     <link rel='stylesheet' type='text/css' href='style.css'>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet">
 
     <!-- Favicons -->
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
@@ -339,8 +341,8 @@
                         <label class='inline-label'>x start:</label>
                         <input type='text' id='xStart' class='inline-input limit_input text-input' name='xStart' value=''>
                         <div class='limit-buttons'>
-                            <button class='limit-button auto-button'>Auto</button>
-                            <button class='limit-button tight-button'>Tight</button>
+                            <button class='mini-button limit-button auto-button'>Auto</button>
+                            <button class='mini-button limit-button tight-button'>Tight</button>
                         </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -357,8 +359,8 @@
                         <label class='inline-label'>x end:</label>
                         <input type='text' id='xEnd' class='inline-input limit_input text-input' name='xEnd' value=''>
                         <div class='limit-buttons'>
-                            <button class='limit-button auto-button'>Auto</button>
-                            <button class='limit-button tight-button'>Tight</button>
+                            <button class='mini-button limit-button auto-button'>Auto</button>
+                            <button class='mini-button limit-button tight-button'>Tight</button>
                         </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -375,8 +377,8 @@
                         <label class='inline-label'>y start:</label>
                         <input type='text' id='yStart' class='inline-input limit_input text-input' name='yStart' value=''>
                         <div class='limit-buttons'>
-                            <button class='limit-button auto-button'>Auto</button>
-                            <button class='limit-button tight-button'>Tight</button>
+                            <button class='mini-button limit-button auto-button'>Auto</button>
+                            <button class='mini-button limit-button tight-button'>Tight</button>
                         </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -393,8 +395,8 @@
                         <label class='inline-label'>y end:</label>
                         <input type='text' id='yEnd' class='inline-input limit_input text-input' name='yEnd' value=''>
                         <div class='limit-buttons'>
-                            <button class='limit-button auto-button'>Auto</button>
-                            <button class='limit-button tight-button'>Tight</button>
+                            <button class='mini-button limit-button auto-button'>Auto</button>
+                            <button class='mini-button limit-button tight-button'>Tight</button>
                         </div>
                         <div class='tooltip-wrapper'>
                             <div class='tooltip'>
@@ -960,10 +962,8 @@
         </div>
         <div class='side-footer'>
             <div class='fine-print'>
-                <p><a target='_blank' href='howto.html'>Tips and Tricks</a><a target='_blank' href='privacy.html'>Privacy</a></p>
-                <p><small>See the source code on <a target='_blank' href='https://github.com/Jomiri/quickplotter'>GitHub.</a></small></p>
-                <p><small>Contact: <a href='mailto:joona.m.rissanen@gmail.com'> joona.m.rissanen@gmail.com</a></small></p>
-                <p><small>&copy; 2018, Joona Rissanen</small></p>
+                <p><a target='_blank' href='howto.html'>Tips and Tricks</a><a target='_blank' href='privacy.html'>Privacy</a><a target='_blank' href='https://github.com/Jomiri/quickplotter'>GitHub</a></p>
+                <p><small>Copyright &copy; 2018, <a href='mailto:joona.m.rissanen@gmail.com'>Joona Rissanen</a></small></p>
             </div>
         </div>
     </div>
@@ -977,19 +977,23 @@
                     your <span id='instruction_twocol'>two-column data</span>
                     here <span id='instruction_plot'>to plot</span>.</p>
                 <p>The plot will be generated entirely in your own browser.</p>
-                <p>To use a different aspect ratio, change the set aspect ratio setting under Axes properties.</p>
+                <p class="minor-instruction">To use a different aspect ratio, change the "fix aspect ratio" setting under Axes properties.</p>
             </div>
         </div>
 
         <div id='toolbar'>
-            <div id='toolbar_buttons'>
-                <button id='reset_button'>Reset limits</button>
-                <button id='pan_button'>Pan</button>
-                <button id='zoom_button'>Zoom</button>
-                <button id='data_cursor_button'>Data cursor</button>
-                <button id='pngButton' type='button'>Save as PNG</button>
-                <button id='svgButton' type='button'>Save as SVG</button>
-                <button id='csvButton' type='button'>Export CSV</button>
+            <div class='toolbar-button-group'>
+                <span class='saveas'>Tools:</span>
+                <button id='reset_button' title='Reset limits'><i class="material-icons">refresh</i></button>
+                <button id='pan_button' title='Pan'><i class='material-icons'>pan_tool</i></button>
+                <button id='zoom_button' title='Zoom'><i class='material-icons'>search</i></button>
+                <button id='data_cursor_button' title='Data cursor'><i class='material-icons'>fullscreen</i></button>
+            </div>
+            <div class='toolbar-button-group'>
+                <span class='saveas'>Save as:</span>
+                <button id='pngButton' title='Save figure as PNG'>PNG</button>
+                <button id='svgButton' title='Save figure as SVG'>SVG</button>
+                <button id='csvButton' title='Save active trace as CSV'>CSV</button>
             </div>
             <div id='coordinates'>
                 <p id='x_coord'></p>

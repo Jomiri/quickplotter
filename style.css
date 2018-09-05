@@ -2,9 +2,8 @@ h1 {
     color: #ebebeb;
     padding-left: 15px;
     font-size: 32px;
-    position: fixed;
     height: 50px;
-    margin-bottom: 0;
+    margin: 14px 0 14px 0;
 }
 
 h1 sup {
@@ -32,17 +31,18 @@ body, #main-content {
 }
 
 #side-header {
-    position:absolute;
+    position: absolute;
     top: 0;
-    height: 70px;
+    width: 250px;
+    height: 60px;
     background-clip: padding-box;
 }
 
 #sidebar {
-    top: 70px;
+    top: 60px;
     position: absolute;
     bottom: 0;
-    height: calc(100vh - 70px - 100px);
+    height: calc(100vh - 60px - 50px);
     font-size: 0.9rem;
     overflow-y: auto;
     overflow-x: hidden;
@@ -175,8 +175,9 @@ body, #main-content {
 }
 
 #traceTable {
-   width: 100%;
+   width: 210px;
    table-layout: fixed;
+    border-collapse: collapse;
 }
 
 
@@ -185,7 +186,7 @@ body, #main-content {
 }
 
 #traceTable th {
-    width: 134px;
+   /* width: 134px;*/
 }
 
 #traceTable .text_cell, #traceTable .button_cell {
@@ -200,9 +201,9 @@ body, #main-content {
     width: 148px;
     background-color: #232323;
     border-radius: 2px;
-    border: 1px solid darkgrey;
     padding: 0 0;
     margin: 0 4px 0 0;
+    border: 2px solid darkgray;
 }
 
 
@@ -232,29 +233,30 @@ body, #main-content {
 }
 
 #traceTable .button_cell {
-    width: 60px;
+    width: 40px;
     margin: 0 auto;
     padding: 0;
     top: 0;
     position: relative;
 }
 
-#traceTable .button_cell .trace_button {
+.mini-button {
     top: 0;
-    width: 45px;
+    width: 35px;
     height: 14px;
+    padding: 0 2px;
     font-size: 10px;
     font-weight: bold;
     display: block;
     color: black;
     border: 1px solid grey;
-    border-radius: 5px;
+    border-radius: 2px;
     vertical-align: middle;
+    background-color: white;
 }
 
-#traceTable .button_cell button {
-    background-color: white;
-    border-color: white;
+.mini-button:hover {
+    background-color: #ffc063;
 }
 
 #traceTable .trace-hidden .text_cell input {
@@ -267,21 +269,18 @@ body, #main-content {
     border-color: #c4c4c4;
 }
 
-#traceTable .active .text_cell input {
+#traceTable .trace-active .text_cell input {
     font-weight: bold;
 }
 
-#traceTable .active .text_cell{
+#traceTable .trace-active .text_cell {
     border: 2px solid firebrick;
 }
 
 #traceTable .button_cell .trace_button:nth-child(2) {
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
-#traceTable .button_cell .trace_button:hover {
-    background-color: #ffc063;
-}
 
 .limit-buttons {
     display: inline-block;
@@ -292,24 +291,6 @@ body, #main-content {
     top: 0;
     left: 160px;
     position: absolute;
-}
-
-.limit-button {
-    top: 0;
-    width: 45px;
-    height: 14px;
-    font-size: 10px;
-    font-weight: bold;
-    display: block;
-    background-color: white;
-    border: 1px solid lightgray;
-    color: black;
-    border-radius: 5px;
-    margin-bottom: 2px;
-}
-
-.limit-button:hover {
-    background-color: #ffc063;
 }
 
 .accordion-button {
@@ -422,8 +403,8 @@ body, #main-content {
 .side-footer {
     position: absolute;
     bottom: 0;
-    height: 85px;
-    width: 240px;
+    height: 50px;
+    width: 250px;
     font-size: 0.8em;
 }
 
@@ -465,41 +446,62 @@ body, #main-content {
 }
 
 #toolbar {
-    padding: 0 4px;
-    position: absolute;
+    position: fixed;
     height: 50px;
     bottom: 0;
-    left: 2%;
+    left: 250px;
     right: 0;
     margin-right: 0;
+    margin-left: 0;
     display: none;
-    border-radius: 10px 10px 0 0;
+    /*border-radius: 5px 5px 0 0;*/
     background-color: #252525;
 }
 
-#toolbar_buttons {
+.toolbar-button-group  {
+    display: inline-flex;
+    align-items: center;
     height: 100%;
-    display: inline-block;
 }
 
-#toolbar_buttons button {
+
+.toolbar-button-group:nth-child(2) {
+    margin-left: 10px;
+}
+
+.toolbar-button-group button {
+    display: inline-block;
+    position: relative;
+    bottom: 0;
     height: 100%;
     background-color: #252525;
     border: 2px solid  #252525;
-    border-radius: 10px;
+    border-radius: 5px;
     color: #ebebeb;
-    padding: 2px 10px;
+   /* padding: 2px 10px;*/
     margin: 0 0;
     cursor: pointer;
 }
 
-#toolbar_buttons button:hover {
+.toolbar-button-group .saveas {
+    display: inline-block;
+    position: relative;
+    top: 0;
+    line-height: 40px;
+    background-color: #252525;
+    color: #ebebeb;
+    margin: 0 5px;
+    vertical-align: middle;
+    font-family: sans-serif;
+}
+
+.toolbar-button-group button:hover {
     background-color: white;
     border: 2px solid white;
     color: black;
 }
 
-#toolbar_buttons .active {
+.toolbar-button-group .active {
     color: black;
     background-color: white;
     border: 2px solid white;
@@ -529,6 +531,10 @@ body, #main-content {
 
 #instruction_text p {
     text-align: center;
+}
+
+#instruction_text .minor-instruction {
+    font-size: 1rem;
 }
 
 #instruction_header {
