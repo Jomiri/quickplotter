@@ -251,7 +251,6 @@ class FigureArea {
     ax.addYLabel(Sidebar.yLabel, fig.svgPercentageToPx(currentPlotStyle['yLabelFontSize']), currentPlotStyle.labelFont);
     ax.addTitle(Sidebar.title, fig.svgPercentageToPx(currentPlotStyle['titleFontSize']), currentPlotStyle.labelFont);
     ax.addLegend(currentPlotStyle.legendLocation, fig.svgPercentageToPx(currentPlotStyle.axisFontSize));
-    Toolbar.applyMargin();
     Toolbar.reactivateButton();
   }
 }
@@ -1989,11 +1988,6 @@ class Toolbar {
 
   static hide () {
     document.getElementById('toolbar').style.display = 'none';
-  }
-
-  static applyMargin () {
-    return;
-    //document.querySelector('#toolbar').style.margin = '0  ' + currentPlotStyle.marginPercent.right * 100 + '% 0 ' + currentPlotStyle.marginPercent.left * 100 + '%';
   }
 
   static get resetButton () {
