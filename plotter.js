@@ -44,6 +44,7 @@ const defaultPlotStyle = {
   'legendLocation': 'none',
   'legendBox': 'none',
   'legendFont': 'Sans-Serif',
+  'legendBackgroundColor': 'white',
   'marginPercent': { top: 0.05, bottom: 0.08, left: 0.08, right: 0.02 },
   'axisVisible': { top: true, bottom: true, left: true, right: true },
   'aspectRatio': 1.0 / 1.1,
@@ -672,7 +673,6 @@ class Axis {
       return;
     }
 
-    let legendHasBox = currentPlotStyle.legendBox !== 'none';
     let legendBoxMargin = 6;
 
     const legendData = Sidebar.traceList.getLegendData();
@@ -701,20 +701,19 @@ class Axis {
       startY = 18;
     }
 
-    if (legendHasBox) {
-      let dashArray = currentPlotStyle.legendBox === 'solid' ? ('1, 0') : ('6, 6');
-      let legendBox = this.dataAxElem.append('g');
-      legendBox.append('rect')
-        .attr('x', startX - legendBoxMargin)
-        .attr('y', startY - legendBoxMargin)
-        .attr('height', legendHeight + 0.5 * legendBoxMargin)
-        .attr('width', legendWidth - 2 * legendBoxMargin)
-        .attr('fill', 'rgba(0, 0, 0, 0)')
-        .attr('stroke-width', 2)
-        .attr('stroke', 'black')
-        .attr('stroke-dasharray', dashArray)
-        .attr('shape-rendering', 'crispEdges');
-    }
+    let dashArray = currentPlotStyle.legendBox === 'solid' ? ('1, 0') : ('6, 6');
+    let legendBoxStroke = currentPlotStyle.legendBox !== 'none' ? 2 : 0;
+    let legendBox = this.dataAxElem.append('g');
+    legendBox.append('rect')
+      .attr('x', startX - legendBoxMargin)
+      .attr('y', startY - legendBoxMargin)
+      .attr('height', legendHeight + 0.5 * legendBoxMargin)
+      .attr('width', legendWidth - 2 * legendBoxMargin)
+      .attr('fill', currentPlotStyle.legendBackgroundColor)
+      .attr('stroke-width', legendBoxStroke)
+      .attr('stroke', 'black')
+      .attr('stroke-dasharray', dashArray)
+      .attr('shape-rendering', 'crispEdges');
 
     let legend = this.dataAxElem.append('g')
       .attr('class', 'legend')
@@ -1594,7 +1593,8 @@ class Sidebar {
       'horizontalMinorGrid', 'verticalMinorGrid',
       'xAxisVisibility', 'topXAxisVisibility',
       'yAxisVisibility', 'rightYAxisVisibility',
-      'legendLocation', 'legendBox', 'legendFont', 'aspectRatio',
+      'legendLocation', 'legendBox', 'legendFont', 'legendBackgroundColor',
+      'aspectRatio',
       'errorBarType', 'errorBarStrokeWidth', 'errorBarLineStyle',
       'errorBarColor', 'errorBarOpacity',
       'errorBarXTransform', 'errorBarYTransform', 'importFormat'];
@@ -1702,6 +1702,7 @@ class Sidebar {
     currentPlotStyle['legendLocation'] = Sidebar.legendLocation;
     currentPlotStyle['legendBox'] = Sidebar.legendBox;
     currentPlotStyle['legendFont'] = Sidebar.legendFont;
+    currentPlotStyle['legendBackgroundColor'] = Sidebar.legendBackgroundColor;
     currentPlotStyle['aspectRatio'] = Sidebar.aspectRatio;
 
     currentTraceStyle['xScaling'] = Sidebar.xScaling;
@@ -1919,6 +1920,10 @@ class Sidebar {
 
   static get legendFont () {
     return document.getElementById('legendFont').value;
+  }
+
+  static get legendBackgroundColor () {
+    return document.getElementById('legendBackgroundColor').value;
   }
 
   static get importFormat () {
